@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"../models"
 	"context"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/kekEnd_main/models"
 )
 
 type UserRepository interface {
