@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/auth"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -57,4 +58,20 @@ func (h *Handler) Login(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK) // 200
+}
+
+func (h *Handler) GetUser(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.useCase.GetUser(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusNotFound) // 404
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

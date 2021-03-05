@@ -13,4 +13,10 @@ func RegisterHttpEndpoints(router *gin.Engine, authUC auth.UseCase) {
 		authEndpoints.POST("/signup", handler.SignUp)
 		authEndpoints.POST("/login", handler.Login)
 	}
+
+	usersEndpoints := router.Group("/users")
+	{
+		usersEndpoints.GET("/users/:id", handler.GetUser)
+		//usersEndpoints.PUT("/users/:id", handler.UpdateUser)
+	}
 }

@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-const port string = "8080"
+const port string = ":8080"
 
 func main() {
 	app := server.NewApp()

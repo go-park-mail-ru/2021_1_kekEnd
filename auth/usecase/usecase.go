@@ -29,9 +29,17 @@ func (authUC *AuthUseCase) SignUp(ctx context.Context, username, email, password
 }
 
 func (authUC *AuthUseCase) Login(ctx context.Context, login, password string) bool {
-	_, err := authUC.userRepository.GetUser(ctx, login, password)
+	_, err := authUC.userRepository.GetUserByLoginPassword(ctx, login, password)
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func (authUC *AuthUseCase) GetUser(ctx context.Context, id int) (*models.User, error) {
+	user, err := authUC.userRepository.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

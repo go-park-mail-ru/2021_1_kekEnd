@@ -8,13 +8,13 @@ import (
 )
 
 type UserLocalStorage struct {
-	users map[string]*models.User
+	users map[int]*models.User
 	mutex *sync.Mutex
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
 	return &UserLocalStorage{
-		users: make(map[string]*models.User),
+		users: make(map[int]*models.User),
 		mutex: new(sync.Mutex),
 	}
 }
@@ -26,7 +26,7 @@ func (storage *UserLocalStorage) CreateUser(ctx context.Context, user *models.Us
 	return nil
 }
 
-func (storage *UserLocalStorage) GetUser(ctx context.Context, login, password string) (*models.User, error) {
+func (storage *UserLocalStorage) GetUserByLoginPassword(ctx context.Context, login, password string) (*models.User, error) {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
@@ -37,4 +37,12 @@ func (storage *UserLocalStorage) GetUser(ctx context.Context, login, password st
 	}
 
 	return nil, errors.New("user not found")
+}
+
+func (storage *UserLocalStorage) GetUserByID(ctx context.Context, id int) (*models.User, error) {
+	user, exists := storage.users[id]
+	if !exists {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
 }
