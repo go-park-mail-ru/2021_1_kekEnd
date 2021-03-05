@@ -3,7 +3,7 @@ package localstorage
 import (
 	"context"
 	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/kekEnd_main/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/models"
 	"sync"
 )
 
