@@ -36,3 +36,25 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK) // 200
 }
+
+type loginData struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (h *Handler) Login(ctx *gin.Context) {
+	loginData := new(loginData)
+
+	if err := ctx.BindJSON(loginData); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	loginStatus := h.useCase.Login(ctx.Request.Context(), loginData.Username, loginData.Password)
+	if !loginStatus {
+		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}
