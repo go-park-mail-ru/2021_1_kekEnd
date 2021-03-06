@@ -16,16 +16,20 @@ func NewAuthUseCase(repo auth.UserRepository) *AuthUseCase {
 	}
 }
 
-func (authUC *AuthUseCase) SignUp(ctx context.Context, username, email, password string) error {
+func (authUC *AuthUseCase) SignUp(ctx context.Context, username, firstName, lastName, email, password string) error {
 	// хэширование и соль
 
 	user := &models.User{
-		Username: username,
-		Email: email,
-		Password: password,
+		Username:      username,
+		Email:         email,
+		Password:      password,
+		FirstName:     firstName,
+		LastName:      lastName,
+		MoviesWatched: 0,
+		ReviewsNumber: 0,
 	}
 
-	return authUC.userRepository.CreateUser(ctx, user);
+	return authUC.userRepository.CreateUser(ctx, user)
 }
 
 func (authUC *AuthUseCase) Login(ctx context.Context, login, password string) bool {

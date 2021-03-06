@@ -6,7 +6,7 @@ import (
 )
 
 type UseCase interface {
-	SignUp(ctx context.Context, username, email, password string) error
+	SignUp(ctx context.Context, username, email, firstName, lastName, password string) error
 
 	Login(ctx context.Context, login, password string) bool
 
