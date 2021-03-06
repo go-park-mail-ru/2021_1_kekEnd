@@ -8,20 +8,26 @@ import (
 )
 
 type UserLocalStorage struct {
-	users map[int]*models.User
-	mutex *sync.Mutex
+	users   map[int]*models.User
+	counter int
+	mutex   *sync.Mutex
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
 	return &UserLocalStorage{
-		users: make(map[int]*models.User),
-		mutex: new(sync.Mutex),
+		users:   make(map[int]*models.User),
+		counter: 1,
+		mutex:   new(sync.Mutex),
 	}
 }
 
 func (storage *UserLocalStorage) CreateUser(ctx context.Context, user *models.User) error {
 	storage.mutex.Lock()
+
+	user.ID = storage.counter
 	storage.users[user.ID] = user
+	storage.counter++
+
 	storage.mutex.Unlock()
 	return nil
 }

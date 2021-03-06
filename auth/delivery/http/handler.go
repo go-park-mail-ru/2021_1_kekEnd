@@ -18,9 +18,11 @@ func NewHandler(useCase auth.UseCase) *Handler {
 }
 
 type signupData struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Password  string `json:"password"`
 }
 
 func (h *Handler) SignUp(ctx *gin.Context) {
@@ -31,7 +33,8 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.useCase.SignUp(ctx.Request.Context(), signupData.Username, signupData.Email, signupData.Password); err != nil {
+	if err := h.useCase.SignUp(ctx.Request.Context(), signupData.Username, signupData.Email, signupData.FirstName,
+		signupData.LastName, signupData.Password); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
