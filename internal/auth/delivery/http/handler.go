@@ -2,8 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/auth"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"net/http"
 	"strconv"
 )
