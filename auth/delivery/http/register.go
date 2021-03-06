@@ -8,15 +8,9 @@ import (
 func RegisterHttpEndpoints(router *gin.Engine, authUC auth.UseCase) {
 	handler := NewHandler(authUC)
 
-	authEndpoints := router.Group("/auth")
-	{
-		authEndpoints.POST("/signup", handler.SignUp)
-		authEndpoints.POST("/login", handler.Login)
-	}
+	router.POST("/signup", handler.SignUp)
+	router.POST("/login", handler.Login)
 
-	usersEndpoints := router.Group("/users")
-	{
-		usersEndpoints.GET("/users/:id", handler.GetUser)
-		//usersEndpoints.PUT("/users/:id", handler.UpdateUser)
-	}
+	router.GET("/users/:id", handler.GetUser)
+	//router.PUT("/users/:id", handler.UpdateUser)
 }
