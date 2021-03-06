@@ -47,3 +47,10 @@ func (authUC *AuthUseCase) GetUser(ctx context.Context, id int) (*models.User, e
 	}
 	return user, nil
 }
+
+func (authUC *AuthUseCase) UpdateUser(ctx context.Context, id int, newUser *models.User) error {
+	if err := authUC.userRepository.UpdateUser(ctx, id, newUser); err != nil {
+		return err
+	}
+	return nil
+}

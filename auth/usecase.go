@@ -11,4 +11,6 @@ type UseCase interface {
 	Login(ctx context.Context, login, password string) bool
 
 	GetUser(ctx context.Context, id int) (*models.User, error)
+
+	UpdateUser(ctx context.Context, id int, newUser *models.User) error
 }

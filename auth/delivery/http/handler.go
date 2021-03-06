@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/auth"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/models"
 	"net/http"
 	"strconv"
 )
@@ -76,5 +77,27 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusOK, user)
+}
+
+func (h *Handler) UpdateUser(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	user := new(models.User)
+	if err := ctx.BindJSON(user); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	if err := h.useCase.UpdateUser(ctx, id, user); err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	// TODO: отправлять либо 200, либо 201
 	ctx.JSON(http.StatusOK, user)
 }

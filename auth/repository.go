@@ -11,4 +11,6 @@ type UserRepository interface {
 	GetUserByLoginPassword(ctx context.Context, login, password string) (*models.User, error)
 
 	GetUserByID(ctx context.Context, id int) (*models.User, error)
+
+	UpdateUser(ctx context.Context, id int, newUser *models.User) error
 }

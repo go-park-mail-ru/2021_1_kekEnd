@@ -52,3 +52,14 @@ func (storage *UserLocalStorage) GetUserByID(ctx context.Context, id int) (*mode
 	}
 	return user, nil
 }
+
+func (storage *UserLocalStorage) UpdateUser(ctx context.Context, id int, newUser *models.User) error {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	if _, exists := storage.users[id]; exists {
+		storage.users[id] = newUser
+		return nil
+	}
+	return storage.CreateUser(ctx, newUser)
+}
