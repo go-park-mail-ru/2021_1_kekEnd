@@ -1,16 +1,15 @@
 package auth
 
 import (
-	"context"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *models.User) error
+	CreateUser(user *models.User) error
 
-	GetUserByLoginPassword(ctx context.Context, login, password string) (*models.User, error)
+	GetUserByLoginPassword(login, password string) (*models.User, error)
 
-	GetUserByID(ctx context.Context, id int) (*models.User, error)
+	GetUserByID(id int) (*models.User, error)
 
-	UpdateUser(ctx context.Context, id int, newUser *models.User) error
+	UpdateUser(id int, newUser *models.User) error
 }

@@ -33,12 +33,12 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	if err := h.useCase.SignUp(ctx.Request.Context(), signupData.Username, signupData.Email, signupData.FirstName,
+	if err := h.useCase.SignUp(signupData.Username, signupData.Email, signupData.FirstName,
 		signupData.LastName, signupData.Password); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	ctx.Status(http.StatusOK) // 200
+	ctx.Status(http.StatusCreated) // 201
 }
 
 type loginData struct {
@@ -53,7 +53,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	loginStatus := h.useCase.Login(ctx.Request.Context(), loginData.Username, loginData.Password)
+	loginStatus := h.useCase.Login(loginData.Username, loginData.Password)
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 	}
@@ -67,7 +67,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 	}
 
-	user, err := h.useCase.GetUser(ctx.Request.Context(), id)
+	user, err := h.useCase.GetUser(id)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
@@ -86,7 +86,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	if err := h.useCase.UpdateUser(ctx, id, user); err != nil {
+	if err := h.useCase.UpdateUser(id, user); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 

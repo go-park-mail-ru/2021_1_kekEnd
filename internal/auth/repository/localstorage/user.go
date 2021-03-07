@@ -1,7 +1,6 @@
 package localstorage
 
 import (
-	"context"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"sync"
@@ -21,7 +20,7 @@ func NewUserLocalStorage() *UserLocalStorage {
 	}
 }
 
-func (storage *UserLocalStorage) CreateUser(ctx context.Context, user *models.User) error {
+func (storage *UserLocalStorage) CreateUser(user *models.User) error {
 	storage.mutex.Lock()
 
 	user.ID = storage.counter
@@ -32,7 +31,7 @@ func (storage *UserLocalStorage) CreateUser(ctx context.Context, user *models.Us
 	return nil
 }
 
-func (storage *UserLocalStorage) GetUserByLoginPassword(ctx context.Context, login, password string) (*models.User, error) {
+func (storage *UserLocalStorage) GetUserByLoginPassword(login, password string) (*models.User, error) {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
@@ -45,7 +44,7 @@ func (storage *UserLocalStorage) GetUserByLoginPassword(ctx context.Context, log
 	return nil, errors.New("user not found")
 }
 
-func (storage *UserLocalStorage) GetUserByID(ctx context.Context, id int) (*models.User, error) {
+func (storage *UserLocalStorage) GetUserByID(id int) (*models.User, error) {
 	user, exists := storage.users[id]
 	if !exists {
 		return nil, errors.New("user not found")
@@ -53,7 +52,7 @@ func (storage *UserLocalStorage) GetUserByID(ctx context.Context, id int) (*mode
 	return user, nil
 }
 
-func (storage *UserLocalStorage) UpdateUser(ctx context.Context, id int, newUser *models.User) error {
+func (storage *UserLocalStorage) UpdateUser(id int, newUser *models.User) error {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
@@ -61,5 +60,5 @@ func (storage *UserLocalStorage) UpdateUser(ctx context.Context, id int, newUser
 		storage.users[id] = newUser
 		return nil
 	}
-	return storage.CreateUser(ctx, newUser)
+	return storage.CreateUser(newUser)
 }
