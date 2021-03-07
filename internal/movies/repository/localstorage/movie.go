@@ -17,13 +17,14 @@ func NewMovieLocalStorage() *MovieLocalStorage {
 	// dummy data for testing
 	movies := map[string]*models.Movie{
 		"1": {
+			ID:          "1",
 			Title:       "Чужой",
 			Description: "Группа космонавтов высаживается на неизвестной планете и знакомится с ксеноморфом. Шедевр Ридли Скотта",
 		},
 	}
 
 	return &MovieLocalStorage{
-		movies: movies,
+		movies:    movies,
 		currentID: 2,
 	}
 }
@@ -47,7 +48,7 @@ func (storage *MovieLocalStorage) GetMovieByID(id string) (*models.Movie, error)
 	return movie, nil
 }
 
-func (storage *MovieLocalStorage) UpdateMovie(id string, newMovie *models.Movie) (error) {
+func (storage *MovieLocalStorage) UpdateMovie(id string, newMovie *models.Movie) error {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
