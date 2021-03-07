@@ -20,15 +20,18 @@ func (usersUC *UsersUseCase) CreateUser(user *models.User) error {
 }
 
 func (usersUC *UsersUseCase) Login(login, password string) bool {
-	_, err := usersUC.userRepository.GetUserByLoginPassword(login, password)
+	user, err := usersUC.userRepository.GetUserByUsername(login)
 	if err != nil {
 		return false
 	}
-	return true
+	if password == user.Password {
+		return true
+	}
+	return false
 }
 
-func (usersUC *UsersUseCase) GetUser(id string) (*models.User, error) {
-	return usersUC.userRepository.GetUserByID(id)
+func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
+	return usersUC.userRepository.GetUserByUsername(username)
 }
 
 func (usersUC *UsersUseCase) UpdateUser(id string, newUser *models.User) error {

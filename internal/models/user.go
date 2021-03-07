@@ -1,11 +1,10 @@
 package models
 
 type User struct {
-	ID       string
-	Username string
-	Email    string
-	Password string
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 
-	MoviesWatched uint
-	ReviewsNumber uint
+	MoviesWatched uint `json:"movies_watched"`
+	ReviewsNumber uint `json:"reviews_number"`
 }
