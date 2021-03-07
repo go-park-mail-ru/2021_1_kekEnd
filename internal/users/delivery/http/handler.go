@@ -18,9 +18,9 @@ func NewHandler(useCase users.UseCase) *Handler {
 }
 
 type signupData struct {
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
