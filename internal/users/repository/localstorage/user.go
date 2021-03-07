@@ -17,7 +17,7 @@ func getHashedPassword(password string) (string, error) {
 
 type UserLocalStorage struct {
 	users   map[string]*models.User
-	mutex   *sync.Mutex
+	mutex   sync.Mutex
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
@@ -34,7 +34,6 @@ func NewUserLocalStorage() *UserLocalStorage {
 
 	return &UserLocalStorage{
 		users:   users,
-		mutex:   new(sync.Mutex),
 	}
 }
 
