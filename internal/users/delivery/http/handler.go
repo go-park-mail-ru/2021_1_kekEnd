@@ -89,6 +89,5 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	// TODO: отправлять либо 200, либо 201
 	ctx.JSON(http.StatusOK, user)
 }

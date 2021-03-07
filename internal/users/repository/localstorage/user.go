@@ -3,8 +3,17 @@ package localstorage
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"golang.org/x/crypto/bcrypt"
 	"sync"
 )
+
+func getHashedPassword(password string) (string, error) {
+	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", nil
+	}
+	return string(hashedPasswordBytes), nil
+}
 
 type UserLocalStorage struct {
 	users   map[string]*models.User
@@ -32,6 +41,12 @@ func NewUserLocalStorage() *UserLocalStorage {
 func (storage *UserLocalStorage) CreateUser(user *models.User) error {
 	storage.mutex.Lock()
 
+	hashedPassword, err := getHashedPassword(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
+
 	storage.users[user.Username] = user
 
 	storage.mutex.Unlock()
@@ -46,6 +61,14 @@ func (storage *UserLocalStorage) GetUserByUsername(username string) (*models.Use
 	return user, nil
 }
 
+func (storage *UserLocalStorage) CheckPassword(password string, user *models.User) (bool, error) {
+	hashedPassword, err := getHashedPassword(password)
+	if err != nil {
+		return false, nil
+	}
+	return hashedPassword == user.Password, nil
+}
+
 func (storage *UserLocalStorage) UpdateUser(username string, newUser *models.User) error {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
@@ -55,5 +78,5 @@ func (storage *UserLocalStorage) UpdateUser(username string, newUser *models.Use
 		storage.users[username] = newUser
 		return nil
 	}
-	return storage.CreateUser(newUser)
+	return errors.New("user not found")
 }
