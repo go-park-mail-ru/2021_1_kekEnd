@@ -21,20 +21,25 @@ func NewHandler(useCase auth.UseCase) *Handler {
 type signupData struct {
 	Username  string `json:"username"`
 	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
 	Password  string `json:"password"`
 }
 
-func (h *Handler) SignUp(ctx *gin.Context) {
+func (h *Handler) CreateUser(ctx *gin.Context) {
 	signupData := new(signupData)
 
 	if err := ctx.BindJSON(signupData); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	if err := h.useCase.SignUp(signupData.Username, signupData.Email, signupData.FirstName,
-		signupData.LastName, signupData.Password); err != nil {
+	user := &models.User{
+		Username:      signupData.Username,
+		Email:         signupData.Email,
+		Password:      signupData.Password,
+		MoviesWatched: 0,
+		ReviewsNumber: 0,
+	}
+
+	if err := h.useCase.CreateUser(user); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 

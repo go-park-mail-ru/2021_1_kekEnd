@@ -5,7 +5,7 @@ import (
 )
 
 type UseCase interface {
-	SignUp(username, email, firstName, lastName, password string) error
+	CreateUser(user *models.User) error
 
 	Login(login, password string) bool
 

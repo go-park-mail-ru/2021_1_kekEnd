@@ -15,19 +15,7 @@ func NewAuthUseCase(repo auth.UserRepository) *AuthUseCase {
 	}
 }
 
-func (authUC *AuthUseCase) SignUp(username, firstName, lastName, email, password string) error {
-	// хэширование и соль
-
-	user := &models.User{
-		Username:      username,
-		Email:         email,
-		Password:      password,
-		FirstName:     firstName,
-		LastName:      lastName,
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
-	}
-
+func (authUC *AuthUseCase) CreateUser(user *models.User) error {
 	return authUC.userRepository.CreateUser(user)
 }
 
