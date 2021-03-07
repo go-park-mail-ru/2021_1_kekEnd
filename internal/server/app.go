@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth"
-	authHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth/delivery/http"
-	authLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth/repository/localstorage"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
+	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	"log"
 	"net/http"
 	"os"
@@ -15,22 +15,22 @@ import (
 )
 
 type App struct {
-	server *http.Server
-	authUC auth.UseCase
+	server  *http.Server
+	usersUC users.UseCase
 }
 
 func NewApp() *App {
-	repo := authLocalStorage.NewUserLocalStorage()
+	repo := usersLocalStorage.NewUserLocalStorage()
 
 	return &App{
-		authUC: usecase.NewAuthUseCase(repo),
+		usersUC: usecase.NewUsersUseCase(repo),
 	}
 }
 
 func (app *App) Run(port string) error {
 	router := gin.Default()
 
-	authHttp.RegisterHttpEndpoints(router, app.authUC)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

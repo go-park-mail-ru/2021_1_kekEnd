@@ -2,17 +2,17 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/auth"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"net/http"
 	"strconv"
 )
 
 type Handler struct {
-	useCase auth.UseCase
+	useCase users.UseCase
 }
 
-func NewHandler(useCase auth.UseCase) *Handler {
+func NewHandler(useCase users.UseCase) *Handler {
 	return &Handler{
 		useCase: useCase,
 	}
