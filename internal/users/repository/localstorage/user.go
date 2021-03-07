@@ -50,7 +50,8 @@ func (storage *UserLocalStorage) UpdateUser(username string, newUser *models.Use
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
-	if _, exists := storage.users[username]; exists {
+	_, exists := storage.users[username]
+	if exists {
 		storage.users[username] = newUser
 		return nil
 	}

@@ -26,7 +26,8 @@ type signupData struct {
 func (h *Handler) CreateUser(ctx *gin.Context) {
 	signupData := new(signupData)
 
-	if err := ctx.BindJSON(signupData); err != nil {
+	err := ctx.BindJSON(signupData)
+	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
@@ -38,7 +39,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		ReviewsNumber: 0,
 	}
 
-	if err := h.useCase.CreateUser(user); err != nil {
+	err = h.useCase.CreateUser(user)
+	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
@@ -53,7 +55,8 @@ type loginData struct {
 func (h *Handler) Login(ctx *gin.Context) {
 	loginData := new(loginData)
 
-	if err := ctx.BindJSON(loginData); err != nil {
+	err := ctx.BindJSON(loginData)
+	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
@@ -76,11 +79,13 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
 	user := new(models.User)
-	if err := ctx.BindJSON(user); err != nil {
+	err := ctx.BindJSON(user)
+	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	if err := h.useCase.UpdateUser(ctx.Param("id"), user); err != nil {
+	err = h.useCase.UpdateUser(ctx.Param("id"), user)
+	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 

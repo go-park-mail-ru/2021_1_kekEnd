@@ -35,8 +35,5 @@ func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 }
 
 func (usersUC *UsersUseCase) UpdateUser(id string, newUser *models.User) error {
-	if err := usersUC.userRepository.UpdateUser(id, newUser); err != nil {
-		return err
-	}
-	return nil
+	return usersUC.userRepository.UpdateUser(id, newUser)
 }

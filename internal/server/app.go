@@ -41,7 +41,8 @@ func (app *App) Run(port string) error {
 	}
 
 	go func() {
-		if err := app.server.ListenAndServe(); err != nil {
+		err := app.server.ListenAndServe()
+		if err != nil {
 			log.Fatal("Failed to listen and serve: ", err)
 		}
 	}()
