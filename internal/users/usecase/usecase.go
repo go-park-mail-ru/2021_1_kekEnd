@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
@@ -16,6 +17,10 @@ func NewUsersUseCase(repo users.UserRepository) *UsersUseCase {
 }
 
 func (usersUC *UsersUseCase) CreateUser(user *models.User) error {
+	_, err := usersUC.userRepository.GetUserByUsername(user.Username)
+	if err == nil {
+		return errors.New("user already exists")
+	}
 	return usersUC.userRepository.CreateUser(user)
 }
 

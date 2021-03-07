@@ -39,6 +39,7 @@ func NewUserLocalStorage() *UserLocalStorage {
 
 func (storage *UserLocalStorage) CreateUser(user *models.User) error {
 	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	hashedPassword, err := getHashedPassword(user.Password)
 	if err != nil {
@@ -47,8 +48,6 @@ func (storage *UserLocalStorage) CreateUser(user *models.User) error {
 	user.Password = hashedPassword
 
 	storage.users[user.Username] = user
-
-	storage.mutex.Unlock()
 	return nil
 }
 

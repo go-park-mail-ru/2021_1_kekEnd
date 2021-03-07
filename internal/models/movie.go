@@ -1,21 +1,23 @@
 package models
 
 type Movie struct {
-	title          string
-	description    string
-	voiceover      string
-	subtitles      string
-	quality        string
-	productionYear uint
-	country        string
-	slogan         string
-	director       string
-	scriptwriter   string
-	producer       string
-	operator       string
-	composer       string
-	artist         string
-	montage        string
-	budget         string
-	duration       string
+	ID			   string
+	Title          string
+	Description    string
+	Voiceover      string
+	Subtitles      string
+	Quality        string
+	ProductionYear uint
+	Country        string
+	Slogan         string
+	Director       string
+	Scriptwriter   string
+	Producer       string
+	Operator       string
+	Composer       string
+	Artist         string
+	Montage        string
+	Budget         string
+	Duration       string
+	Actors         []string
 }

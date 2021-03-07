@@ -1,0 +1,60 @@
+package localstorage
+
+import (
+	"errors"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"strconv"
+	"sync"
+)
+
+type MovieLocalStorage struct {
+	movies    map[string]*models.Movie
+	currentID uint64
+	mutex     sync.Mutex
+}
+
+func NewMovieLocalStorage() *MovieLocalStorage {
+	// dummy data for testing
+	movies := map[string]*models.Movie{
+		"1": {
+			Title:       "Чужой",
+			Description: "Группа космонавтов высаживается на неизвестной планете и знакомится с ксеноморфом. Шедевр Ридли Скотта",
+		},
+	}
+
+	return &MovieLocalStorage{
+		movies: movies,
+		currentID: 2,
+	}
+}
+
+func (storage *MovieLocalStorage) CreateMovie(movie *models.Movie) error {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	movie.ID = strconv.FormatUint(storage.currentID, 10)
+	storage.movies[movie.ID] = movie
+	storage.currentID++
+
+	return nil
+}
+
+func (storage *MovieLocalStorage) GetMovieByID(id string) (*models.Movie, error) {
+	movie, exists := storage.movies[id]
+	if !exists {
+		return nil, errors.New("movie not found")
+	}
+	return movie, nil
+}
+
+func (storage *MovieLocalStorage) UpdateMovie(id string, newMovie *models.Movie) (error) {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	_, exists := storage.movies[id]
+	if exists {
+		storage.movies[id] = newMovie
+		return nil
+	}
+	return errors.New("movie not found")
+}
