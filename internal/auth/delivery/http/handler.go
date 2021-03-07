@@ -31,7 +31,6 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 
 	if err := ctx.BindJSON(signupData); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
 	}
 
 	if err := h.useCase.SignUp(ctx.Request.Context(), signupData.Username, signupData.Email, signupData.FirstName,
@@ -52,13 +51,11 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	if err := ctx.BindJSON(loginData); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
 	}
 
 	loginStatus := h.useCase.Login(ctx.Request.Context(), loginData.Username, loginData.Password)
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
-		return
 	}
 
 	ctx.Status(http.StatusOK) // 200
@@ -68,13 +65,11 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
 	}
 
 	user, err := h.useCase.GetUser(ctx.Request.Context(), id)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
-		return
 	}
 
 	ctx.JSON(http.StatusOK, user)
@@ -84,18 +79,15 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
 	}
 
 	user := new(models.User)
 	if err := ctx.BindJSON(user); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
 	}
 
 	if err := h.useCase.UpdateUser(ctx, id, user); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
 	}
 
 	// TODO: отправлять либо 200, либо 201
