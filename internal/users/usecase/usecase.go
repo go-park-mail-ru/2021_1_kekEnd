@@ -24,10 +24,11 @@ func (usersUC *UsersUseCase) Login(login, password string) bool {
 	if err != nil {
 		return false
 	}
-	if password == user.Password {
-		return true
+	correct, err := usersUC.userRepository.CheckPassword(password, user)
+	if err != nil {
+		return false
 	}
-	return false
+	return correct
 }
 
 func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
