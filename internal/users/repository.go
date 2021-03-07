@@ -9,7 +9,7 @@ type UserRepository interface {
 
 	GetUserByLoginPassword(login, password string) (*models.User, error)
 
-	GetUserByID(id int) (*models.User, error)
+	GetUserByID(id string) (*models.User, error)
 
-	UpdateUser(id int, newUser *models.User) error
+	UpdateUser(id string, newUser *models.User) error
 }

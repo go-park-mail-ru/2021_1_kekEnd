@@ -27,15 +27,11 @@ func (usersUC *UsersUseCase) Login(login, password string) bool {
 	return true
 }
 
-func (usersUC *UsersUseCase) GetUser(id int) (*models.User, error) {
-	user, err := usersUC.userRepository.GetUserByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+func (usersUC *UsersUseCase) GetUser(id string) (*models.User, error) {
+	return usersUC.userRepository.GetUserByID(id)
 }
 
-func (usersUC *UsersUseCase) UpdateUser(id int, newUser *models.User) error {
+func (usersUC *UsersUseCase) UpdateUser(id string, newUser *models.User) error {
 	if err := usersUC.userRepository.UpdateUser(id, newUser); err != nil {
 		return err
 	}

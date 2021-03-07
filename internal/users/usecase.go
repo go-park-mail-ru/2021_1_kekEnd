@@ -9,7 +9,7 @@ type UseCase interface {
 
 	Login(login, password string) bool
 
-	GetUser(id int) (*models.User, error)
+	GetUser(id string) (*models.User, error)
 
-	UpdateUser(id int, newUser *models.User) error
+	UpdateUser(id string, newUser *models.User) error
 }

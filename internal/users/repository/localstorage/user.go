@@ -3,20 +3,21 @@ package localstorage
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"strconv"
 	"sync"
 )
 
 type UserLocalStorage struct {
-	users   map[int]*models.User
-	counter int
+	users   map[string]*models.User
+	counter uint64
 	mutex   *sync.Mutex
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
 	// dummy data for testing
-	users := map[int]*models.User{
-		1: &models.User{
-			ID:            1,
+	users := map[string]*models.User{
+		"1": {
+			ID:            "1",
 			Username:      "let-robots-reign",
 			Email:         "sample@ya.ru",
 			Password:      "1234",
@@ -35,7 +36,7 @@ func NewUserLocalStorage() *UserLocalStorage {
 func (storage *UserLocalStorage) CreateUser(user *models.User) error {
 	storage.mutex.Lock()
 
-	user.ID = storage.counter
+	user.ID = strconv.FormatUint(storage.counter, 10)
 	storage.users[user.ID] = user
 	storage.counter++
 
@@ -56,7 +57,7 @@ func (storage *UserLocalStorage) GetUserByLoginPassword(login, password string) 
 	return nil, errors.New("user not found")
 }
 
-func (storage *UserLocalStorage) GetUserByID(id int) (*models.User, error) {
+func (storage *UserLocalStorage) GetUserByID(id string) (*models.User, error) {
 	user, exists := storage.users[id]
 	if !exists {
 		return nil, errors.New("user not found")
@@ -64,7 +65,7 @@ func (storage *UserLocalStorage) GetUserByID(id int) (*models.User, error) {
 	return user, nil
 }
 
-func (storage *UserLocalStorage) UpdateUser(id int, newUser *models.User) error {
+func (storage *UserLocalStorage) UpdateUser(id string, newUser *models.User) error {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 

@@ -5,7 +5,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -67,12 +66,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-	}
-
-	user, err := h.useCase.GetUser(id)
+	user, err := h.useCase.GetUser(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
@@ -81,17 +75,12 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-	}
-
 	user := new(models.User)
 	if err := ctx.BindJSON(user); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	if err := h.useCase.UpdateUser(id, user); err != nil {
+	if err := h.useCase.UpdateUser(ctx.Param("id"), user); err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
