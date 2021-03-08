@@ -1,30 +1,30 @@
-package usecase
+package sessions
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/repository/redis"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
-type SessionsUseCase struct {
-	Repository redis.SessionsRedis
+type UseCase struct {
+	Repository sessions.Repository
 }
 
 func addPrefix(id string) string {
 	return "sessions:" + id
 }
 
-func NewSessionsUseCase(repo redis.SessionsRedis) *SessionsUseCase {
-	return &SessionsUseCase{
+func NewUseCase(repo sessions.Repository) *UseCase {
+	return &UseCase{
 		Repository: repo,
 	}
 }
 
-func (uc *SessionsUseCase) Create(userID uuid.UUID, expires uint64) (string, error){
-	ctx := context.Background()
+func (uc *UseCase) Create(ctx context.Context, userID string, expires time.Duration) (string, error){
 	sessionID := uuid.NewV4().String()
 	sID := addPrefix(sessionID)
-	err := uc.Repository.Create(ctx, sID, userID.String(), expires)
+	err := uc.Repository.Create(ctx, sID, userID, expires)
 	if err != nil {
 		return "", err
 	}
@@ -33,9 +33,8 @@ func (uc *SessionsUseCase) Create(userID uuid.UUID, expires uint64) (string, err
 }
 
 
-func (uc *SessionsUseCase) Check(sessionID uuid.UUID) (string, error) {
-	ctx := context.Background()
-	sID := addPrefix(sessionID.String())
+func (uc *UseCase) Check(ctx context.Context, sessionID string) (string, error) {
+	sID := addPrefix(sessionID)
 	user, err := uc.Repository.Get(ctx, sID)
 	if err != nil {
 		return "", err
@@ -44,9 +43,8 @@ func (uc *SessionsUseCase) Check(sessionID uuid.UUID) (string, error) {
 	return user, nil
 }
 
-func (uc *SessionsUseCase) Delete(sessionID uuid.UUID) error {
-	ctx := context.Background()
-	sID := addPrefix(sessionID.String())
+func (uc *UseCase) Delete(ctx context.Context, sessionID string) error {
+	sID := addPrefix(sessionID)
 	err := uc.Repository.Delete(ctx, sID)
 	if err != nil{
 		return err

@@ -1,16 +1,23 @@
 package sessions
 
 import (
-	"github.com/go-park-mail-ru/2021_1_kekEnd/sessions"
-	uuid "github.com/satori/go.uuid"
+	"context"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"time"
 )
 
 type Delivery struct {
-	UseCase main.sessions
+	UseCase sessions.UseCase
 }
 
-func (d *Delivery) Create(userID uuid.UUID, expires uint64) (string, error) {
-	sessionsID, err := d.UseCase.Create(userID, expires)
+func NewDelivery(uc sessions.UseCase) *Delivery {
+	return &Delivery{
+		UseCase: uc,
+	}
+}
+
+func (d *Delivery) Create(ctx context.Context, userID string, expires time.Duration) (string, error) {
+	sessionsID, err := d.UseCase.Create(ctx, userID, expires)
 	if err != nil {
 		return "", err
 	}
@@ -18,8 +25,17 @@ func (d *Delivery) Create(userID uuid.UUID, expires uint64) (string, error) {
 	return sessionsID, nil
 }
 
-func (d *Delivery) Delete(sessionsID uuid.UUID) error {
-	err := d.UseCase.Delete(sessionsID)
+func (d *Delivery) GetUser(ctx context.Context, sessionsID string) (string, error) {
+	user, err := d.UseCase.Check(ctx, sessionsID)
+	if err != nil {
+		return "", err
+	}
+
+	return user, nil
+}
+
+func (d *Delivery) Delete(ctx context.Context, sessionsID string) error {
+	err := d.UseCase.Delete(ctx, sessionsID)
 	if err != nil {
 		return err
 	}
@@ -27,12 +43,4 @@ func (d *Delivery) Delete(sessionsID uuid.UUID) error {
 	return nil
 }
 
-func (d *Delivery) Check(sessionsID string) (string, error) {
-	sID, _ :=  uuid.FromString(sessionsID)
-	user, err := d.UseCase.Check(sID)
-	if err != nil {
-		return "", err
-	}
 
-	return user, nil
-}

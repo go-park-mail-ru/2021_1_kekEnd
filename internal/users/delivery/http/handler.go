@@ -3,17 +3,21 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"net/http"
+	"time"
 )
 
 type Handler struct {
-	useCase users.UseCase
+	useCase  users.UseCase
+	sessions sessions.Delivery
 }
 
-func NewHandler(useCase users.UseCase) *Handler {
+func NewHandler(useCase users.UseCase, sessions sessions.Delivery) *Handler {
 	return &Handler{
-		useCase: useCase,
+		useCase:  useCase,
+		sessions: sessions,
 	}
 }
 
@@ -55,6 +59,9 @@ type loginData struct {
 func (h *Handler) Login(ctx *gin.Context) {
 	loginData := new(loginData)
 
+	//refactor it later
+	expires := 240 * time.Hour
+
 	err := ctx.BindJSON(loginData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -64,6 +71,18 @@ func (h *Handler) Login(ctx *gin.Context) {
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 	}
+
+	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
+
+	ctx.SetCookie(
+		"session_id",
+		userSessionID,
+		int(expires),
+		"/",
+		ctx.Request.Host, //???
+		true,
+		true,
+	)
 
 	ctx.Status(http.StatusOK) // 200
 }

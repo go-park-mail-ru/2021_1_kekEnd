@@ -1,9 +1,12 @@
 package sessions
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"context"
+	"time"
+)
 
 type UseCase interface {
-	Create(userID uuid.UUID, expires uint64) (string, error)
-	Check(sessionID uuid.UUID) (string, error)
-	Delete(sessionID uuid.UUID) error
+	Create(ctx context.Context, userID string, expires time.Duration) (string, error)
+	Check(ctx context.Context, sessionID string) (string, error)
+	Delete(ctx context.Context, sessionID string) error
 }
