@@ -16,6 +16,9 @@ func (storageMock *UserStorageMock) CreateUser(user *models.User) error {
 
 func (storageMock *UserStorageMock) GetUserByUsername(username string) (*models.User, error) {
 	args := storageMock.Called(username)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
