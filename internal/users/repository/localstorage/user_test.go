@@ -10,7 +10,7 @@ func TestUserLocalStorage(t *testing.T) {
 	storage := NewUserLocalStorage()
 
 	user := &models.User{
-		Username:      "let-robots-reign",
+		Username:      "let_robots_reign",
 		Email:         "sample@ya.ru",
 		Password:      "1234",
 		MoviesWatched: 4,
