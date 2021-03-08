@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
+	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
+	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
+	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	"log"
 	"net/http"
 	"os"
@@ -16,15 +20,18 @@ import (
 )
 
 type App struct {
-	server  *http.Server
-	usersUC users.UseCase
+	server   *http.Server
+	usersUC  users.UseCase
+	moviesUC movies.UseCase
 }
 
 func NewApp() *App {
-	repo := usersLocalStorage.NewUserLocalStorage()
+	usersRepo := usersLocalStorage.NewUserLocalStorage()
+	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
 
 	return &App{
-		usersUC: usecase.NewUsersUseCase(repo),
+		usersUC:  usersUseCase.NewUsersUseCase(usersRepo),
+		moviesUC: moviesUseCase.NewMoviesUseCase(moviesRepo),
 	}
 }
 
@@ -46,6 +53,7 @@ func (app *App) Run(port string) error {
 	}))
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC)
+	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,
