@@ -40,18 +40,3 @@ func (h *Handler) GetMovie(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, movie)
 }
-
-func (h *Handler) UpdateMovie(ctx *gin.Context) {
-	movie := new(models.Movie)
-	err := ctx.BindJSON(movie)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-	}
-
-	err = h.useCase.UpdateMovie(ctx.Param("id"), movie)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	}
-
-	ctx.JSON(http.StatusOK, movie)
-}

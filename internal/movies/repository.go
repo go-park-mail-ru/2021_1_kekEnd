@@ -6,6 +6,4 @@ type MovieRepository interface {
 	CreateMovie(movie *models.Movie) error
 
 	GetMovieByID(id string) (*models.Movie, error)
-
-	UpdateMovie(id string, newMovie *models.Movie) error
 }

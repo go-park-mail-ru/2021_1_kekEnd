@@ -27,7 +27,3 @@ func (moviesUC *MoviesUseCase) CreateMovie(movie *models.Movie) error {
 func (moviesUC *MoviesUseCase) GetMovie(id string) (*models.Movie, error) {
 	return moviesUC.movieRepository.GetMovieByID(id)
 }
-
-func (moviesUC *MoviesUseCase) UpdateMovie(id string, newMovie *models.Movie) error {
-	return moviesUC.movieRepository.UpdateMovie(id, newMovie)
-}

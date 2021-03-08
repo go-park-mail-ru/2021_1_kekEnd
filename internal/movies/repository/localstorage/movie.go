@@ -47,15 +47,3 @@ func (storage *MovieLocalStorage) GetMovieByID(id string) (*models.Movie, error)
 	}
 	return movie, nil
 }
-
-func (storage *MovieLocalStorage) UpdateMovie(id string, newMovie *models.Movie) error {
-	storage.mutex.Lock()
-	defer storage.mutex.Unlock()
-
-	_, exists := storage.movies[id]
-	if exists {
-		storage.movies[id] = newMovie
-		return nil
-	}
-	return errors.New("movie not found")
-}
