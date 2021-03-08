@@ -8,6 +8,9 @@ import (
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	sessionsRedis "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/repository/redis"
+	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
@@ -20,18 +23,21 @@ import (
 )
 
 type App struct {
-	server   *http.Server
-	usersUC  users.UseCase
-	moviesUC movies.UseCase
+	server     *http.Server
+	usersUC    users.UseCase
+	moviesUC   movies.UseCase
+	sessionsUC sessions.UseCase
 }
 
 func NewApp() *App {
 	usersRepo := usersLocalStorage.NewUserLocalStorage()
 	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
+	sessionsRepo := sessionsRedis.NewSessionsRedis()
 
 	return &App{
-		usersUC:  usersUseCase.NewUsersUseCase(usersRepo),
-		moviesUC: moviesUseCase.NewMoviesUseCase(moviesRepo),
+		usersUC:    usersUseCase.NewUsersUseCase(usersRepo),
+		moviesUC:   moviesUseCase.NewMoviesUseCase(moviesRepo),
+		sessionsUC: sessionsUseCase.NewSessionsUseCase(*sessionsRepo),
 	}
 }
 

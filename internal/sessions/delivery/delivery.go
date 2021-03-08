@@ -1,12 +1,12 @@
 package sessions
 
 import (
-	"github.com/go-park-mail-ru/2021_1_kekEnd/sessions/internal"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/sessions"
 	uuid "github.com/satori/go.uuid"
 )
 
 type Delivery struct {
-	UseCase sessions.UseCase
+	UseCase main.sessions
 }
 
 func (d *Delivery) Create(userID uuid.UUID, expires uint64) (string, error) {
