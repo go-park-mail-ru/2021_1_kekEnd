@@ -11,7 +11,13 @@ type RedisRepository struct {
 	client *redis.Client
 }
 
-func NewRedisRepository(rdb *redis.Client) *RedisRepository {
+func NewRedisRepository() *RedisRepository {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
 	return &RedisRepository{
 		client: rdb,
 	}

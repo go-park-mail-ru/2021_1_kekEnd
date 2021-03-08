@@ -16,7 +16,6 @@ import (
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
-	"github.com/go-redis/redis/v8"
 	"log"
 	"net/http"
 	"os"
@@ -34,19 +33,7 @@ type App struct {
 func NewApp() *App {
 	usersRepo := usersLocalStorage.NewUserLocalStorage()
 	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-
-	p, err := rdb.Ping(context.Background()).Result()
-	if err != nil {
-		log.Fatal("Failed to create redis client", p, err)
-	}
-
-	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
+	sessionsRepo := sessionsRepository.NewRedisRepository()
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 
 	return &App{
