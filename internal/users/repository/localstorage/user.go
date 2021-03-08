@@ -21,8 +21,19 @@ type UserLocalStorage struct {
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
+	users := map[string]*models.User{
+		"let_robots_reign": {
+			Username:      "let_robots_reign",
+			Email:         "sample@ya.ru",
+			Password:      "123456789",
+			MoviesWatched: 4,
+			ReviewsNumber: 2,
+		},
+	}
+
 	return &UserLocalStorage{
-		users: make(map[string]*models.User),
+		//users: make(map[string]*models.User),
+		users: users,
 	}
 }
 
