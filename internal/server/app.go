@@ -37,7 +37,7 @@ func NewApp() *App {
 	return &App{
 		usersUC:    usersUseCase.NewUsersUseCase(usersRepo),
 		moviesUC:   moviesUseCase.NewMoviesUseCase(moviesRepo),
-		sessionsUC: sessionsUseCase.NewSessionsUseCase(*sessionsRepo),
+		sessionsUC: sessionsUseCase.NewSessionsUseCase(sessionsRepo),
 	}
 }
 
