@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"context"
+	"errors"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
@@ -30,7 +31,7 @@ func (r *RedisRepository) Create(ctx context.Context, sessionID string, userID s
 func (r *RedisRepository) Get(ctx context.Context, sessionID string) (string, error) {
 	userID, err := r.client.Get(ctx, sessionID).Result()
 	if err != nil {
-		return "", err
+		return "", errors.New("session for this user doesn't exits")
 	}
 
 	return userID, nil

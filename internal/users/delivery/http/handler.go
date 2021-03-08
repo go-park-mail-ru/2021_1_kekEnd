@@ -51,6 +51,9 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	//refactor it later
 	expires := 240 * time.Hour
 	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
 
 	ctx.SetCookie(
 		"session_id",
@@ -85,8 +88,10 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	//refactor it later
 	expires := 240 * time.Hour
-
 	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
 
 	ctx.SetCookie(
 		"session_id",
@@ -94,7 +99,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		int(expires),
 		"/",
 		ctx.Request.Host, //???
-		true,
+		false,
 		true,
 	)
 
