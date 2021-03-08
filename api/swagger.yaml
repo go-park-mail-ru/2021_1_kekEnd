@@ -1,0 +1,298 @@
+openapi: 3.0.0
+info:
+  title: КиноПоиск
+  description: Проект "КиноПоиск". Команда kekEnd
+  version: 1.0.0
+servers:
+  - url: https://virtserver.swaggerhub.com/let-robots-reign/Kinopoisk/1.0.0
+    description: SwaggerHub API Auto Mocking
+tags:
+  - name: users
+    description: Запросы к пользователям
+  - name: movies
+    description: Запросы к фильмам
+paths:
+  /api/v1/users:
+    post:
+      tags:
+        - users
+      description: Создание пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        "201":
+          description: Пользователь успешно создан
+        "400":
+          description: Запрос сформирован неверно
+        "500":
+          description: Ошибка создания пользователя
+  /api/v1/users/login:
+    post:
+      tags:
+        - users
+      description: Авторизация пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Авторизация успешна
+        "400":
+          description: Запрос сформирован неверно
+        "403":
+          description: Ошибка авторизации
+  /api/v1/users/logout:
+    get:
+      tags:
+        - users
+      description: Выход пользователя
+      responses:
+        "200":
+          description: Выход успешен
+        "401":
+          description: Нет авторизации
+  /api/v1/users/{username}:
+    get:
+      tags:
+        - users
+      description: Получение информации о пользователе
+      parameters:
+        - name: username
+          in: path
+          description: Имя пользователя
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Информация получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Пользователь не найден
+    put:
+      tags:
+        - users
+      description: Редактирование информации о пользователе
+      parameters:
+        - name: username
+          in: path
+          description: Имя пользователя
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          description: Информация обновлена
+        "400":
+          description: Запрос сформирован неверно
+        "500":
+          description: Ошибка обновления пользователя
+  /api/v1/users/{username}/uploadAvatar:
+    post:
+      tags:
+        - users
+      description: Загрузка аватарки пользователя
+      parameters:
+        - name: username
+          in: path
+          description: Имя пользователя
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Аватарка загружена
+        "401":
+          description: Пользователь не авторизован
+        "500":
+          description: Ошибка при загрузке аватарки
+  /api/v1/movies:
+    post:
+      tags:
+        - movies
+      description: Создание фильма
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMovieRequest'
+      responses:
+        "201":
+          description: Фильм успешно создан
+        "400":
+          description: Запрос сформирован неверно
+        "500":
+          description: Ошибка создания фильма
+  /api/v1/movies/{id}:
+    get:
+      tags:
+        - movies
+      description: Получение информации о фильме
+      parameters:
+        - name: id
+          in: path
+          description: ID фильма
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Информация получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        "404":
+          description: Фильм не найден
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    SignupRequest:
+      required:
+        - email
+        - password
+        - username
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginRequest:
+      required:
+        - password
+        - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    Movie:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        voiceover:
+          type: string
+        subtitles:
+          type: string
+        quality:
+          type: string
+        production_year:
+          type: integer
+        country:
+          type: string
+        slogan:
+          type: string
+        director:
+          type: string
+        scriptwriter:
+          type: string
+        producer:
+          type: string
+        operator:
+          type: string
+        composer:
+          type: string
+        artist:
+          type: string
+        montage:
+          type: string
+        budget:
+          type: string
+        duration:
+          type: string
+        actors:
+          type: array
+          items:
+            type: string
+    CreateMovieRequest:
+      required:
+        - title
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        voiceover:
+          type: string
+        subtitles:
+          type: string
+        quality:
+          type: string
+        production_year:
+          type: integer
+        country:
+          type: string
+        slogan:
+          type: string
+        director:
+          type: string
+        scriptwriter:
+          type: string
+        producer:
+          type: string
+        operator:
+          type: string
+        composer:
+          type: string
+        artist:
+          type: string
+        montage:
+          type: string
+        budget:
+          type: string
+        duration:
+          type: string
+        actors:
+          type: array
+          items:
+            type: string
