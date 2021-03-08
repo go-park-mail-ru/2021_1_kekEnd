@@ -48,6 +48,20 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
+	//refactor it later
+	expires := 240 * time.Hour
+	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
+
+	ctx.SetCookie(
+		"session_id",
+		userSessionID,
+		int(expires),
+		"/",
+		ctx.Request.Host, //???
+		true,
+		true,
+	)
+
 	ctx.Status(http.StatusCreated) // 201
 }
 
@@ -59,9 +73,6 @@ type loginData struct {
 func (h *Handler) Login(ctx *gin.Context) {
 	loginData := new(loginData)
 
-	//refactor it later
-	expires := 240 * time.Hour
-
 	err := ctx.BindJSON(loginData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -71,6 +82,9 @@ func (h *Handler) Login(ctx *gin.Context) {
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 	}
+
+	//refactor it later
+	expires := 240 * time.Hour
 
 	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
 
