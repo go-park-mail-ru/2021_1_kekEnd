@@ -60,8 +60,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		ctx.Request.Host, //???
-		true,
+		"89.208.198.186",
+		false,
 		true,
 	)
 
@@ -98,7 +98,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		ctx.Request.Host, //???
+		"89.208.198.186",
 		false,
 		true,
 	)
