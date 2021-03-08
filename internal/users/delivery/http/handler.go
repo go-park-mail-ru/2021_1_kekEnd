@@ -69,7 +69,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, err := h.useCase.GetUser(ctx.Param("id"))
+	user, err := h.useCase.GetUser(ctx.Param("username"))
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
@@ -84,7 +84,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	err = h.useCase.UpdateUser(ctx.Param("id"), user)
+	err = h.useCase.UpdateUser(ctx.Param("username"), user)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
