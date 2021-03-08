@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
@@ -37,6 +38,10 @@ func NewApp() *App {
 
 func (app *App) Run(port string) error {
 	router := gin.Default()
+	//config := cors.DefaultConfig()
+	//config.AllowOrigins = []string{"http://localhost/"}
+	//router.Use(cors.New(config))
+	router.Use(cors.Default())
 
 	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
