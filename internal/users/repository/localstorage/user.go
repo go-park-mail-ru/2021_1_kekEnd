@@ -49,11 +49,7 @@ func (storage *UserLocalStorage) GetUserByUsername(username string) (*models.Use
 }
 
 func (storage *UserLocalStorage) CheckPassword(password string, user *models.User) (bool, error) {
-	hashedPassword, err := getHashedPassword(password)
-	if err != nil {
-		return false, nil
-	}
-	return hashedPassword == user.Password, nil
+	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }
 
 func (storage *UserLocalStorage) UpdateUser(username string, newUser *models.User) error {
