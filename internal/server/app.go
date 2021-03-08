@@ -38,10 +38,10 @@ func NewApp() *App {
 
 func (app *App) Run(port string) error {
 	router := gin.Default()
-	//config := cors.DefaultConfig()
-	//config.AllowOrigins = []string{"http://localhost/"}
-	//router.Use(cors.New(config))
-	router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowCredentials = true
+	router.Use(cors.New(config))
 
 	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
