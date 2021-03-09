@@ -17,9 +17,26 @@ func NewMovieLocalStorage() *MovieLocalStorage {
 	// dummy data for testing
 	movies := map[string]*models.Movie{
 		"1": {
-			ID:          "1",
-			Title:       "Чужой",
-			Description: "Группа космонавтов высаживается на неизвестной планете и знакомится с ксеноморфом. Шедевр Ридли Скотта",
+			ID:             "1",
+			Title:          "Чужой",
+			Description:    "Группа космонавтов высаживается на неизвестной планете и знакомится с ксеноморфом. Шедевр Ридли Скотта",
+			Voiceover:      []string{"Русский", "Английский"},
+			Subtitles:      []string{"Русские"},
+			Quality:        "HD",
+			ProductionYear: 1979,
+			Country:        []string{"Великобритания", "США"},
+			Genre:          []string{"Хоррор", "Драма"},
+			Slogan:         "slogan",
+			Director:       "Ридли Скотт",
+			Scriptwriter:   "---",
+			Producer:       "---",
+			Operator:       "---",
+			Composer:       "---",
+			Artist:         "---",
+			Montage:        "---",
+			Budget:         "---",
+			Duration:       "---",
+			Actors:         []string{"Сигурни Уивер", "Иэн Холм"},
 		},
 	}
 
