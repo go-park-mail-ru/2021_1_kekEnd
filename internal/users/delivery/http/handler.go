@@ -92,7 +92,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", "localhost", false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", host, false, true)
 
 	ctx.Status(http.StatusOK) // 200
 }
