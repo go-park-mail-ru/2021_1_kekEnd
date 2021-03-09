@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+const userKey = "user"
+
 func respondWithError(ctx *gin.Context, code int, message interface{}) {
 	ctx.AbortWithStatusJSON(code, gin.H{"error": message})
 }
@@ -46,7 +48,7 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			respondWithError(ctx, http.StatusInternalServerError, "no user with this username") //500
 		}
 
-		ctx.Set("user", user)
+		ctx.Set(userKey, user)
 		ctx.Next()
 	}
 }
