@@ -3,17 +3,21 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"net/http"
+	"time"
 )
 
 type Handler struct {
-	useCase users.UseCase
+	useCase  users.UseCase
+	sessions sessions.Delivery
 }
 
-func NewHandler(useCase users.UseCase) *Handler {
+func NewHandler(useCase users.UseCase, sessions sessions.Delivery) *Handler {
 	return &Handler{
-		useCase: useCase,
+		useCase:  useCase,
+		sessions: sessions,
 	}
 }
 
@@ -44,6 +48,23 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
+	//refactor it later
+	expires := 240 * time.Hour
+	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
+
+	ctx.SetCookie(
+		"session_id",
+		userSessionID,
+		int(expires),
+		"/",
+		"89.208.198.186",
+		false,
+		true,
+	)
+
 	ctx.Status(http.StatusCreated) // 201
 }
 
@@ -64,6 +85,23 @@ func (h *Handler) Login(ctx *gin.Context) {
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 	}
+
+	//refactor it later
+	expires := 240 * time.Hour
+	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
+
+	ctx.SetCookie(
+		"session_id",
+		userSessionID,
+		int(expires),
+		"/",
+		"89.208.198.186",
+		false,
+		true,
+	)
 
 	ctx.Status(http.StatusOK) // 200
 }

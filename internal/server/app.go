@@ -9,10 +9,15 @@ import (
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
+	sessionsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/repository"
+	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"net/http"
 	"os"
@@ -24,15 +29,31 @@ type App struct {
 	server   *http.Server
 	usersUC  users.UseCase
 	moviesUC movies.UseCase
+	sessions sessions.Delivery
 }
 
 func NewApp() *App {
 	usersRepo := usersLocalStorage.NewUserLocalStorage()
 	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	p, err := rdb.Ping(context.Background()).Result()
+	if err != nil {
+		log.Fatal("Failed to create redis client", p, err)
+	}
+
+	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
+	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
+
 	return &App{
 		usersUC:  usersUseCase.NewUsersUseCase(usersRepo),
 		moviesUC: moviesUseCase.NewMoviesUseCase(moviesRepo),
+		sessions: sessionsDelivery.NewDelivery(sessionsUC),
 	}
 }
 
@@ -57,7 +78,7 @@ func (app *App) Run(port string) error {
 		)
 	}))
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 
 	app.server = &http.Server{
