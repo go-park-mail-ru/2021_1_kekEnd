@@ -170,7 +170,6 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	userModel = *newUser
 
-	ctx.JSON(http.StatusOK, userModel)
+	ctx.JSON(http.StatusOK, *newUser)
 }
