@@ -10,6 +10,7 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	handler := NewHandler(usersUC, sessions)
 
 	router.POST("/users", handler.CreateUser)
+	router.POST("/users/login", handler.Login)
 	router.GET("/users/:username", handler.GetUser)
 	router.PUT("/users/:username", handler.UpdateUser)
 }
