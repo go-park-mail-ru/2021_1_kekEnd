@@ -33,6 +33,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	err := ctx.BindJSON(signupData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	user := &models.User{
@@ -46,6 +47,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	err = h.useCase.CreateUser(user)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	//refactor it later
@@ -53,6 +55,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	ctx.SetCookie(
@@ -60,7 +63,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"89.208.198.186",
+		"localhost",
 		false,
 		true,
 	)
@@ -71,6 +74,24 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 type loginData struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+func (h *Handler) Logout(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
+		return
+	}
+
+	err = h.sessions.Delete(ctx, cookie)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", "localhost", false, true)
+
+	ctx.Status(http.StatusOK) // 200
 }
 
 func (h *Handler) Login(ctx *gin.Context) {
