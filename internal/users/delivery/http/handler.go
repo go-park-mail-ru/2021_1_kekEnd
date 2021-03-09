@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
@@ -107,13 +106,22 @@ func (h *Handler) Login(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+func (h *Handler) Logout(ctx *gin.Context) {
+	cookie, err := ctx.Request.Cookie("session_id")
+	if err == nil && cookie != nil {
+		err = h.sessions.Delete(ctx, cookie.Value)
+		if err != nil {
+			ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		}
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (h *Handler) CheckAuth(ctx *gin.Context) {
 	username := ""
 	cookie, err := ctx.Request.Cookie("session_id")
-	fmt.Println(cookie)
-	fmt.Println(err)
 	if err == nil && cookie != nil {
-		fmt.Println(cookie.Value)
 		username, err = h.sessions.GetUser(ctx, cookie.Value)
 	}
 
