@@ -35,13 +35,18 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			return
 		}
 
-		user, err := m.sessions.GetUser(ctx, sessionID)
+		username, err := m.sessions.GetUser(ctx, sessionID)
 		if err != nil {
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions for this user") //401
 			return
 		}
 
-		ctx.Set("username", user)
+		user, err := m.useCase.GetUser(username)
+		if err != nil {
+			respondWithError(ctx, http.StatusInternalServerError, "no user with this username") //500
+		}
+
+		ctx.Set("user", user)
 		ctx.Next()
 	}
 }
