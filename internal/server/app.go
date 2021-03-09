@@ -83,9 +83,8 @@ func (app *App) Run(port string) error {
 	}))
 
 	router.Use(gin.Recovery())
-	router.Use(app.authMiddleware.CheckAuth())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 
 	app.server = &http.Server{
