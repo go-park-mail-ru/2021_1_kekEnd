@@ -151,7 +151,8 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userModel)
+	userNoPassword := models.FromUser(userModel)
+	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
@@ -180,5 +181,6 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, *newUser)
+	userNoPassword := models.FromUser(*newUser)
+	ctx.JSON(http.StatusOK, userNoPassword)
 }
