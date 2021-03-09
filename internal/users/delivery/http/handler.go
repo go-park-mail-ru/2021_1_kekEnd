@@ -136,7 +136,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
 
-	ctx.JSON(http.StatusOK, *user.(*models.User))
+	ctx.JSON(http.StatusOK, user.(models.User))
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
@@ -159,11 +159,13 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err = h.useCase.UpdateUser(&userModel, *changed)
+	newUser, err := h.useCase.UpdateUser(&userModel, *changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user.(models.User))
+	userModel = *newUser
+
+	ctx.JSON(http.StatusOK, userModel)
 }
