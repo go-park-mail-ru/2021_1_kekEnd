@@ -6,11 +6,12 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
 const userKey = "user"
-const host = "89.208.198.186"
+const host = "localhost"
 
 type Handler struct {
 	useCase  users.UseCase
@@ -183,4 +184,23 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) UploadAvatar(ctx *gin.Context) {
+	file, err := ctx.FromFile("file")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	extension := filepath.Ext(file.Filename)
+	// generate random file name for the new uploaded file so it doesn't override the old file with same name
+	newFileName := uuid.New().String() + extension
+	err = ctx.SaveUploadedFile(file, "/tmp/avatars/" + newFileName)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
