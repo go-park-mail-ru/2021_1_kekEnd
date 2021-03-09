@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
@@ -29,12 +30,10 @@ type App struct {
 	usersUC  users.UseCase
 	moviesUC movies.UseCase
 	sessions sessions.Delivery
+	authMiddleware middleware.Auth
 }
 
 func NewApp() *App {
-	usersRepo := usersLocalStorage.NewUserLocalStorage()
-	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
-
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
@@ -48,11 +47,21 @@ func NewApp() *App {
 
 	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
+	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
+
+	usersRepo := usersLocalStorage.NewUserLocalStorage()
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+
+	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 
 	return &App{
-		usersUC:  usersUseCase.NewUsersUseCase(usersRepo),
-		moviesUC: moviesUseCase.NewMoviesUseCase(moviesRepo),
-		sessions: sessionsDelivery.NewDelivery(sessionsUC),
+		usersUC:  usersUC,
+		moviesUC: moviesUC,
+		sessions: sessionsDL,
+		authMiddleware: authMiddleware,
 	}
 }
 
@@ -73,7 +82,9 @@ func (app *App) Run(port string) error {
 		)
 	}))
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions)
+	router.Use(gin.Recovery())
+
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 
 	app.server = &http.Server{
