@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const host = "localhost"
+
 type Handler struct {
 	useCase  users.UseCase
 	sessions sessions.Delivery
@@ -60,7 +62,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"localhost",
+		host,
 		false,
 		true,
 	)
@@ -98,7 +100,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"localhost",
+		host,
 		false,
 		true,
 	)
