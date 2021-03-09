@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+const userKey = "user"
+const host = "89.208.198.186"
+
 type Handler struct {
 	useCase  users.UseCase
 	sessions sessions.Delivery
@@ -63,7 +66,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"localhost",
+		host,
 		false,
 		true,
 	)
@@ -89,7 +92,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", "localhost", false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", host, false, true)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -119,7 +122,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"89.208.198.186",
+		host,
 		false,
 		true,
 	)
@@ -128,25 +131,44 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, err := h.useCase.GetUser(ctx.Param("username"))
-	if err != nil {
+	user, ok := ctx.Get(userKey)
+	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
 
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (h *Handler) UpdateUser(ctx *gin.Context) {
-	user := new(models.User)
-	err := ctx.BindJSON(user)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-	}
-
-	err = h.useCase.UpdateUser(ctx.Param("username"), user)
-	if err != nil {
+	userModel, ok := user.(models.User)
+	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, userModel)
+}
+
+func (h *Handler) UpdateUser(ctx *gin.Context) {
+	changed := new(models.User)
+	err := ctx.BindJSON(changed)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(userKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	newUser, err := h.useCase.UpdateUser(&userModel, *changed)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, *newUser)
 }

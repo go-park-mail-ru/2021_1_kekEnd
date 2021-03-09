@@ -67,14 +67,27 @@ func (storage *UserLocalStorage) CheckPassword(password string, user *models.Use
 	return hashedPassword == user.Password, nil
 }
 
-func (storage *UserLocalStorage) UpdateUser(username string, newUser *models.User) error {
+func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.User) (*models.User, error) {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
-	_, exists := storage.users[username]
-	if exists {
-		storage.users[username] = newUser
-		return nil
+	if change.Password != "" {
+		newPassword, err := getHashedPassword(change.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = newPassword
 	}
-	return errors.New("user not found")
+
+	if change.Email != "" {
+		user.Email = change.Email
+	}
+
+	_, exists := storage.users[user.Username]
+	if exists {
+		storage.users[user.Username] = user
+		return storage.users[user.Username], nil
+	}
+	return nil, errors.New("user not found")
 }

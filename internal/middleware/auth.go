@@ -46,9 +46,10 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 		user, err := m.useCase.GetUser(username)
 		if err != nil {
 			respondWithError(ctx, http.StatusInternalServerError, "no user with this username") //500
+			return
 		}
 
-		ctx.Set(userKey, user)
+		ctx.Set(userKey, *user)
 		ctx.Next()
 	}
 }

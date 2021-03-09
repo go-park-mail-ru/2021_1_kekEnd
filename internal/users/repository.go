@@ -11,5 +11,5 @@ type UserRepository interface {
 
 	CheckPassword(password string, user *models.User) (bool, error)
 
-	UpdateUser(username string, newUser *models.User) error
+	UpdateUser(user *models.User, change models.User) (*models.User, error)
 }
