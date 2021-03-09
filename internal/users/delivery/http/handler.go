@@ -202,5 +202,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
+	// TODO: add avatar reference to user model. Set it here
+
 	ctx.Status(http.StatusOK)
 }
