@@ -170,6 +170,5 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-
 	ctx.JSON(http.StatusOK, *newUser)
 }
