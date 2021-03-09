@@ -18,8 +18,8 @@ func NewRedisRepository(rdb *redis.Client) *RedisRepository {
 }
 
 func (r *RedisRepository) Create(ctx context.Context, sessionID string, userID string, expire time.Duration) error {
-	res := r.client.Set(ctx, sessionID, userID, expire)
-	return res.Err()
+	_, err := r.client.Set(ctx, sessionID, userID, expire).Result()
+	return err
 }
 
 func (r *RedisRepository) Get(ctx context.Context, sessionID string) (string, error) {
@@ -32,6 +32,9 @@ func (r *RedisRepository) Get(ctx context.Context, sessionID string) (string, er
 }
 
 func (r *RedisRepository) Delete(ctx context.Context, sessionID string) error {
-	res := r.client.Del(ctx, sessionID)
-	return res.Err()
+	_, err := r.client.Del(ctx, sessionID).Result()
+	if err != nil {
+		return errors.New("failed to delete cookie")
+	}
+	return nil
 }

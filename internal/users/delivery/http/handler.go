@@ -134,11 +134,13 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	user, ok := ctx.Get(userKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
+		return
 	}
 
 	userModel, ok := user.(models.User)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	ctx.JSON(http.StatusOK, userModel)
