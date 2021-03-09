@@ -72,7 +72,12 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 	defer storage.mutex.Unlock()
 
 	if change.Password != "" {
-		user.Password = change.Password
+		newPassword, err := getHashedPassword(change.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = newPassword
 	}
 
 	if change.Email != "" {

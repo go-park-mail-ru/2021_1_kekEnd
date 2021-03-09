@@ -152,10 +152,10 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	newUser, err := h.useCase.UpdateUser(user.(models.User), *changed)
+	user, err = h.useCase.UpdateUser(user.(*models.User), *changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	ctx.JSON(http.StatusOK, newUser)
+	ctx.JSON(http.StatusOK, user)
 }
