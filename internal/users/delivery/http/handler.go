@@ -39,6 +39,11 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	if signupData.Username == "" || signupData.Email == "" || signupData.Password == ""{
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
 	user := &models.User{
 		Username:      signupData.Username,
 		Email:         signupData.Email,
@@ -49,7 +54,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	err = h.useCase.CreateUser(user)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
@@ -103,11 +108,13 @@ func (h *Handler) Login(ctx *gin.Context) {
 	err := ctx.BindJSON(loginData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	loginStatus := h.useCase.Login(loginData.Username, loginData.Password)
 	if !loginStatus {
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
+		return
 	}
 
 	//refactor it later
@@ -115,6 +122,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	ctx.SetCookie(
@@ -134,14 +142,17 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	user, ok := ctx.Get(userKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
+		return
 	}
 
 	userModel, ok := user.(models.User)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
-	ctx.JSON(http.StatusOK, userModel)
+	userNoPassword := models.FromUser(userModel)
+	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
@@ -170,5 +181,6 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, *newUser)
+	userNoPassword := models.FromUser(*newUser)
+	ctx.JSON(http.StatusOK, userNoPassword)
 }
