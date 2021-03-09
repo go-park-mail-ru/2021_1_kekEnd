@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+const userKey = "user"
+const host = "89.208.198.186"
+
 type Handler struct {
 	useCase  users.UseCase
 	sessions sessions.Delivery
@@ -119,7 +122,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"89.208.198.186",
+		host,
 		false,
 		true,
 	)
@@ -128,8 +131,8 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, err := h.useCase.GetUser(ctx.Param("username"))
-	if err != nil {
+	user, ok := ctx.Get(userKey)
+	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 	}
 
@@ -137,16 +140,22 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {
-	user := new(models.User)
-	err := ctx.BindJSON(user)
+	user, ok := ctx.Get(userKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
+
+
+	changed := new(models.User)
+	err := ctx.BindJSON(changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 	}
 
-	err = h.useCase.UpdateUser(ctx.Param("username"), user)
+	newUser, err := h.useCase.UpdateUser(user.(models.User), *changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, newUser)
 }

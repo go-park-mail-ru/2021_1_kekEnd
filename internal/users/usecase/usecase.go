@@ -40,6 +40,6 @@ func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 	return usersUC.userRepository.GetUserByUsername(username)
 }
 
-func (usersUC *UsersUseCase) UpdateUser(username string, newUser *models.User) error {
-	return usersUC.userRepository.UpdateUser(username, newUser)
+func (usersUC *UsersUseCase) UpdateUser(user models.User, change models.User) (*models.User, error) {
+	return usersUC.userRepository.UpdateUser(user, change)
 }
