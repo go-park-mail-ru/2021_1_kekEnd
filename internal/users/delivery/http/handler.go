@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	"github.com/google/uuid"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -187,7 +188,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
-	file, err := ctx.FromFile("file")
+	file, err := ctx.FormFile("file")
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
