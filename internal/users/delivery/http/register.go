@@ -13,4 +13,6 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	router.POST("/users/login", handler.Login)
 	router.GET("/users/:username", handler.GetUser)
 	router.PUT("/users/:username", handler.UpdateUser)
+
+	router.GET("/checkAuth", handler.CheckAuth)
 }

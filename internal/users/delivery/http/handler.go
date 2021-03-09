@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
@@ -60,7 +61,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"89.208.198.186",
+		"localhost",
 		false,
 		true,
 	)
@@ -98,12 +99,25 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"89.208.198.186",
+		"localhost",
 		false,
 		true,
 	)
 
 	ctx.Status(http.StatusOK) // 200
+}
+
+func (h *Handler) CheckAuth(ctx *gin.Context) {
+	username := ""
+	cookie, err := ctx.Request.Cookie("session_id")
+	fmt.Println(cookie)
+	fmt.Println(err)
+	if err == nil && cookie != nil {
+		fmt.Println(cookie.Value)
+		username, err = h.sessions.GetUser(ctx, cookie.Value)
+	}
+
+	ctx.JSON(http.StatusOK, username)
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
