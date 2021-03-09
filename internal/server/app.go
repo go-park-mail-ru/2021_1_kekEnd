@@ -60,7 +60,7 @@ func NewApp() *App {
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://89.208.198.186:3000"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 
