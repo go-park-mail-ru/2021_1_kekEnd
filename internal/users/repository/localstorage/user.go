@@ -21,18 +21,18 @@ type UserLocalStorage struct {
 }
 
 func NewUserLocalStorage() *UserLocalStorage {
-	// dummy data for testing
 	users := map[string]*models.User{
-		"1": {
-			Username:      "let-robots-reign",
+		"let_robots_reign": {
+			Username:      "let_robots_reign",
 			Email:         "sample@ya.ru",
-			Password:      "1234",
+			Password:      "123456789",
 			MoviesWatched: 4,
 			ReviewsNumber: 2,
 		},
 	}
 
 	return &UserLocalStorage{
+		//users: make(map[string]*models.User),
 		users: users,
 	}
 }
@@ -60,11 +60,7 @@ func (storage *UserLocalStorage) GetUserByUsername(username string) (*models.Use
 }
 
 func (storage *UserLocalStorage) CheckPassword(password string, user *models.User) (bool, error) {
-	hashedPassword, err := getHashedPassword(password)
-	if err != nil {
-		return false, nil
-	}
-	return hashedPassword == user.Password, nil
+	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }
 
 func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.User) (*models.User, error) {
