@@ -66,7 +66,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		"localhost",
+		host,
 		false,
 		true,
 	)
