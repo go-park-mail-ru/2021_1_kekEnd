@@ -132,7 +132,7 @@ func TestDelete(t *testing.T) {
 
 		mUC.
 			EXPECT().
-			Check(sessionID).
+			Delete(sessionID).
 			Return(username, testErr)
 
 		_, err := delivery.GetUser(sessionID)
