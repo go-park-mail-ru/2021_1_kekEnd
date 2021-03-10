@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"github.com/google/uuid"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -46,10 +47,14 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	path, _ := filepath.Abs("tmp/avatars/default.jpeg")
+	defaultAvatar, err := ioutil.ReadFile(path)
+
 	user := &models.User{
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
+		Avatar:		   defaultAvatar,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
