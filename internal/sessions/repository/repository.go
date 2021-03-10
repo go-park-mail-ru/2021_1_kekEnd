@@ -19,7 +19,10 @@ func NewRedisRepository(rdb *redis.Client) *RedisRepository {
 
 func (r *RedisRepository) Create(sessionID string, userID string, expire time.Duration) error {
 	_, err := r.client.Set(context.Background(), sessionID, userID, expire).Result()
-	return fmt.Errorf("failed to create session: %w", err)
+	if err != nil {
+		return fmt.Errorf("failed to create session: %w", err)
+	}
+	return nil
 }
 
 func (r *RedisRepository) Get(sessionID string) (string, error) {
