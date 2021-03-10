@@ -6,7 +6,6 @@ import (
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 	"time"
 )
@@ -25,7 +24,7 @@ func TestCreate(t *testing.T) {
 
 		rdb.
 			EXPECT().
-			Create(, username, time.Duration(10)).
+			Create(gomock.Any(), username, time.Duration(10)).
 			Return(nil)
 
 		_, err := useCase.Create(username, time.Duration(10))
@@ -43,7 +42,7 @@ func TestCreate(t *testing.T) {
 
 		rdb.
 			EXPECT().
-			Create(mock.Anything, username, time.Duration(10)).
+			Create(gomock.Any(), username, time.Duration(10)).
 			Return(testErr)
 
 		_, err := useCase.Create(username, time.Duration(10))
