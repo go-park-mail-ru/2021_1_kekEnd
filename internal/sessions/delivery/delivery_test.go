@@ -7,6 +7,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestCreate(t *testing.T) {
@@ -24,10 +25,10 @@ func TestCreate(t *testing.T) {
 
 		mUC.
 			EXPECT().
-			Create(username, 123123).
+			Create(username, time.Duration(10)).
 			Return(UUID, nil)
 
-		sessionID, err := delivery.Create(username, 123123)
+		sessionID, err := delivery.Create(username, time.Duration(10))
 		assert.NoError(t, err)
 		assert.Equal(t, UUID, sessionID)
 	})
@@ -44,10 +45,10 @@ func TestCreate(t *testing.T) {
 
 		mUC.
 			EXPECT().
-			Create(username, 123123).
+			Create(username, time.Duration(10)).
 			Return(UUID, testErr)
 
-		_, err := delivery.Create(username, 12323)
+		_, err := delivery.Create(username, time.Duration(10))
 		assert.Error(t, err)
 	})
 }
