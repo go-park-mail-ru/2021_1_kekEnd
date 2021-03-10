@@ -87,6 +87,8 @@ func (app *App) Run(port string) error {
 		)
 	}))
 
+	router.Static("/tmp", "./../../tmp")
+
 	router.Use(gin.Recovery())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
