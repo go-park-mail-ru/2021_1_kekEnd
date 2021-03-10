@@ -32,12 +32,12 @@ func TestUsersUseCase(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, user, gotUser)
 
-	updatedUser := &models.User{
+	updatedUser := models.User{
 		Username:      "let_robots_reign",
 		Email:         "corrected@ya.ru",
 		Password:      "1234567",
 	}
 	repo.On("UpdateUser", user.Username, updatedUser).Return(nil)
-	err = uc.UpdateUser(user.Username, updatedUser)
+	_, err = uc.UpdateUser(user, updatedUser)
 	assert.NoError(t, err)
 }
