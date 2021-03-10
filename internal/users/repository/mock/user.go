@@ -1,4 +1,4 @@
-package mock
+package repository
 
 import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
@@ -27,7 +27,7 @@ func (storageMock *UserStorageMock) CheckPassword(password string, user *models.
 	return args.Get(0).(bool), args.Error(1)
 }
 
-func (storageMock *UserStorageMock) UpdateUser(username string, newUser *models.User) error {
-	args := storageMock.Called(username, newUser)
-	return args.Error(0)
+func (storageMock *UserStorageMock) UpdateUser(user *models.User, change models.User) (*models.User, error) {
+	args := storageMock.Called(user, change)
+	return args.Get(0).(*models.User), args.Error(0)
 }
