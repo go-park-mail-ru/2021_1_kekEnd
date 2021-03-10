@@ -224,7 +224,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	//	return
 	//}
 
-	change.Avatar = "tmp/avatars/" + newFileName
+	change.Avatar = "http://" + host + ":8080/avatars/" + newFileName
 	_, err = h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
