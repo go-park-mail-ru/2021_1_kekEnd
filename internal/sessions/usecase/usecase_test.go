@@ -6,6 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 	"time"
 )
@@ -17,38 +18,36 @@ func TestCreate(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		UUID := uuid.NewV4().String()
+		//UUID := addPrefix(uuid.NewV4().String())
 
-		mUC.
+		rdb.
 			EXPECT().
-			Create(username, time.Duration(10)).
-			Return(UUID, nil)
+			Create(mock.Anything, username, time.Duration(10)).
+			Return(nil)
 
-		sessionID, err := delivery.Create(username, time.Duration(10))
+		_, err := useCase.Create(username, time.Duration(10))
 		assert.NoError(t, err)
-		assert.Equal(t, UUID, sessionID)
 	})
 
 	t.Run("Create-Error", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		UUID := uuid.NewV4().String()
 
-		mUC.
+		rdb.
 			EXPECT().
-			Create(username, time.Duration(10)).
-			Return(UUID, testErr)
+			Create(mock.Anything, username, time.Duration(10)).
+			Return(testErr)
 
-		_, err := delivery.Create(username, time.Duration(10))
+		_, err := useCase.Create(username, time.Duration(10))
 		assert.Error(t, err)
 	})
 }
@@ -60,18 +59,19 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := uuid.NewV4().String()
+		sessionID := addPrefix(uuid.NewV4().String())
 
-		mUC.
+		rdb.
 			EXPECT().
-			Check(sessionID).
+			Get(sessionID).
 			Return(username, nil)
 
-		userFromSession, err := delivery.GetUser(sessionID)
+		userFromSession, err := useCase.Check(sessionID)
+
 		assert.NoError(t, err)
 		assert.Equal(t, username, userFromSession)
 	})
@@ -80,18 +80,18 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := uuid.NewV4().String()
+		sessionID := addPrefix(uuid.NewV4().String())
 
-		mUC.
+		rdb.
 			EXPECT().
-			Check(sessionID).
+			Get(sessionID).
 			Return(username, testErr)
 
-		_, err := delivery.GetUser(sessionID)
+		_, err := useCase.Check(sessionID)
 		assert.Error(t, err)
 	})
 }
@@ -103,17 +103,18 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
-		sessionID := uuid.NewV4().String()
+		sessionID := addPrefix(uuid.NewV4().String())
 
-		mUC.
+		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(nil)
 
-		err := delivery.Delete(sessionID)
+		err := useCase.Delete(sessionID)
+
 		assert.NoError(t, err)
 	})
 
@@ -121,16 +122,16 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
-		sessionID := uuid.NewV4().String()
+		rdb := sessions.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
+		sessionID := addPrefix(uuid.NewV4().String())
 
-		mUC.
+		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(testErr)
 
-		err := delivery.Delete(sessionID)
+		err := useCase.Delete(sessionID)
 		assert.Error(t, err)
 	})
 }
