@@ -22,11 +22,10 @@ func TestCreate(t *testing.T) {
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		//UUID := addPrefix(uuid.NewV4().String())
 
 		rdb.
 			EXPECT().
-			Create(mock.Anything, username, time.Duration(10)).
+			Create(, username, time.Duration(10)).
 			Return(nil)
 
 		_, err := useCase.Create(username, time.Duration(10))
@@ -63,14 +62,15 @@ func TestGetUser(t *testing.T) {
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := addPrefix(uuid.NewV4().String())
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 
 		rdb.
 			EXPECT().
 			Get(sessionID).
 			Return(username, nil)
 
-		userFromSession, err := useCase.Check(sessionID)
+		userFromSession, err := useCase.Check(ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, username, userFromSession)
@@ -84,14 +84,15 @@ func TestGetUser(t *testing.T) {
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := addPrefix(uuid.NewV4().String())
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 
 		rdb.
 			EXPECT().
 			Get(sessionID).
 			Return(username, testErr)
 
-		_, err := useCase.Check(sessionID)
+		_, err := useCase.Check(ID)
 		assert.Error(t, err)
 	})
 }
@@ -106,14 +107,14 @@ func TestDelete(t *testing.T) {
 		rdb := sessions.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
-		sessionID := addPrefix(uuid.NewV4().String())
-
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(nil)
 
-		err := useCase.Delete(sessionID)
+		err := useCase.Delete(ID)
 
 		assert.NoError(t, err)
 	})
@@ -124,14 +125,15 @@ func TestDelete(t *testing.T) {
 
 		rdb := sessions.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
-		sessionID := addPrefix(uuid.NewV4().String())
 
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(testErr)
 
-		err := useCase.Delete(sessionID)
+		err := useCase.Delete(ID)
 		assert.Error(t, err)
 	})
 }
