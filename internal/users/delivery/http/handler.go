@@ -39,7 +39,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	if signupData.Username == "" || signupData.Email == "" || signupData.Password == ""{
+	if signupData.Username == "" || signupData.Email == "" || signupData.Password == "" {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
