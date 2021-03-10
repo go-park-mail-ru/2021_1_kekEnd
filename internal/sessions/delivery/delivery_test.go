@@ -126,14 +126,12 @@ func TestDelete(t *testing.T) {
 
 		mUC := sessions.NewMockUseCase(ctrl)
 		delivery := NewDelivery(mUC)
-
-		username := "whaevaforeva"
 		sessionID := uuid.NewV4().String()
 
 		mUC.
 			EXPECT().
 			Delete(sessionID).
-			Return(username, testErr)
+			Return(testErr)
 
 		_, err := delivery.GetUser(sessionID)
 
