@@ -52,3 +52,91 @@ func TestCreate(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestGetUser(t *testing.T) {
+	testErr := errors.New("error in GetUser from Session")
+
+	t.Run("GetUser-OK", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mUC := sessions.NewMockUseCase(ctrl)
+		delivery := NewDelivery(mUC)
+
+		username := "whaevaforeva"
+		sessionID := uuid.NewV4().String()
+
+		mUC.
+			EXPECT().
+			Check(context.TODO(), sessionID).
+			Return(username, nil)
+
+		userFromSession, err := delivery.GetUser(context.TODO(), sessionID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, username, userFromSession)
+	})
+
+	t.Run("GetUser-Error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mUC := sessions.NewMockUseCase(ctrl)
+		delivery := NewDelivery(mUC)
+
+		username := "whaevaforeva"
+		sessionID := uuid.NewV4().String()
+
+		mUC.
+			EXPECT().
+			Check(context.TODO(), sessionID).
+			Return(username, testErr)
+
+		_, err := delivery.GetUser(context.TODO(), sessionID)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestDelete(t *testing.T) {
+	testErr := errors.New("error in Delete Session")
+
+	t.Run("Delete-OK", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mUC := sessions.NewMockUseCase(ctrl)
+		delivery := NewDelivery(mUC)
+
+		sessionID := uuid.NewV4().String()
+
+		mUC.
+			EXPECT().
+			Delete(context.TODO(), sessionID).
+			Return(nil)
+
+		err := delivery.Delete(context.TODO(), sessionID)
+		
+		assert.NoError(t, err)
+	})
+
+	t.Run("Delete-Error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mUC := sessions.NewMockUseCase(ctrl)
+		delivery := NewDelivery(mUC)
+
+		username := "whaevaforeva"
+		sessionID := uuid.NewV4().String()
+
+		mUC.
+			EXPECT().
+			Check(context.TODO(), sessionID).
+			Return(username, testErr)
+
+		_, err := delivery.GetUser(context.TODO(), sessionID)
+
+		assert.Error(t, err)
+	})
+}

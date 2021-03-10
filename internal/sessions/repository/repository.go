@@ -17,12 +17,14 @@ func NewRedisRepository(rdb *redis.Client) *RedisRepository {
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, sessionID string, userID string, expire time.Duration) error {
-	_, err := r.client.Set(ctx, sessionID, userID, expire).Result()
+func (r *RedisRepository) Create(sessionID string, userID string, expire time.Duration) error {
+	ctx := context.Background()
+		_, err := r.client.Set(ctx, sessionID, userID, expire).Result()
 	return err
 }
 
-func (r *RedisRepository) Get(ctx context.Context, sessionID string) (string, error) {
+func (r *RedisRepository) Get(sessionID string) (string, error) {
+	ctx := context.Background()
 	userID, err := r.client.Get(ctx, sessionID).Result()
 	if err != nil {
 		return "", errors.New("session for this user doesn't exits")
@@ -31,10 +33,12 @@ func (r *RedisRepository) Get(ctx context.Context, sessionID string) (string, er
 	return userID, nil
 }
 
-func (r *RedisRepository) Delete(ctx context.Context, sessionID string) error {
+func (r *RedisRepository) Delete(sessionID string) error {
+	ctx := context.Background()
 	_, err := r.client.Del(ctx, sessionID).Result()
 	if err != nil {
 		return errors.New("failed to delete cookie")
 	}
+
 	return nil
 }

@@ -65,7 +65,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	//refactor it later
 	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
+	userSessionID, err := h.sessions.Create(signupData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -96,7 +96,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	err = h.sessions.Delete(ctx, cookie)
+	err = h.sessions.Delete(cookie)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -124,7 +124,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	//refactor it later
 	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
+	userSessionID, err := h.sessions.Create(loginData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
