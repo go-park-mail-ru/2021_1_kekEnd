@@ -6,7 +6,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"github.com/google/uuid"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -47,9 +46,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	path, _ := filepath.Abs("tmp/avatars/default.jpeg")
-	defaultAvatar, err := ioutil.ReadFile(path)
-
+	//path, _ := filepath.Abs("tmp/avatars/default.jpeg")
+	defaultAvatar := "tmp/avatars/default.jpeg"
 	user := &models.User{
 		Username:      signupData.Username,
 		Email:         signupData.Email,
@@ -195,7 +193,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
@@ -204,11 +202,34 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	newFileName := uuid.New().String() + extension
 	err = ctx.SaveUploadedFile(file, "tmp/avatars/" + newFileName)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	// TODO: add avatar reference to user model. Set it here
+	user, ok := ctx.Get(userKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel := user.(models.User)
+	change := userModel
+
+	//avatar := make([]byte, file.Size)
+	//fileReader, _ := file.Open()
+	//_, err = fileReader.Read(avatar)
+	//if err != nil {
+	//	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	//	return
+	//}
+
+	change.Avatar = "tmp/avatars/" + newFileName
+	_, err = h.useCase.UpdateUser(&userModel, change)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	ctx.Status(http.StatusOK)
 }
