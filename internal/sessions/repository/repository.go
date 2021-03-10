@@ -2,7 +2,7 @@ package sessions
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
@@ -18,26 +18,23 @@ func NewRedisRepository(rdb *redis.Client) *RedisRepository {
 }
 
 func (r *RedisRepository) Create(sessionID string, userID string, expire time.Duration) error {
-	ctx := context.Background()
-		_, err := r.client.Set(ctx, sessionID, userID, expire).Result()
-	return err
+	_, err := r.client.Set(context.Background(), sessionID, userID, expire).Result()
+	return fmt.Errorf("failed to create session: %w", err)
 }
 
 func (r *RedisRepository) Get(sessionID string) (string, error) {
-	ctx := context.Background()
-	userID, err := r.client.Get(ctx, sessionID).Result()
+	userID, err := r.client.Get(context.Background(), sessionID).Result()
 	if err != nil {
-		return "", errors.New("session for this user doesn't exits")
+		return "", fmt.Errorf("session for this user doesn't exits: %w", err)
 	}
 
 	return userID, nil
 }
 
 func (r *RedisRepository) Delete(sessionID string) error {
-	ctx := context.Background()
-	_, err := r.client.Del(ctx, sessionID).Result()
+	_, err := r.client.Del(context.Background(), sessionID).Result()
 	if err != nil {
-		return errors.New("failed to delete cookie")
+		return fmt.Errorf("failed to delete cookie: %w", err)
 	}
 
 	return nil

@@ -52,7 +52,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
-		Avatar:		   defaultAvatarPath,
+		Avatar:        defaultAvatarPath,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -200,7 +200,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	extension := filepath.Ext(file.Filename)
 	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
-	err = ctx.SaveUploadedFile(file, "tmp/avatars/" + newFileName)
+	err = ctx.SaveUploadedFile(file, "tmp/avatars/"+newFileName)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return

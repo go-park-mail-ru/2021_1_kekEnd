@@ -20,14 +20,13 @@ func NewUseCase(repo sessions.Repository) *UseCase {
 	}
 }
 
-func (uc *UseCase) Create(userID string, expires time.Duration) (string, error){
+func (uc *UseCase) Create(userID string, expires time.Duration) (string, error) {
 	sessionID := uuid.NewV4().String()
 	sID := addPrefix(sessionID)
 	err := uc.Repository.Create(sID, userID, expires)
 
 	return sessionID, err
 }
-
 
 func (uc *UseCase) Check(sessionID string) (string, error) {
 	sID := addPrefix(sessionID)
