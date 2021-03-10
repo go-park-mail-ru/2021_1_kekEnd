@@ -4,7 +4,7 @@ type User struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Avatar   []byte `json:"avatar"`
+	Avatar   string `json:"avatar"`
 
 	MoviesWatched uint `json:"movies_watched"`
 	ReviewsNumber uint `json:"reviews_number"`
@@ -13,7 +13,7 @@ type User struct {
 type UserNoPassword struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Avatar   []byte `json:"avatar"`
+	Avatar   string `json:"avatar"`
 
 	MoviesWatched uint `json:"movies_watched"`
 	ReviewsNumber uint `json:"reviews_number"`
