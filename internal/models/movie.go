@@ -24,5 +24,5 @@ type Movie struct {
 
 	Poster         string `json:"poster"`
 	Banner         string `json:"banner"`
-	TrailerPreview string `json:"trailer_preview:`
+	TrailerPreview string `json:"trailer_preview"`
 }
