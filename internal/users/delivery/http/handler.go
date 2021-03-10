@@ -5,12 +5,14 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	"github.com/google/uuid"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
 const userKey = "user"
-const host = "89.208.198.186"
+const host = "localhost"
 
 type Handler struct {
 	useCase  users.UseCase
@@ -44,10 +46,13 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	defaultAvatarPath := "http://" + host + ":8080/avatars/default.jpeg"
+
 	user := &models.User{
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
+		Avatar:		   defaultAvatarPath,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -183,4 +188,48 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) UploadAvatar(ctx *gin.Context) {
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	extension := filepath.Ext(file.Filename)
+	// generate random file name for the new uploaded file so it doesn't override the old file with same name
+	newFileName := uuid.New().String() + extension
+	err = ctx.SaveUploadedFile(file, "tmp/avatars/" + newFileName)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	// TODO: add avatar reference to user model. Set it here
+	user, ok := ctx.Get(userKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel := user.(models.User)
+	change := userModel
+
+	//avatar := make([]byte, file.Size)
+	//fileReader, _ := file.Open()
+	//_, err = fileReader.Read(avatar)
+	//if err != nil {
+	//	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	//	return
+	//}
+
+	change.Avatar = "http://" + host + ":8080/avatars/" + newFileName
+	_, err = h.useCase.UpdateUser(&userModel, change)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }
