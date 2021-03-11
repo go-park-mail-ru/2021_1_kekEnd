@@ -29,12 +29,6 @@ func TestUserLocalStorage(t *testing.T) {
 		assert.Equal(t, user, gotUser)
 	})
 
-	t.Run("UnsuccessfulGetByUsername", func(t *testing.T) {
-		_, err := storage.GetUserByUsername("unknown")
-		assert.Error(t, err)
-		assert.Equal(t, err.Error(), "user not found")
-	})
-
 	t.Run("CheckPassword", func(t *testing.T) {
 		checkPass, err := storage.CheckPassword("1234", user)
 		assert.NoError(t, err)
@@ -43,14 +37,40 @@ func TestUserLocalStorage(t *testing.T) {
 
 	t.Run("UpdateUser", func(t *testing.T) {
 		_, err := storage.UpdateUser(user, models.User{
-			Username:      "let_robots_reign",
-			Email:         "corrected@ya.ru",
-			Password:      "12345",
+			Username: "let_robots_reign",
+			Email:    "corrected@ya.ru",
+			Password: "12345",
 		})
 		assert.NoError(t, err)
 		updatedUser, err := storage.GetUserByUsername("let_robots_reign")
 		assert.NoError(t, err)
 		assert.Equal(t, "corrected@ya.ru", updatedUser.Email)
 		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte("12345")))
+	})
+}
+
+func TestLocalStorageErrors(t *testing.T) {
+	storage := NewUserLocalStorage()
+
+	t.Run("UnsuccessfulGetByUsername", func(t *testing.T) {
+		_, err := storage.GetUserByUsername("unknown")
+		assert.Error(t, err)
+		assert.Equal(t, "user not found", err.Error())
+	})
+
+	t.Run("UnsuccessfulUpdateUser", func(t *testing.T) {
+		nonExistentUser := &models.User{
+			Username: "nonexistent_user",
+			Email:    "corrected@ya.ru",
+			Password: "12345",
+		}
+		_, err := storage.UpdateUser(nonExistentUser, models.User{
+			Username: "nonexistent_user",
+			Email:    "new_email@ya.ru",
+			Password: "qwerty",
+		})
+
+		assert.Error(t, err)
+		assert.Equal(t, "user not found", err.Error())
 	})
 }

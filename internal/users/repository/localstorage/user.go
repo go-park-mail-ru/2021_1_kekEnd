@@ -67,6 +67,11 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
+	_, exists := storage.users[user.Username]
+	if !exists {
+		return nil, errors.New("user not found")
+	}
+
 	if change.Password != "" {
 		newPassword, err := getHashedPassword(change.Password)
 		if err != nil {
@@ -84,10 +89,6 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		user.Avatar = change.Avatar
 	}
 
-	_, exists := storage.users[user.Username]
-	if exists {
-		storage.users[user.Username] = user
-		return storage.users[user.Username], nil
-	}
-	return nil, errors.New("user not found")
+	storage.users[user.Username] = user
+	return storage.users[user.Username], nil
 }
