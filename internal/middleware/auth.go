@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
@@ -33,12 +34,14 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		sessionID, err := ctx.Cookie("session_id")
 		if err != nil {
+			fmt.Println("no sessions_id in request", err)
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions_id in request") //401
 			return
 		}
 
 		username, err := m.sessions.GetUser(sessionID)
 		if err != nil {
+			fmt.Println("no sessions for this user", err)
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions for this user") //401
 			return
 		}
