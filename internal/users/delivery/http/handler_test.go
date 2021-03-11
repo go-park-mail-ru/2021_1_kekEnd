@@ -4,110 +4,124 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	"github.com/golang/mock/gomock"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestHandlers(t *testing.T) {
 	r := gin.Default()
-	uc := &usecase.UsersUseCaseMock{}
+	usersUC := &usecase.UsersUseCaseMock{}
 
-	RegisterHttpEndpoints(r, uc)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	createBody := &signupData{
-		Username: "let_robots_reign",
-		Email:    "sample@ya.ru",
-		Password: "1234",
-	}
+	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
+	delivery := sessions.NewDelivery(sessionsUC)
 
-	body, err := json.Marshal(createBody)
-	assert.NoError(t, err)
+	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	user := &models.User{
-		Username:      createBody.Username,
-		Email:         createBody.Email,
-		Password:      createBody.Password,
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
-	}
+	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware)
 
-	uc.On("CreateUser", user).Return(nil)
+	UUID := uuid.NewV4().String()
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
-	r.ServeHTTP(w, req)
+	t.Run("CreateUser", func(t *testing.T) {
+		createBody := &signupData{
+			Username: "let_robots_reign",
+			Email:    "sample@ya.ru",
+			Password: "1234",
+		}
 
-	assert.Equal(t, http.StatusCreated, w.Code)
-}
+		body, err := json.Marshal(createBody)
+		assert.NoError(t, err)
 
-func TestSuccessfulGetUser(t *testing.T) {
-	r := gin.Default()
-	uc := &usecase.UsersUseCaseMock{}
+		user := &models.User{
+			Username:      createBody.Username,
+			Email:         createBody.Email,
+			Password:      createBody.Password,
+			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+			MoviesWatched: 0,
+			ReviewsNumber: 0,
+		}
 
-	RegisterHttpEndpoints(r, uc)
+		sessionsUC.
+			EXPECT().
+			Create(user.Username, 240 * time.Hour).
+			Return(UUID, nil).AnyTimes()
 
-	username := "let_robots_reign"
-	mockUser := &models.User{
-		Username:      "let_robots_reign",
-		Email:         "sample@ya.ru",
-		Password:      "1234",
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
-	}
+		sessionID, err := delivery.Create(user.Username, 240 * time.Hour)
+		assert.NoError(t, err)
+		assert.Equal(t, UUID, sessionID)
 
-	uc.On("GetUser", username).Return(mockUser, nil)
+		usersUC.On("CreateUser", user).Return(nil)
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/users/let_robots_reign", nil)
-	r.ServeHTTP(w, req)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+		assert.Equal(t, http.StatusCreated, w.Code)
+	})
 
-//func TestUnsuccessfulGetUser(t *testing.T) {
-//	r := gin.Default()
-//	uc := &usecase.UsersUseCaseMock{}
-//
-//	RegisterHttpEndpoints(r, uc)
-//
-//	username := "let_robots_reign"
-//
-//	uc.On("GetUser", username).Return(nil, errors.New("user not found"))
-//
-//	w := httptest.NewRecorder()
-//	req, _ := http.NewRequest("GET", "/users/let_robots_reign", nil)
-//	r.ServeHTTP(w, req)
-//
-//	assert.Equal(t, http.StatusNotFound, w.Code)
-//}
+	t.Run("GetUser", func(t *testing.T) {
+		username := "let_robots_reign"
+		mockUser := &models.User{
+			Username:      "let_robots_reign",
+			Email:         "sample@ya.ru",
+			Password:      "1234",
+			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+			MoviesWatched: 0,
+			ReviewsNumber: 0,
+		}
 
-func TestUpdateUser(t *testing.T) {
-	r := gin.Default()
-	uc := &usecase.UsersUseCaseMock{}
+		usersUC.On("GetUser", username).Return(mockUser, nil)
 
-	RegisterHttpEndpoints(r, uc)
+		// TODO: поправить сессии, чтобы заработало
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(username, nil).AnyTimes()
 
-	username := "let_robots_reign"
-	newMockUser := &models.User{
-		Username:      "let_robots_reign",
-		Email:         "corrected@ya.ru",
-		Password:      "1234",
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
-	}
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/users", nil)
+		r.ServeHTTP(w, req)
 
-	body, err := json.Marshal(newMockUser)
-	assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 
-	uc.On("UpdateUser", username, newMockUser).Return(nil)
+	t.Run("TestUpdateUser", func(t *testing.T) {
+		username := "let_robots_reign"
+		newMockUser := &models.User{
+			Username:      "let_robots_reign",
+			Email:         "corrected@ya.ru",
+			Password:      "1234",
+			MoviesWatched: 0,
+			ReviewsNumber: 0,
+		}
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("PUT", "/users/let_robots_reign", bytes.NewBuffer(body))
-	r.ServeHTTP(w, req)
+		body, err := json.Marshal(newMockUser)
+		assert.NoError(t, err)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+		usersUC.On("UpdateUser", username, newMockUser).Return(nil)
+
+		// TODO: поправить сессии, чтобы заработало
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(username, nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/users", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 }
