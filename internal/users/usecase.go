@@ -11,5 +11,5 @@ type UseCase interface {
 
 	GetUser(username string) (*models.User, error)
 
-	UpdateUser(user *models.User, change models.User) (*models.User, error)
+	UpdateUser(username *models.User, change models.User) error
 }

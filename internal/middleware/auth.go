@@ -13,6 +13,7 @@ func respondWithError(ctx *gin.Context, code int, message interface{}) {
 	ctx.AbortWithStatusJSON(code, gin.H{"error": message})
 }
 
+
 type Auth interface {
 	CheckAuth() gin.HandlerFunc
 }
