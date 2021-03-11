@@ -51,26 +51,22 @@ func TestCheckAuth(t *testing.T) {
 		userModelFromMiddleware := userFromMiddleware.(models.User)
 
 		assert.Equal(t, userModel, userModelFromMiddleware) // 500
-		//assert.Equal(t, 1, 1) // 500
 	})
 
-	//t.Run("Check-Error-nocookie", func(t *testing.T) {
-	//	ctrl := gomock.NewController(t)
-	//	defer ctrl.Finish()
-	//
-	//	mUC := sessions.NewMockUseCase(ctrl)
-	//	sessionsDelivery := sessionsDel.NewDelivery(mUC)
-	//	userUseCase := usecase.UsersUseCase{}
-	//	mdw := NewAuthMiddleware(&userUseCase, sessionsDelivery)
-	//
-	//	Request :=  new(http.Request)
-	//	ctx := new(gin.Context)
-	//	ctx.Request = Request
-	//
-	//
-	//	handler := mdw.CheckAuth()
-	//	handler(ctx)
-	//
-	//	assert.Equal(t, http.StatusUnauthorized, ctx.Status) // 401
-	//})
+	t.Run("Check-No-cookie", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		userUseCase := usecase.UsersUseCaseMock{}
+		mdw := NewAuthMiddleware(&userUseCase, sessionsDelivery)
+
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request, _ = http.NewRequest("POST", "/", nil)
+
+		handler := mdw.CheckAuth()
+		handler(ctx)
+
+		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 500
+	})
 }
