@@ -32,27 +32,27 @@ func TestHandlers(t *testing.T) {
 
 	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware)
 
+	createBody := &signupData{
+		Username: "let_robots_reign",
+		Email:    "sample@ya.ru",
+		Password: "1234",
+	}
+
+	body, err := json.Marshal(createBody)
+	assert.NoError(t, err)
+
+	user := &models.User{
+		Username:      createBody.Username,
+		Email:         createBody.Email,
+		Password:      createBody.Password,
+		Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+		MoviesWatched: 0,
+		ReviewsNumber: 0,
+	}
+
 	UUID := uuid.NewV4().String()
 
 	t.Run("CreateUser", func(t *testing.T) {
-		createBody := &signupData{
-			Username: "let_robots_reign",
-			Email:    "sample@ya.ru",
-			Password: "1234",
-		}
-
-		body, err := json.Marshal(createBody)
-		assert.NoError(t, err)
-
-		user := &models.User{
-			Username:      createBody.Username,
-			Email:         createBody.Email,
-			Password:      createBody.Password,
-			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
-			MoviesWatched: 0,
-			ReviewsNumber: 0,
-		}
-
 		sessionsUC.
 			EXPECT().
 			Create(user.Username, 240 * time.Hour).
@@ -72,7 +72,6 @@ func TestHandlers(t *testing.T) {
 	})
 
 	t.Run("GetUser", func(t *testing.T) {
-		username := "let_robots_reign"
 		mockUser := &models.User{
 			Username:      "let_robots_reign",
 			Email:         "sample@ya.ru",
@@ -82,27 +81,32 @@ func TestHandlers(t *testing.T) {
 			ReviewsNumber: 0,
 		}
 
-		usersUC.On("GetUser", username).Return(mockUser, nil)
+		cookie := &http.Cookie{
+			Name: "session_id",
+			Value: UUID,
+		}
 
-		// TODO: поправить сессии, чтобы заработало
+		usersUC.On("GetUser", user.Username).Return(mockUser, nil)
+
 		sessionsUC.
 			EXPECT().
 			Check(UUID).
-			Return(username, nil).AnyTimes()
+			Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/users", nil)
+		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
 	t.Run("TestUpdateUser", func(t *testing.T) {
-		username := "let_robots_reign"
-		newMockUser := &models.User{
+		newMockUser := models.User{
 			Username:      "let_robots_reign",
 			Email:         "corrected@ya.ru",
 			Password:      "1234",
+			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: 0,
 			ReviewsNumber: 0,
 		}
@@ -110,16 +114,21 @@ func TestHandlers(t *testing.T) {
 		body, err := json.Marshal(newMockUser)
 		assert.NoError(t, err)
 
-		usersUC.On("UpdateUser", username, newMockUser).Return(nil)
+		cookie := &http.Cookie{
+			Name: "session_id",
+			Value: UUID,
+		}
 
-		// TODO: поправить сессии, чтобы заработало
+		usersUC.On("UpdateUser", user, newMockUser).Return(&newMockUser, nil)
+
 		sessionsUC.
 			EXPECT().
 			Check(UUID).
-			Return(username, nil).AnyTimes()
+			Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
