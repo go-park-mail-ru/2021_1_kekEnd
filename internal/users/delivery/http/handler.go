@@ -11,8 +11,14 @@ import (
 	"time"
 )
 
-const userKey = "user"
-const host = "localhost"
+const (
+	UserKey           = "user"
+	Host              = "localhost"
+	Port              = ":8080"
+	AvatarsPath       = "http://" + Host + Port + "/avatars/"
+	DefaultAvatarPath = "http://" + Host + Port + "/avatars/default.jpeg"
+	AvatarsFileDir    = "tmp/avatars/"
+)
 
 type Handler struct {
 	useCase  users.UseCase
@@ -46,13 +52,11 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	defaultAvatarPath := "http://" + host + ":8080/avatars/default.jpeg"
-
 	user := &models.User{
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
-		Avatar:        defaultAvatarPath,
+		Avatar:        DefaultAvatarPath,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -76,7 +80,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		host,
+		Host,
 		false,
 		true,
 	)
@@ -102,7 +106,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", host, false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", Host, false, true)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -135,7 +139,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		host,
+		Host,
 		false,
 		true,
 	)
@@ -144,7 +148,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, ok := ctx.Get(userKey)
+	user, ok := ctx.Get(UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
@@ -168,7 +172,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(userKey)
+	user, ok := ctx.Get(UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -200,31 +204,27 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	extension := filepath.Ext(file.Filename)
 	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
-	err = ctx.SaveUploadedFile(file, "tmp/avatars/"+newFileName)
+	err = ctx.SaveUploadedFile(file, AvatarsFileDir + newFileName)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	// TODO: add avatar reference to user model. Set it here
-	user, ok := ctx.Get(userKey)
+	user, ok := ctx.Get(UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	userModel := user.(models.User)
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
 	change := userModel
+	change.Avatar = AvatarsPath + newFileName
 
-	//avatar := make([]byte, file.Size)
-	//fileReader, _ := file.Open()
-	//_, err = fileReader.Read(avatar)
-	//if err != nil {
-	//	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	//	return
-	//}
-
-	change.Avatar = "http://" + host + ":8080/avatars/" + newFileName
 	_, err = h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
