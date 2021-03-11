@@ -52,13 +52,21 @@ func TestUserLocalStorage(t *testing.T) {
 func TestLocalStorageErrors(t *testing.T) {
 	storage := NewUserLocalStorage()
 
+	user := &models.User{
+		Username:      "let_robots_reign",
+		Email:         "sample@ya.ru",
+		Password:      "1234",
+		MoviesWatched: 4,
+		ReviewsNumber: 2,
+	}
+
 	t.Run("UnsuccessfulGetByUsername", func(t *testing.T) {
 		_, err := storage.GetUserByUsername("unknown")
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())
 	})
 
-	t.Run("UnsuccessfulUpdateUser", func(t *testing.T) {
+	t.Run("UpdateNonExistentUser", func(t *testing.T) {
 		nonExistentUser := &models.User{
 			Username: "nonexistent_user",
 			Email:    "corrected@ya.ru",
@@ -72,5 +80,17 @@ func TestLocalStorageErrors(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())
+	})
+
+	t.Run("UpdateWrongUser", func(t *testing.T) {
+		nonExistentUser := models.User{
+			Username: "nonexistent_user",
+			Email:    "corrected@ya.ru",
+			Password: "12345",
+		}
+		_, err := storage.UpdateUser(user, nonExistentUser)
+
+		assert.Error(t, err)
+		assert.Equal(t, "username doesn't match", err.Error())
 	})
 }

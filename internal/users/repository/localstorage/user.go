@@ -72,6 +72,10 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		return nil, errors.New("user not found")
 	}
 
+	if user.Username != change.Username {
+		return nil, errors.New("username doesn't match")
+	}
+
 	if change.Password != "" {
 		newPassword, err := getHashedPassword(change.Password)
 		if err != nil {
