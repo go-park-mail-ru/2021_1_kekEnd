@@ -4,10 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
 )
-
-const userKey = "user"
 
 func respondWithError(ctx *gin.Context, code int, message interface{}) {
 	ctx.AbortWithStatusJSON(code, gin.H{"error": message})
@@ -50,7 +49,7 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(userKey, *user)
+		ctx.Set(_const.UserKey, *user)
 		ctx.Next()
 	}
 }

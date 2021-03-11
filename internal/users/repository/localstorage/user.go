@@ -89,7 +89,7 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		user.Email = change.Email
 	}
 
-	if len(change.Avatar) != 0 {
+	if  change.Avatar != "" {
 		user.Avatar = change.Avatar
 	}
 
