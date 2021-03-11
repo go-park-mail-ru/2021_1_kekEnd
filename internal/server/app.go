@@ -18,6 +18,7 @@ import (
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
 	"log"
 	"net/http"
@@ -86,6 +87,8 @@ func (app *App) Run(port string) error {
 			param.ErrorMessage,
 		)
 	}))
+
+	router.Static("/avatars", _const.AvatarsFileDir)
 
 	router.Use(gin.Recovery())
 

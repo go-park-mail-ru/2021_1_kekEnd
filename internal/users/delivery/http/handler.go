@@ -5,12 +5,12 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"github.com/google/uuid"
 	"net/http"
+	"path/filepath"
 	"time"
 )
-
-const userKey = "user"
-const host = "89.208.198.186"
 
 type Handler struct {
 	useCase  users.UseCase
@@ -48,6 +48,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
+		Avatar:        _const.DefaultAvatarPath,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -71,7 +72,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		host,
+		_const.Host,
 		false,
 		true,
 	)
@@ -97,7 +98,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", host, false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", _const.Host, false, true)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -130,7 +131,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		host,
+		_const.Host,
 		false,
 		true,
 	)
@@ -139,7 +140,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, ok := ctx.Get(userKey)
+	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
@@ -163,7 +164,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(userKey)
+	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -175,6 +176,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	changed.Avatar = userModel.Avatar
 	newUser, err := h.useCase.UpdateUser(&userModel, *changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -183,4 +185,44 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) UploadAvatar(ctx *gin.Context) {
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	extension := filepath.Ext(file.Filename)
+	// generate random file name for the new uploaded file so it doesn't override the old file with same name
+	newFileName := uuid.New().String() + extension
+	err = ctx.SaveUploadedFile(file, _const.AvatarsFileDir + newFileName)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	change := userModel
+	change.Avatar = _const.AvatarsPath + newFileName
+
+	_, err = h.useCase.UpdateUser(&userModel, change)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

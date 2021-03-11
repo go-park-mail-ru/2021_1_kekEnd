@@ -80,6 +80,10 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		user.Email = change.Email
 	}
 
+	if len(change.Avatar) != 0 {
+		user.Avatar = change.Avatar
+	}
+
 	_, exists := storage.users[user.Username]
 	if exists {
 		storage.users[user.Username] = user
