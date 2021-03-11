@@ -3,7 +3,7 @@ package usecase
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/mock"
+	mock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -37,7 +37,7 @@ func TestUsersUseCase(t *testing.T) {
 		Email:         "corrected@ya.ru",
 		Password:      "1234567",
 	}
-	repo.On("UpdateUser", user.Username, updatedUser).Return(nil)
+	repo.On("UpdateUser", user, updatedUser).Return(&updatedUser, nil)
 	_, err = uc.UpdateUser(user, updatedUser)
 	assert.NoError(t, err)
 }

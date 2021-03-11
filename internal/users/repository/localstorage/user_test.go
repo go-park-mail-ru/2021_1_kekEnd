@@ -3,6 +3,7 @@ package localstorage
 import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
@@ -32,7 +33,7 @@ func TestUserLocalStorage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, checkPass)
 
-	err = storage.UpdateUser("let_robots_reign", &models.User{
+	_, err = storage.UpdateUser(user, models.User{
 		Username:      "let_robots_reign",
 		Email:         "corrected@ya.ru",
 		Password:      "12345",
@@ -40,6 +41,6 @@ func TestUserLocalStorage(t *testing.T) {
 	assert.NoError(t, err)
 	updatedUser, err := storage.GetUserByUsername("let_robots_reign")
 	assert.NoError(t, err)
-	assert.Equal(t, updatedUser.Email, "corrected@ya.ru")
-	assert.Equal(t, updatedUser.Password, "12345")
+	assert.Equal(t, "corrected@ya.ru", updatedUser.Email)
+	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte("12345")))
 }

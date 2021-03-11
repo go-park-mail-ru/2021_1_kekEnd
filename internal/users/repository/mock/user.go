@@ -29,5 +29,5 @@ func (storageMock *UserStorageMock) CheckPassword(password string, user *models.
 
 func (storageMock *UserStorageMock) UpdateUser(user *models.User, change models.User) (*models.User, error) {
 	args := storageMock.Called(user, change)
-	return args.Get(0).(*models.User), args.Error(0)
+	return args.Get(0).(*models.User), args.Error(1)
 }
