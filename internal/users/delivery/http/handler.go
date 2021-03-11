@@ -184,6 +184,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	changed.Avatar = userModel.Avatar
 	newUser, err := h.useCase.UpdateUser(&userModel, *changed)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
