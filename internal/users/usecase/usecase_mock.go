@@ -24,7 +24,7 @@ func (mockUC *UsersUseCaseMock) GetUser(username string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (mockUC *UsersUseCaseMock) UpdateUser(username *models.User, newUser models.User) error {
+func (mockUC *UsersUseCaseMock) UpdateUser(username *models.User, newUser models.User) (*models.User, error) {
 	args := mockUC.Called(username, newUser)
-	return args.Error(0)
+	return  args.Get(0).(*models.User),  args.Error(1)
 }
