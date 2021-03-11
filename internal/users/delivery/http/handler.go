@@ -213,14 +213,18 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
-	change := userModel
-	change.Avatar = _const.AvatarsPath + newFileName
+	change := models.User{
+		Username: userModel.Username,
+		Avatar: _const.AvatarsPath + newFileName,
+	}
+	//change.Avatar = _const.AvatarsPath + newFileName
 
-	_, err = h.useCase.UpdateUser(&userModel, change)
+	newUser, err := h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	userNoPassword := models.FromUser(*newUser)
+	ctx.JSON(http.StatusOK, userNoPassword)
 }
