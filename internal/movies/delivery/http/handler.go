@@ -22,11 +22,13 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 	err := ctx.BindJSON(movieData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	err = h.useCase.CreateMovie(movieData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	ctx.Status(http.StatusCreated)
@@ -36,6 +38,7 @@ func (h *Handler) GetMovie(ctx *gin.Context) {
 	movie, err := h.useCase.GetMovie(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
+		return
 	}
 
 	ctx.JSON(http.StatusOK, movie)
