@@ -175,7 +175,7 @@ func NewMovieLocalStorage() *MovieLocalStorage {
 
 	return &MovieLocalStorage{
 		movies:    movies,
-		currentID: 2,
+		currentID: 7,
 	}
 }
 
