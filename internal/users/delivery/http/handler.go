@@ -5,19 +5,11 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
 	"net/http"
 	"path/filepath"
 	"time"
-)
-
-const (
-	UserKey           = "user"
-	Host              = "localhost"
-	Port              = ":8080"
-	AvatarsPath       = "http://" + Host + Port + "/avatars/"
-	DefaultAvatarPath = "http://" + Host + Port + "/avatars/default.jpeg"
-	AvatarsFileDir    = "tmp/avatars/"
 )
 
 type Handler struct {
@@ -56,7 +48,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
-		Avatar:        DefaultAvatarPath,
+		Avatar:        _const.DefaultAvatarPath,
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -80,7 +72,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		Host,
+		_const.Host,
 		false,
 		true,
 	)
@@ -106,7 +98,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", Host, false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", _const.Host, false, true)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -139,7 +131,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		userSessionID,
 		int(expires),
 		"/",
-		Host,
+		_const.Host,
 		false,
 		true,
 	)
@@ -148,7 +140,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	user, ok := ctx.Get(UserKey)
+	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
@@ -172,7 +164,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(UserKey)
+	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -205,13 +197,13 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	extension := filepath.Ext(file.Filename)
 	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
-	err = ctx.SaveUploadedFile(file, AvatarsFileDir + newFileName)
+	err = ctx.SaveUploadedFile(file, _const.AvatarsFileDir + newFileName)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	user, ok := ctx.Get(UserKey)
+	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -224,7 +216,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	}
 
 	change := userModel
-	change.Avatar = AvatarsPath + newFileName
+	change.Avatar = _const.AvatarsPath + newFileName
 
 	_, err = h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
