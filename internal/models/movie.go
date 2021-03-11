@@ -21,4 +21,8 @@ type Movie struct {
 	Budget         string   `json:"budget"`
 	Duration       string   `json:"duration"`
 	Actors         []string `json:"actors"`
+
+	Poster         string `json:"poster"`
+	Banner         string `json:"banner"`
+	TrailerPreview string `json:"trailer_preview"`
 }

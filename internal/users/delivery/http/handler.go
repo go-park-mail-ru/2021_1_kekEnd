@@ -39,7 +39,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	if signupData.Username == "" || signupData.Email == "" || signupData.Password == ""{
+	if signupData.Username == "" || signupData.Email == "" || signupData.Password == "" {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -61,7 +61,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	//refactor it later
 	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(ctx, signupData.Username, expires)
+	userSessionID, err := h.sessions.Create(signupData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -92,7 +92,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	err = h.sessions.Delete(ctx, cookie)
+	err = h.sessions.Delete(cookie)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -120,7 +120,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	//refactor it later
 	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(ctx, loginData.Username, expires)
+	userSessionID, err := h.sessions.Create(loginData.Username, expires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -197,7 +197,9 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	extension := filepath.Ext(file.Filename)
 	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
+
 	err = ctx.SaveUploadedFile(file, _const.AvatarsFileDir + newFileName)
+
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
