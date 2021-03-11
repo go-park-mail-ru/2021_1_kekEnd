@@ -18,29 +18,39 @@ func TestUserLocalStorage(t *testing.T) {
 		ReviewsNumber: 2,
 	}
 
-	err := storage.CreateUser(user)
-	assert.NoError(t, err)
-
-	gotUser, err := storage.GetUserByUsername("let_robots_reign")
-	assert.NoError(t, err)
-	assert.Equal(t, user, gotUser)
-
-	gotUser, err = storage.GetUserByUsername("unknown")
-	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "user not found")
-
-	checkPass, err := storage.CheckPassword("1234", user)
-	assert.NoError(t, err)
-	assert.True(t, checkPass)
-
-	_, err = storage.UpdateUser(user, models.User{
-		Username:      "let_robots_reign",
-		Email:         "corrected@ya.ru",
-		Password:      "12345",
+	t.Run("CreateUser", func(t *testing.T) {
+		err := storage.CreateUser(user)
+		assert.NoError(t, err)
 	})
-	assert.NoError(t, err)
-	updatedUser, err := storage.GetUserByUsername("let_robots_reign")
-	assert.NoError(t, err)
-	assert.Equal(t, "corrected@ya.ru", updatedUser.Email)
-	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte("12345")))
+
+	t.Run("SuccessfulGetByUsername", func(t *testing.T) {
+		gotUser, err := storage.GetUserByUsername("let_robots_reign")
+		assert.NoError(t, err)
+		assert.Equal(t, user, gotUser)
+	})
+
+	t.Run("UnsuccessfulGetByUsername", func(t *testing.T) {
+		_, err := storage.GetUserByUsername("unknown")
+		assert.Error(t, err)
+		assert.Equal(t, err.Error(), "user not found")
+	})
+
+	t.Run("CheckPassword", func(t *testing.T) {
+		checkPass, err := storage.CheckPassword("1234", user)
+		assert.NoError(t, err)
+		assert.True(t, checkPass)
+	})
+
+	t.Run("UpdateUser", func(t *testing.T) {
+		_, err := storage.UpdateUser(user, models.User{
+			Username:      "let_robots_reign",
+			Email:         "corrected@ya.ru",
+			Password:      "12345",
+		})
+		assert.NoError(t, err)
+		updatedUser, err := storage.GetUserByUsername("let_robots_reign")
+		assert.NoError(t, err)
+		assert.Equal(t, "corrected@ya.ru", updatedUser.Email)
+		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte("12345")))
+	})
 }
