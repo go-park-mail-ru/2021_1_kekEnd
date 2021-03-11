@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"path/filepath"
-	"time"
 )
 
 type Handler struct {
@@ -59,9 +58,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	//refactor it later
-	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(signupData.Username, expires)
+	userSessionID, err := h.sessions.Create(signupData.Username, _const.CookieExpires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -70,7 +67,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	ctx.SetCookie(
 		"session_id",
 		userSessionID,
-		int(expires),
+		int(_const.CookieExpires),
 		"/",
 		_const.Host,
 		false,
@@ -118,9 +115,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	//refactor it later
-	expires := 240 * time.Hour
-	userSessionID, err := h.sessions.Create(loginData.Username, expires)
+	userSessionID, err := h.sessions.Create(loginData.Username, _const.CookieExpires)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -129,7 +124,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	ctx.SetCookie(
 		"session_id",
 		userSessionID,
-		int(expires),
+		int(_const.CookieExpires),
 		"/",
 		_const.Host,
 		false,
