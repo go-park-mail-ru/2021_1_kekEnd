@@ -228,3 +228,32 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
+
+func (h *Handler) CreateReview(ctx *gin.Context) {
+	review := new(models.Review)
+	err := ctx.BindJSON(review)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.CreateReview(&userModel, review)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	ctx.Status(http.StatusCreated) // 201
+}

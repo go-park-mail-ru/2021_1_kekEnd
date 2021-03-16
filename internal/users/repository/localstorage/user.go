@@ -96,3 +96,8 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 	storage.users[user.Username] = user
 	return storage.users[user.Username], nil
 }
+
+func (storage *UserLocalStorage) CreateReview(user *models.User, review *models.Review) error {
+	// TODO: placeholder until BD appears
+	return nil
+}
