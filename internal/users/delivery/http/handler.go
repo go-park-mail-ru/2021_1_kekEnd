@@ -216,7 +216,6 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 		Username: userModel.Username,
 		Avatar: _const.AvatarsPath + newFileName,
 	}
-	//change.Avatar = _const.AvatarsPath + newFileName
 
 	newUser, err := h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
