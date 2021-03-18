@@ -1,11 +1,11 @@
 package models
 
-type reviewType int
+type reviewType string
 
 const (
-	negative reviewType = iota
-	neutral
-	positive
+	negative reviewType = "negative"
+	neutral = "neutral"
+	positive = "positive"
 )
 
 type Review struct {
