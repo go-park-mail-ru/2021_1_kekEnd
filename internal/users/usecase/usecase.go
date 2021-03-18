@@ -43,7 +43,3 @@ func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (*models.User, error) {
 	return usersUC.userRepository.UpdateUser(user, change)
 }
-
-func (usersUC *UsersUseCase) CreateReview(user *models.User, review *models.Review) error {
-	return usersUC.userRepository.CreateReview(user, review)
-}
