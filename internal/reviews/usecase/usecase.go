@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 )
@@ -15,8 +16,10 @@ func NewReviewsUseCase(repo reviews.ReviewRepository) *ReviewsUseCase {
 	}
 }
 
-func (reviewsUC *ReviewsUseCase) CreateReview(review *models.Review) error {
-	// TODO: check if user already uploaded a review for this movie
+func (reviewsUC *ReviewsUseCase) CreateReview(username string, review *models.Review) error {
+	if reviewsUC.reviewRepository.CheckIfExists(username, review) {
+		return errors.New("review already exists")
+	}
 	return reviewsUC.reviewRepository.CreateReview(review)
 }
 

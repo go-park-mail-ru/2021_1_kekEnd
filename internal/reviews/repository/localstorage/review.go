@@ -30,6 +30,19 @@ func (storage *ReviewLocalStorage) CreateReview(review *models.Review) error {
 	return nil
 }
 
+func (storage *ReviewLocalStorage) CheckIfExists(username string, review *models.Review) bool {
+	userReviews := storage.GetUserReviews(username)
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	for _, r := range userReviews {
+		if r.MovieID == review.MovieID {
+			return true
+		}
+	}
+	return false
+}
+
 func (storage *ReviewLocalStorage) GetUserReviews(username string) []*models.Review {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()

@@ -3,7 +3,7 @@ package reviews
 import "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 
 type UseCase interface {
-	CreateReview(review *models.Review) error
+	CreateReview(username string, review *models.Review) error
 
 	GetReviewsByUser(username string) []*models.Review
 

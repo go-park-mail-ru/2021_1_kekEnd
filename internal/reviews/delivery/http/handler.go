@@ -40,7 +40,7 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 
 	review.Author = userModel.Username
 
-	err = h.useCase.CreateReview(review)
+	err = h.useCase.CreateReview(userModel.Username, review)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
