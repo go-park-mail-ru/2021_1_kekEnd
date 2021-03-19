@@ -1,6 +1,7 @@
 package localstorage
 
 import (
+	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"strconv"
 	"sync"
@@ -30,17 +31,17 @@ func (storage *ReviewLocalStorage) CreateReview(review *models.Review) error {
 	return nil
 }
 
-func (storage *ReviewLocalStorage) CheckIfExists(username string, review *models.Review) bool {
+func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
 	userReviews := storage.GetUserReviews(username)
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
-	for _, r := range userReviews {
-		if r.MovieID == review.MovieID {
-			return true
+	for _, review := range userReviews {
+		if review.MovieID == movieID {
+			return review, nil
 		}
 	}
-	return false
+	return nil, errors.New("review doesn't exist")
 }
 
 func (storage *ReviewLocalStorage) GetUserReviews(username string) []*models.Review {

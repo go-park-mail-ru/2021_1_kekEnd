@@ -17,7 +17,8 @@ func NewReviewsUseCase(repo reviews.ReviewRepository) *ReviewsUseCase {
 }
 
 func (reviewsUC *ReviewsUseCase) CreateReview(username string, review *models.Review) error {
-	if reviewsUC.reviewRepository.CheckIfExists(username, review) {
+	_, err := reviewsUC.GetUserReviewForMovie(username, review.MovieID)
+	if err == nil {
 		return errors.New("review already exists")
 	}
 	return reviewsUC.reviewRepository.CreateReview(review)
@@ -29,4 +30,8 @@ func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) []*models.Rev
 
 func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string) []*models.Review {
 	return reviewsUC.reviewRepository.GetMovieReviews(movieID)
+}
+
+func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
+	return reviewsUC.reviewRepository.GetUserReviewForMovie(username, movieID)
 }
