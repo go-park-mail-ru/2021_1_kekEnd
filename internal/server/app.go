@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
+	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
 	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
@@ -94,6 +95,7 @@ func (app *App) Run(port string) error {
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
+	ratingsHttp.RegisterHttpEndpoints(router, )
 
 	app.server = &http.Server{
 		Addr:           ":" + port,
