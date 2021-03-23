@@ -6,68 +6,146 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
-	usecase ratings.UseCase
+	useCase ratings.UseCase
 }
 
-func NewHandler(usecase ratings.UseCase) *Handler {
+func NewHandler(useCase ratings.UseCase) *Handler {
 	return &Handler{
-		usecase: usecase,
+		useCase: useCase,
 	}
+}
+
+type ratingData struct {
+	MovieID string `json:"movie_id"`
+	Score   string `json:"score"`
 }
 
 func (h *Handler) CreateRating(ctx *gin.Context) {
-	var score uint = 0
-	err := ctx.BindJSON(score)
-
+	ratingData := new(ratingData)
+	err := ctx.BindJSON(ratingData)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
-	username := user.(models.User).Username
-	movieID := ctx.Param("movie_id")
-	err = h.usecase.CreateRating(username, movieID, score)
-	if err != nil {
+	userModel, ok := user.(models.User)
+	if !ok {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	ctx.Status(http.StatusOK)
+	score, err := strconv.Atoi(ratingData.Score)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	err = h.useCase.CreateRating(userModel.Username, ratingData.MovieID, score)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusCreated)
 }
 
 func (h *Handler) GetRating(ctx *gin.Context) {
+	ratingData := new(ratingData)
+	err := ctx.BindJSON(ratingData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
-	username := user.(models.User).Username
-	movieID := ctx.Param("movie_id")
-	rating, err := h.usecase.GetRating(username, movieID)
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	rating, err := h.useCase.GetRating(userModel.Username, ratingData.MovieID)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	ctx.JSON(http.StatusOK, rating)
 }
 
-func (h *Handler) DeleteRating(ctx *gin.Context) {
+func (h *Handler) UpdateRating(ctx *gin.Context) {
+	ratingData := new(ratingData)
+	err := ctx.BindJSON(ratingData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
-	username := user.(models.User).Username
-	movieID := ctx.Param("movie_id")
-	err := h.usecase.DeleteRating(username, movieID)
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	score, err := strconv.Atoi(ratingData.Score)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	err = h.useCase.UpdateRating(userModel.Username, ratingData.MovieID, score)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func (h *Handler) DeleteRating(ctx *gin.Context) {
+	ratingData := new(ratingData)
+	err := ctx.BindJSON(ratingData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.DeleteRating(userModel.Username, ratingData.MovieID)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
 	}
 
 	ctx.Status(http.StatusOK)

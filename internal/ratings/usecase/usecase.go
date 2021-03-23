@@ -5,18 +5,28 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 )
 
-type RatingUsecase struct {
+type RatingsUseCase struct {
 	Repository ratings.Repository
 }
 
-func (u *RatingUsecase) CreateRating(userID string, movieID string, score uint) error {
+func NewRatingsUseCase(repository ratings.Repository) *RatingsUseCase {
+	return &RatingsUseCase{
+		Repository: repository,
+	}
+}
+
+func (u *RatingsUseCase) CreateRating(userID string, movieID string, score int) error {
 	return u.Repository.CreateRating(userID, movieID, score)
 }
 
-func (u *RatingUsecase) GetRating(userID string, movieID string) (models.Rating, error) {
+func (u *RatingsUseCase) GetRating(userID string, movieID string) (models.Rating, error) {
 	return u.Repository.GetRating(userID, movieID)
 }
 
-func (u *RatingUsecase) DeleteRating(userID string, movieID string) error {
+func (u *RatingsUseCase) UpdateRating(userID string, movieID string, score int) error {
+	return u.Repository.UpdateRating(userID, movieID, score)
+}
+
+func (u *RatingsUseCase) DeleteRating(userID string, movieID string) error {
 	return u.Repository.DeleteRating(userID, movieID)
 }
