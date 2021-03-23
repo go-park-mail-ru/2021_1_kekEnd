@@ -82,6 +82,10 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		user.Avatar = change.Avatar
 	}
 
+	if change.ReviewsNumber != 0 {
+		user.ReviewsNumber = change.ReviewsNumber
+	}
+
 	storage.users[user.Username] = user
 	return storage.users[user.Username], nil
 }

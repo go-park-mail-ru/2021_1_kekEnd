@@ -4,17 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
 )
 
 type Handler struct {
-	useCase reviews.UseCase
+	reviewsUC reviews.UseCase
+	usersUC   users.UseCase
 }
 
-func NewHandler(useCase reviews.UseCase) *Handler {
+func NewHandler(useCase reviews.UseCase, usersUC users.UseCase) *Handler {
 	return &Handler{
-		useCase: useCase,
+		reviewsUC: useCase,
+		usersUC: usersUC,
 	}
 }
 
@@ -40,9 +43,23 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 
 	review.Author = userModel.Username
 
-	err = h.useCase.CreateReview(userModel.Username, review)
+	err = h.reviewsUC.CreateReview(review)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	gotUser, err := h.usersUC.GetUser(userModel.Username)
+	if err != nil {
+		ctx.Status(http.StatusNotFound) // 404
+		return
+	}
+	_, err = h.usersUC.UpdateUser(gotUser, models.User{
+		Username: gotUser.Username,
+		ReviewsNumber: gotUser.ReviewsNumber + 1,
+	})
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError) // 500
 		return
 	}
 
@@ -62,14 +79,14 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 		return
 	}
 
-	userReviews := h.useCase.GetReviewsByUser(userModel.Username)
+	userReviews := h.reviewsUC.GetReviewsByUser(userModel.Username)
 
 	ctx.JSON(http.StatusOK, userReviews)
 }
 
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
-	movieReviews := h.useCase.GetReviewsByMovie(movieID)
+	movieReviews := h.reviewsUC.GetReviewsByMovie(movieID)
 	ctx.JSON(http.StatusOK, movieReviews)
 }
 
@@ -88,7 +105,7 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 		return
 	}
 
-	review, err := h.useCase.GetUserReviewForMovie(userModel.Username, movieID)
+	review, err := h.reviewsUC.GetUserReviewForMovie(userModel.Username, movieID)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusNotFound)
 		return

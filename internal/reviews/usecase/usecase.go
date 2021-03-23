@@ -16,7 +16,8 @@ func NewReviewsUseCase(repo reviews.ReviewRepository) *ReviewsUseCase {
 	}
 }
 
-func (reviewsUC *ReviewsUseCase) CreateReview(username string, review *models.Review) error {
+func (reviewsUC *ReviewsUseCase) CreateReview(review *models.Review) error {
+	username := review.Author
 	_, err := reviewsUC.GetUserReviewForMovie(username, review.MovieID)
 	if err == nil {
 		return errors.New("review already exists")
