@@ -107,9 +107,33 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 
 	review, err := h.reviewsUC.GetUserReviewForMovie(userModel.Username, movieID)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusNotFound)
+		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
 
 	ctx.JSON(http.StatusOK, review)
+}
+
+func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
+	movieID := ctx.Param("id")
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err := h.reviewsUC.DeleteUserReviewForMovie(userModel.Username, movieID)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
 }

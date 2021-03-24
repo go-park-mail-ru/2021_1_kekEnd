@@ -36,3 +36,7 @@ func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string) []*models.Rev
 func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
 	return reviewsUC.reviewRepository.GetUserReviewForMovie(username, movieID)
 }
+
+func (reviewsUC *ReviewsUseCase) DeleteUserReviewForMovie(username string, movieID string) error {
+	return reviewsUC.reviewRepository.DeleteUserReviewForMovie(username, movieID)
+}

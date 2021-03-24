@@ -31,19 +31,6 @@ func (storage *ReviewLocalStorage) CreateReview(review *models.Review) error {
 	return nil
 }
 
-func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
-	userReviews := storage.GetUserReviews(username)
-	storage.mutex.Lock()
-	defer storage.mutex.Unlock()
-
-	for _, review := range userReviews {
-		if review.MovieID == movieID {
-			return review, nil
-		}
-	}
-	return nil, errors.New("review doesn't exist")
-}
-
 func (storage *ReviewLocalStorage) GetUserReviews(username string) []*models.Review {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
@@ -70,4 +57,30 @@ func (storage *ReviewLocalStorage) GetMovieReviews(movieID string) []*models.Rev
 		}
 	}
 	return movieReviews
+}
+
+func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
+	userReviews := storage.GetUserReviews(username)
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	for _, review := range userReviews {
+		if review.MovieID == movieID {
+			return review, nil
+		}
+	}
+	return nil, errors.New("review doesn't exist")
+}
+
+func (storage *ReviewLocalStorage) DeleteUserReviewForMovie(username string, movieID string) error {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	userReview, err := storage.GetUserReviewForMovie(username, movieID)
+	if err != nil {
+		return err
+	}
+
+	delete(storage.reviews, userReview.ID)
+	return nil
 }
