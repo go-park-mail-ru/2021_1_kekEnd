@@ -63,7 +63,7 @@ func NewApp() *App {
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
 	reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
-	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo)
+	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 

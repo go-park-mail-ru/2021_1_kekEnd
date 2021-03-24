@@ -41,25 +41,9 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 		return
 	}
 
-	review.Author = userModel.Username
-
-	err = h.reviewsUC.CreateReview(review)
+	err = h.reviewsUC.CreateReview(&userModel, review)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
-
-	gotUser, err := h.usersUC.GetUser(userModel.Username)
-	if err != nil {
-		ctx.Status(http.StatusNotFound) // 404
-		return
-	}
-	_, err = h.usersUC.UpdateUser(gotUser, models.User{
-		Username: gotUser.Username,
-		ReviewsNumber: gotUser.ReviewsNumber + 1,
-	})
-	if err != nil {
-		ctx.Status(http.StatusInternalServerError) // 500
 		return
 	}
 

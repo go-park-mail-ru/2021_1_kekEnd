@@ -4,25 +4,38 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
 type ReviewsUseCase struct {
 	reviewRepository reviews.ReviewRepository
+	userRepository   users.UserRepository
 }
 
-func NewReviewsUseCase(repo reviews.ReviewRepository) *ReviewsUseCase {
+func NewReviewsUseCase(reviewRepo reviews.ReviewRepository, userRepo users.UserRepository) *ReviewsUseCase {
 	return &ReviewsUseCase{
-		reviewRepository: repo,
+		reviewRepository: reviewRepo,
+		userRepository:   userRepo,
 	}
 }
 
-func (reviewsUC *ReviewsUseCase) CreateReview(review *models.Review) error {
-	username := review.Author
-	_, err := reviewsUC.GetUserReviewForMovie(username, review.MovieID)
+func (reviewsUC *ReviewsUseCase) CreateReview(user *models.User, review *models.Review) error {
+	_, err := reviewsUC.GetUserReviewForMovie(user.Username, review.MovieID)
 	if err == nil {
 		return errors.New("review already exists")
 	}
-	return reviewsUC.reviewRepository.CreateReview(review)
+
+	review.Author = user.Username
+	err = reviewsUC.reviewRepository.CreateReview(review)
+	if err != nil {
+		return err
+	}
+	// successful create, must increment reviews_number for user
+	_, err = reviewsUC.userRepository.UpdateUser(user, models.User{
+		Username:      user.Username,
+		ReviewsNumber: user.ReviewsNumber + 1,
+	})
+	return nil
 }
 
 func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) []*models.Review {
