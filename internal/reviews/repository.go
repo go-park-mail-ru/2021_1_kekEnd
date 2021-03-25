@@ -11,5 +11,7 @@ type ReviewRepository interface {
 
 	GetUserReviewForMovie(username string, movieID string) (*models.Review, error)
 
+	EditUserReviewForMovie(review *models.Review) error
+
 	DeleteUserReviewForMovie(username string, movieID string) error
 }

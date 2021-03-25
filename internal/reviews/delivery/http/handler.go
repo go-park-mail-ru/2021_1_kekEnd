@@ -98,6 +98,35 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, review)
 }
 
+func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
+	review := new(models.Review)
+	err := ctx.BindJSON(review)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.reviewsUC.EditUserReviewForMovie(&userModel, review)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}
+
 func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 

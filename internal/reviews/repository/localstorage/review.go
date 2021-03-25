@@ -72,6 +72,14 @@ func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieI
 	return nil, errors.New("review doesn't exist")
 }
 
+func (storage *ReviewLocalStorage) EditUserReviewForMovie(review *models.Review) error {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	storage.reviews[review.ID] = review
+	return nil
+}
+
 func (storage *ReviewLocalStorage) DeleteUserReviewForMovie(username string, movieID string) error {
 	userReview, err := storage.GetUserReviewForMovie(username, movieID)
 	if err != nil {
@@ -80,7 +88,6 @@ func (storage *ReviewLocalStorage) DeleteUserReviewForMovie(username string, mov
 
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
-
 
 	delete(storage.reviews, userReview.ID)
 	return nil

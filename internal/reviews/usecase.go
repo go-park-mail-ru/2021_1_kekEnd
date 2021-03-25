@@ -11,5 +11,7 @@ type UseCase interface {
 
 	GetUserReviewForMovie(username string, movieID string) (*models.Review, error)
 
+	EditUserReviewForMovie(user *models.User, review *models.Review) error
+
 	DeleteUserReviewForMovie(user *models.User, movieID string) error
 }
