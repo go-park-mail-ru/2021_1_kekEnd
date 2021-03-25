@@ -113,7 +113,7 @@ func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 		return
 	}
 
-	err := h.reviewsUC.DeleteUserReviewForMovie(userModel.Username, movieID)
+	err := h.reviewsUC.DeleteUserReviewForMovie(&userModel, movieID)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return

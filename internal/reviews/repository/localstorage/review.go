@@ -73,13 +73,14 @@ func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieI
 }
 
 func (storage *ReviewLocalStorage) DeleteUserReviewForMovie(username string, movieID string) error {
-	storage.mutex.Lock()
-	defer storage.mutex.Unlock()
-
 	userReview, err := storage.GetUserReviewForMovie(username, movieID)
 	if err != nil {
 		return err
 	}
+
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
 
 	delete(storage.reviews, userReview.ID)
 	return nil

@@ -35,7 +35,7 @@ func (reviewsUC *ReviewsUseCase) CreateReview(user *models.User, review *models.
 		Username:      user.Username,
 		ReviewsNumber: user.ReviewsNumber + 1,
 	})
-	return nil
+	return err
 }
 
 func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) []*models.Review {
@@ -50,6 +50,16 @@ func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID 
 	return reviewsUC.reviewRepository.GetUserReviewForMovie(username, movieID)
 }
 
-func (reviewsUC *ReviewsUseCase) DeleteUserReviewForMovie(username string, movieID string) error {
-	return reviewsUC.reviewRepository.DeleteUserReviewForMovie(username, movieID)
+func (reviewsUC *ReviewsUseCase) DeleteUserReviewForMovie(user *models.User, movieID string) error {
+	err := reviewsUC.reviewRepository.DeleteUserReviewForMovie(user.Username, movieID)
+	if err != nil {
+		return err
+	}
+	// successful deletion, must decrement reviews_number for user
+	// TODO: when decrementing from 1 to 0, it doesn't update because of 'if change.ReviewsNumber != 0' in repository
+	_, err = reviewsUC.userRepository.UpdateUser(user, models.User{
+		Username:      user.Username,
+		ReviewsNumber: user.ReviewsNumber - 1,
+	})
+	return err
 }
