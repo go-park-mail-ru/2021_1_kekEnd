@@ -9,8 +9,8 @@ import (
 func RegisterHttpEndpoints(router *gin.Engine, ratingsUC ratings.UseCase, authMiddleware middleware.Auth) {
 	handler := NewHandler(ratingsUC)
 
-	router.POST("/ratings", authMiddleware.CheckAuth(), handler.CreateRating)
-	router.GET("/ratings", authMiddleware.CheckAuth(), handler.GetRating)
-	router.PUT("/ratings", authMiddleware.CheckAuth(), handler.UpdateRating)
-	router.DELETE("/ratings", authMiddleware.CheckAuth(), handler.DeleteRating)
+	router.POST("/ratings/:movie_id", authMiddleware.CheckAuth(), handler.CreateRating)
+	router.GET("/ratings/:movie_id", authMiddleware.CheckAuth(), handler.GetRating)
+	router.PUT("/ratings/:movie_id", authMiddleware.CheckAuth(), handler.UpdateRating)
+	router.DELETE("/ratings/:movie_id", authMiddleware.CheckAuth(), handler.DeleteRating)
 }

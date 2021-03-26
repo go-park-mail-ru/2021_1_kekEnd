@@ -59,13 +59,7 @@ func (h *Handler) CreateRating(ctx *gin.Context) {
 }
 
 func (h *Handler) GetRating(ctx *gin.Context) {
-	ratingData := new(ratingData)
-	err := ctx.BindJSON(ratingData)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
-
+	movieID := ctx.Param("movie_id")
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -78,7 +72,7 @@ func (h *Handler) GetRating(ctx *gin.Context) {
 		return
 	}
 
-	rating, err := h.useCase.GetRating(userModel.Username, ratingData.MovieID)
+	rating, err := h.useCase.GetRating(userModel.Username, movieID)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -123,13 +117,7 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteRating(ctx *gin.Context) {
-	ratingData := new(ratingData)
-	err := ctx.BindJSON(ratingData)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
-
+	movieID := ctx.Param("movie_id")
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -142,7 +130,7 @@ func (h *Handler) DeleteRating(ctx *gin.Context) {
 		return
 	}
 
-	err = h.useCase.DeleteRating(userModel.Username, ratingData.MovieID)
+	err := h.useCase.DeleteRating(userModel.Username, movieID)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
