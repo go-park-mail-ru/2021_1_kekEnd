@@ -51,10 +51,12 @@ func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID 
 }
 
 func (reviewsUC *ReviewsUseCase) EditUserReviewForMovie(user *models.User, review *models.Review) error {
-	_, err := reviewsUC.GetUserReviewForMovie(user.Username, review.MovieID)
+	oldReview, err := reviewsUC.GetUserReviewForMovie(user.Username, review.MovieID)
 	if err != nil {
 		return errors.New("review doesn't exist")
 	}
+	review.ID = oldReview.ID
+	review.Author = user.Username
 	return reviewsUC.reviewRepository.EditUserReviewForMovie(review)
 }
 
