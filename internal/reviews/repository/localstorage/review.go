@@ -78,7 +78,7 @@ func (storage *ReviewLocalStorage) EditUserReviewForMovie(review *models.Review)
 
 	storage.reviews[review.ID] = review
 	return nil
-}рецензии
+}
 
 func (storage *ReviewLocalStorage) DeleteUserReviewForMovie(username string, movieID string) error {
 	userReview, err := storage.GetUserReviewForMovie(username, movieID)

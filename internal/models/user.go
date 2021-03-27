@@ -6,8 +6,8 @@ type User struct {
 	Password string `json:"password"`
 	Avatar   string `json:"avatar"`
 
-	MoviesWatched uint `json:"movies_watched"`
-	ReviewsNumber uint `json:"reviews_number"`
+	MoviesWatched *uint `json:"movies_watched"`
+	ReviewsNumber *uint `json:"reviews_number"`
 }
 
 type UserNoPassword struct {
@@ -15,8 +15,8 @@ type UserNoPassword struct {
 	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
 
-	MoviesWatched uint `json:"movies_watched"`
-	ReviewsNumber uint `json:"reviews_number"`
+	MoviesWatched *uint `json:"movies_watched"`
+	ReviewsNumber *uint `json:"reviews_number"`
 }
 
 func FromUser(user User) UserNoPassword {

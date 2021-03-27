@@ -31,9 +31,10 @@ func (reviewsUC *ReviewsUseCase) CreateReview(user *models.User, review *models.
 		return err
 	}
 	// successful create, must increment reviews_number for user
+	newReviewsNumber := *user.ReviewsNumber + 1
 	_, err = reviewsUC.userRepository.UpdateUser(user, models.User{
 		Username:      user.Username,
-		ReviewsNumber: user.ReviewsNumber + 1,
+		ReviewsNumber: &newReviewsNumber,
 	})
 	return err
 }
@@ -66,10 +67,10 @@ func (reviewsUC *ReviewsUseCase) DeleteUserReviewForMovie(user *models.User, mov
 		return err
 	}
 	// successful deletion, must decrement reviews_number for user
-	// TODO: when decrementing from 1 to 0, it doesn't update because of 'if change.ReviewsNumber != 0' in repository
+	newReviewsNumber := *user.ReviewsNumber - 1
 	_, err = reviewsUC.userRepository.UpdateUser(user, models.User{
 		Username:      user.Username,
-		ReviewsNumber: user.ReviewsNumber - 1,
+		ReviewsNumber: &newReviewsNumber,
 	})
 	return err
 }
