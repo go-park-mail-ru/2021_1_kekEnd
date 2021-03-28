@@ -1,91 +1,128 @@
 package localstorage
 
 import (
-	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"golang.org/x/crypto/bcrypt"
-	"sync"
+    "errors"
+    "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+    "github.com/jackc/pgx/v4/pgxpool"
+    "golang.org/x/crypto/bcrypt"
+    "context"
 )
 
 func getHashedPassword(password string) (string, error) {
-	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", nil
-	}
-	return string(hashedPasswordBytes), nil
+    hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return "", nil
+    }
+    return string(hashedPasswordBytes), nil
 }
 
-type UserLocalStorage struct {
-	users map[string]*models.User
-	mutex sync.Mutex
+type UserRepository struct {
+    db *pgxpool.Pool
 }
 
-func NewUserLocalStorage() *UserLocalStorage {
-	return &UserLocalStorage{
-		users: make(map[string]*models.User),
-	}
+func NewUserRepository(database *pgxpool.Pool) *UserRepository {
+    return &UserRepository{
+        db: database,
+    }
 }
 
-func (storage *UserLocalStorage) CreateUser(user *models.User) error {
-	storage.mutex.Lock()
-	defer storage.mutex.Unlock()
+func (storage *UserRepository) CreateUser(user *models.User) error {
+    hashedPassword, err := getHashedPassword(user.Password)
+    if err != nil {
+        return err
+    }
+    user.Password = hashedPassword
 
-	hashedPassword, err := getHashedPassword(user.Password)
-	if err != nil {
-		return err
-	}
-	user.Password = hashedPassword
+    sqlStatement := `
+        INSERT INTO mdb.users (login, password, email)
+        VALUES ($1, $2, $3)
+        RETURNING "id";
+    `
 
-	storage.users[user.Username] = user
-	return nil
+    var myid int
+    errDB := storage.db.
+           QueryRow(context.Background(), sqlStatement, user.Username, user.Password, user.Email).
+           Scan(&myid)
+
+    if errDB != nil {
+        return errors.New("Create User Error")
+    }
+
+    return nil
 }
 
-func (storage *UserLocalStorage) GetUserByUsername(username string) (*models.User, error) {
-	user, exists := storage.users[username]
-	if !exists {
-		return nil, errors.New("user not found")
-	}
-	return user, nil
+func (storage *UserRepository) GetUserByUsername(username string) (*models.User, error) {
+    var user models.User
+
+    sqlStatement := `
+        SELECT login, password, email, img_src, movies_watched, reviews_count
+        FROM mdb.users
+        WHERE login=$1
+    `
+
+    err := storage.db.
+           QueryRow(context.Background(), sqlStatement, username).
+           Scan(&user.Username, &user.Password,
+                &user.Email, &user.Avatar,
+                &user.MoviesWatched, &user.ReviewsNumber)
+
+    if err != nil {
+        return nil, errors.New("user not found")
+    }
+
+    return &user, nil
 }
 
-func (storage *UserLocalStorage) CheckPassword(password string, user *models.User) (bool, error) {
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
+func (storage *UserRepository) CheckPassword(password string, user *models.User) (bool, error) {
+    return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }
 
-func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.User) (*models.User, error) {
-	storage.mutex.Lock()
-	defer storage.mutex.Unlock()
+func (storage *UserRepository) UpdateUser(user *models.User, change models.User) (*models.User, error) {
+    _, err := storage.GetUserByUsername(user.Username)
+    if err != nil {
+        return nil, errors.New("user not found")
+    }
 
-	_, exists := storage.users[user.Username]
-	if !exists {
-		return nil, errors.New("user not found")
-	}
+    if user.Username != change.Username {
+        return nil, errors.New("username doesn't match")
+    }
 
-	if user.Username != change.Username {
-		return nil, errors.New("username doesn't match")
-	}
+    if change.Password != "" {
+        newPassword, err := getHashedPassword(change.Password)
+        if err != nil {
+            return nil, err
+        }
 
-	if change.Password != "" {
-		newPassword, err := getHashedPassword(change.Password)
-		if err != nil {
-			return nil, err
-		}
+        user.Password = newPassword
+    }
 
-		user.Password = newPassword
-	}
+    if change.Email != "" {
+        user.Email = change.Email
+    }
 
-	if change.Email != "" {
-		user.Email = change.Email
-	}
+    if  change.Avatar != "" {
+        user.Avatar = change.Avatar
+    }
 
-	if change.Avatar != "" {
-		user.Avatar = change.Avatar
-	}
+    sqlStatement := `
+        UPDATE mdb.users
+        SET (login, password, email, img_src, movies_watched, reviews_count) =
+            ($2, $3, $4, $5, $6, $7)
+        WHERE login=$1
+        RETURNING id
+    `
 
-	if change.ReviewsNumber != 0 {
-		user.ReviewsNumber = change.ReviewsNumber
-	}
+    var id int
+    err = storage.db.
+           QueryRow(context.Background(), sqlStatement, user.Username,
+                user.Username, user.Password,
+                user.Email, user.Avatar,
+                user.MoviesWatched, user.ReviewsNumber).
+           Scan(&id)
 
-	storage.users[user.Username] = user
-	return storage.users[user.Username], nil
+    if err != nil {
+        return nil, errors.New("user not found")
+    }
+
+    return user, nil
 }

@@ -46,7 +46,7 @@ func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string) []*models.Rev
 	return reviewsUC.reviewRepository.GetMovieReviews(movieID)
 }
 
-func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
+func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID string) ([]*models.Review, error) {
 	return reviewsUC.reviewRepository.GetUserReviewForMovie(username, movieID)
 }
 

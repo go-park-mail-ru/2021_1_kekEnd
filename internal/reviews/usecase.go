@@ -9,7 +9,7 @@ type UseCase interface {
 
 	GetReviewsByMovie(movieID string) []*models.Review
 
-	GetUserReviewForMovie(username string, movieID string) (*models.Review, error)
+	GetUserReviewForMovie(username string, movieID string) ([]*models.Review, error)
 
 	EditUserReviewForMovie(user *models.User, review *models.Review) error
 
