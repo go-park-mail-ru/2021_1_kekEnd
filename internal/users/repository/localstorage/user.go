@@ -82,7 +82,7 @@ func (storage *UserLocalStorage) UpdateUser(user *models.User, change models.Use
 		user.Avatar = change.Avatar
 	}
 
-	if change.ReviewsNumber != 0 {
+	if change.ReviewsNumber != nil {
 		user.ReviewsNumber = change.ReviewsNumber
 	}
 
