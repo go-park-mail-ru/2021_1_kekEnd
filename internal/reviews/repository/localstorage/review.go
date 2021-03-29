@@ -15,8 +15,130 @@ type ReviewLocalStorage struct {
 
 func NewReviewLocalStorage() *ReviewLocalStorage {
 	return &ReviewLocalStorage{
-		reviews: make(map[string]*models.Review),
-		currentID: 1,
+		// for pagination testing
+		reviews: map[string]*models.Review{
+			"1": {
+				ID:         "1",
+				Title:      "1",
+				ReviewType: "positive",
+				Content:    "1",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"2": {
+				ID:         "2",
+				Title:      "2",
+				ReviewType: "positive",
+				Content:    "2",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"3": {
+				ID:         "3",
+				Title:      "3",
+				ReviewType: "positive",
+				Content:    "3",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"4": {
+				ID:         "4",
+				Title:      "4",
+				ReviewType: "positive",
+				Content:    "4",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"5": {
+				ID:         "5",
+				Title:      "5",
+				ReviewType: "positive",
+				Content:    "5",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"6": {
+				ID:         "6",
+				Title:      "6",
+				ReviewType: "positive",
+				Content:    "6",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"7": {
+				ID:         "7",
+				Title:      "7",
+				ReviewType: "positive",
+				Content:    "7",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"8": {
+				ID:         "8",
+				Title:      "8",
+				ReviewType: "positive",
+				Content:    "8",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"9": {
+				ID:         "9",
+				Title:      "9",
+				ReviewType: "positive",
+				Content:    "9",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"10": {
+				ID:         "10",
+				Title:      "10",
+				ReviewType: "positive",
+				Content:    "10",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"11": {
+				ID:         "11",
+				Title:      "11",
+				ReviewType: "positive",
+				Content:    "11",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"12": {
+				ID:         "12",
+				Title:      "12",
+				ReviewType: "positive",
+				Content:    "12",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"13": {
+				ID:         "13",
+				Title:      "13",
+				ReviewType: "positive",
+				Content:    "13",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"14": {
+				ID:         "14",
+				Title:      "14",
+				ReviewType: "positive",
+				Content:    "14",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+			"15": {
+				ID:         "15",
+				Title:      "15",
+				ReviewType: "positive",
+				Content:    "1",
+				Author:     "let_robots_reign",
+				MovieID:    "1",
+			},
+		},
+		currentID: 16,
 	}
 }
 
@@ -45,7 +167,7 @@ func (storage *ReviewLocalStorage) GetUserReviews(username string) []*models.Rev
 	return userReviews
 }
 
-func (storage *ReviewLocalStorage) GetMovieReviews(movieID string) []*models.Review {
+func (storage *ReviewLocalStorage) GetMovieReviews(movieID string, from, to int) (int, []*models.Review) {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
@@ -56,10 +178,15 @@ func (storage *ReviewLocalStorage) GetMovieReviews(movieID string) []*models.Rev
 			movieReviews = append(movieReviews, review)
 		}
 	}
-	return movieReviews
+
+	if to > len(storage.reviews) {
+		to = len(storage.reviews)
+	}
+
+	return len(storage.reviews), movieReviews[from:to]
 }
 
-func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
+func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
 	userReviews := storage.GetUserReviews(username)
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()

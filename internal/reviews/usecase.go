@@ -7,7 +7,7 @@ type UseCase interface {
 
 	GetReviewsByUser(username string) []*models.Review
 
-	GetReviewsByMovie(movieID string) []*models.Review
+	GetReviewsByMovie(movieID string, from, to int) (int, []*models.Review)
 
 	GetUserReviewForMovie(username string, movieID string) (*models.Review, error)
 

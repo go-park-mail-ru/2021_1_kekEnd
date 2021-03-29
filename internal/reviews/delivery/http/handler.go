@@ -7,7 +7,10 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
+	"strconv"
 )
+
+const ReviewsBatchSize = 10
 
 type Handler struct {
 	reviewsUC reviews.UseCase
@@ -70,8 +73,21 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
-	movieReviews := h.reviewsUC.GetReviewsByMovie(movieID)
-	ctx.JSON(http.StatusOK, movieReviews)
+	from := ctx.DefaultQuery("from", "0")
+	to := ctx.DefaultQuery("to", strconv.Itoa(ReviewsBatchSize))
+	fromInt, err := strconv.Atoi(from)
+	if err != nil {
+		fromInt = 0
+	}
+	toInt, err := strconv.Atoi(to)
+	if err != nil {
+		toInt = ReviewsBatchSize
+	}
+	count, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, fromInt, toInt)
+	ctx.JSON(http.StatusOK, gin.H{
+		"reviews_count": count,
+		"reviews": movieReviews,
+	})
 }
 
 func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
