@@ -7,7 +7,7 @@ import (
     "github.com/jackc/pgx/v4/pgxpool"
     "context"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"math"
+
 )
 
 type ReviewRepository struct {
@@ -122,9 +122,7 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int,
     	return 0, nil
     }
 
-	pagesNumber := int(math.Ceil(float64(len(storage.reviews)) / _const.ReviewsPageSize))
-
-    return pagesNumber, reviews
+    return len(reviews), reviews
 }
 
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
