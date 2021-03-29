@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 )
@@ -16,6 +17,10 @@ func NewRatingsUseCase(repository ratings.Repository) *RatingsUseCase {
 }
 
 func (u *RatingsUseCase) CreateRating(userID string, movieID string, score int) error {
+	if score < 0 || score > 10 {
+		return errors.New("invalid value for score")
+	}
+
 	return u.Repository.CreateRating(userID, movieID, score)
 }
 
