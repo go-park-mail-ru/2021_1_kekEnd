@@ -4,6 +4,7 @@ import "time"
 
 const (
 	UserKey           = "user"
+	ActorKey          = "actor"
 	CookieExpires     = 240 * time.Hour
 	Host              = "localhost"
 	Port              = "8080"
