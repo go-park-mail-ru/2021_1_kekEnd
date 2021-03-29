@@ -6,6 +6,8 @@ import (
 	"strconv"
     "github.com/jackc/pgx/v4/pgxpool"
     "context"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"math"
 )
 
 type ReviewRepository struct {
@@ -75,7 +77,7 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
     return reviews
 }
 
-func (storage *ReviewRepository) GetMovieReviews(movieID string, from, to int) (int, []*models.Review) {
+func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int, []*models.Review) {
     var reviews []*models.Review
 
     sqlStatement := `
@@ -92,8 +94,11 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, from, to int) (
         return 0, nil
     }
 
+	startIndex := (page - 1) * _const.ReviewsPageSize
+	endIndex := startIndex + _const.ReviewsPageSize
+
     rows, err := storage.db.
-           Query(context.Background(), sqlStatement, intMovieId, to - from, from)
+           Query(context.Background(), sqlStatement, intMovieId, endIndex - startIndex, startIndex)
     if err != nil {
         return 0, nil
     }
@@ -117,7 +122,9 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, from, to int) (
     	return 0, nil
     }
 
-    return len(reviews), reviews
+	pagesNumber := int(math.Ceil(float64(len(storage.reviews)) / _const.ReviewsPageSize))
+
+    return pagesNumber, reviews
 }
 
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
