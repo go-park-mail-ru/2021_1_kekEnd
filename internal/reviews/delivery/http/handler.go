@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-const ReviewsBatchSize = 10
-
 type Handler struct {
 	reviewsUC reviews.UseCase
 	usersUC   users.UseCase
@@ -73,19 +71,15 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
-	from := ctx.DefaultQuery("from", "0")
-	to := ctx.DefaultQuery("to", strconv.Itoa(ReviewsBatchSize))
-	fromInt, err := strconv.Atoi(from)
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	if err != nil {
-		fromInt = 0
+		page = 1
 	}
-	toInt, err := strconv.Atoi(to)
-	if err != nil {
-		toInt = ReviewsBatchSize
-	}
-	count, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, fromInt, toInt)
+
+	pagesNumber, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, page)
 	ctx.JSON(http.StatusOK, gin.H{
-		"reviews_count": count,
+		"current_page": page,
+		"pages_number": pagesNumber,
 		"reviews": movieReviews,
 	})
 }

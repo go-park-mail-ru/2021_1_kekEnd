@@ -3,6 +3,8 @@ package localstorage
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"math"
 	"strconv"
 	"sync"
 )
@@ -133,7 +135,7 @@ func NewReviewLocalStorage() *ReviewLocalStorage {
 				ID:         "15",
 				Title:      "15",
 				ReviewType: "positive",
-				Content:    "1",
+				Content:    "15",
 				Author:     "let_robots_reign",
 				MovieID:    "1",
 			},
@@ -167,7 +169,7 @@ func (storage *ReviewLocalStorage) GetUserReviews(username string) []*models.Rev
 	return userReviews
 }
 
-func (storage *ReviewLocalStorage) GetMovieReviews(movieID string, from, to int) (int, []*models.Review) {
+func (storage *ReviewLocalStorage) GetMovieReviews(movieID string, page int) (int, []*models.Review) {
 	storage.mutex.Lock()
 	defer storage.mutex.Unlock()
 
@@ -179,11 +181,11 @@ func (storage *ReviewLocalStorage) GetMovieReviews(movieID string, from, to int)
 		}
 	}
 
-	if to > len(storage.reviews) {
-		to = len(storage.reviews)
-	}
+	startIndex := (page - 1) * _const.ReviewsPageSize
+	endIndex := startIndex + _const.ReviewsPageSize
+	pagesNumber := int(math.Ceil(float64(len(storage.reviews)) / _const.ReviewsPageSize))
 
-	return len(storage.reviews), movieReviews[from:to]
+	return pagesNumber, movieReviews[startIndex:endIndex]
 }
 
 func (storage *ReviewLocalStorage) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
