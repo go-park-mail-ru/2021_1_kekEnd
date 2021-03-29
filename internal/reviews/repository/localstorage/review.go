@@ -181,9 +181,16 @@ func (storage *ReviewLocalStorage) GetMovieReviews(movieID string, page int) (in
 		}
 	}
 
+	storageSize := len(movieReviews)
 	startIndex := (page - 1) * _const.ReviewsPageSize
+	if startIndex > storageSize {
+		startIndex = 0
+	}
 	endIndex := startIndex + _const.ReviewsPageSize
-	pagesNumber := int(math.Ceil(float64(len(storage.reviews)) / _const.ReviewsPageSize))
+	if endIndex > storageSize {
+		endIndex = storageSize
+	}
+	pagesNumber := int(math.Ceil(float64(storageSize) / _const.ReviewsPageSize))
 
 	return pagesNumber, movieReviews[startIndex:endIndex]
 }
