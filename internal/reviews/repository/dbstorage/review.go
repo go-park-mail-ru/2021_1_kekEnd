@@ -98,12 +98,13 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int,
 	endIndex := startIndex + _const.ReviewsPageSize
 
     rows, err := storage.db.
-           Query(context.Background(), sqlStatement, intMovieId, endIndex - startIndex, startIndex)
+           Query(context.Background(), sqlStatement, intMovieId, endIndex - startIndex + 1, startIndex)
     if err != nil {
         return 0, nil
     }
 	defer rows.Close()
 
+	var needToAddPage bool
     for rows.Next() {
         review := &models.Review{}
         var newID int
@@ -115,6 +116,11 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int,
         review.ID = strconv.Itoa(newID)
         review.MovieID = movieID
 
+        if (len(reviews) >= 3) {
+        	needToAddPage = true
+        	break
+        }
+
         reviews = append(reviews, review)
     }
 
@@ -122,7 +128,11 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int,
     	return 0, nil
     }
 
-    return len(reviews), reviews
+    if (needToAddPage) {
+    	return page + 1, reviews
+    }
+
+    return page, reviews
 }
 
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
