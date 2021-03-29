@@ -29,6 +29,10 @@ func (u *RatingsUseCase) GetRating(userID string, movieID string) (models.Rating
 }
 
 func (u *RatingsUseCase) UpdateRating(userID string, movieID string, score int) error {
+	if score < 0 || score > 10 {
+		return errors.New("invalid value for score")
+	}
+
 	return u.Repository.UpdateRating(userID, movieID, score)
 }
 
