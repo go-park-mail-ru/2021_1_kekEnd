@@ -10,6 +10,10 @@ import (
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
+	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
+	ratingsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/localstorage"
+	ratingsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/localstorage"
@@ -32,11 +36,12 @@ import (
 )
 
 type App struct {
-	server         *http.Server
-	usersUC        users.UseCase
-	moviesUC       movies.UseCase
+	server   *http.Server
+	usersUC  users.UseCase
+	moviesUC movies.UseCase
+	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
-	sessions       sessions.Delivery
+	sessions sessions.Delivery
 	authMiddleware middleware.Auth
 }
 
@@ -62,6 +67,9 @@ func NewApp() *App {
 	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
+	ratingsRepo := ratingsLocalStorage.NewRatingsLocalStorage()
+	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
+
 	reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
@@ -70,6 +78,7 @@ func NewApp() *App {
 	return &App{
 		usersUC:        usersUC,
 		moviesUC:       moviesUC,
+		ratingsUC:      ratingsUC,
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
@@ -103,6 +112,7 @@ func (app *App) Run(port string) error {
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
+	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)
 
 	app.server = &http.Server{
