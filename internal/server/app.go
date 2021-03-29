@@ -3,16 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
+    "github.com/jackc/pgx/v4/pgxpool"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
-	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
+	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
-	reviewsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/localstorage"
+	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
@@ -20,7 +21,7 @@ import (
 	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
-	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
+	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
@@ -56,14 +57,33 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
-	usersRepo := usersLocalStorage.NewUserLocalStorage()
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
-	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+    // TO DO Сделать конфиг-файл и считывать его, например, с помощью viper
+    connStr := "postgres://mdb:mdb@localhost:5432/mdb"
+    dbpool, err := pgxpool.Connect(context.Background(), connStr)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+        os.Exit(1)
+    }
 
-	reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
-	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
+    usersRepo := usersDBStorage.NewUserRepository(dbpool)
+    usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+    moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
+    moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+
+    reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
+    reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
+
+
+	// usersRepo := usersLocalStorage.NewUserLocalStorage()
+	// usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+	// moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
+	// moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+
+	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
+	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 
