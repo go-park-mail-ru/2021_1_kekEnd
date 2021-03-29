@@ -48,8 +48,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Email:         signupData.Email,
 		Password:      signupData.Password,
 		Avatar:        _const.DefaultAvatarPath,
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
+		MoviesWatched: new(uint),
+		ReviewsNumber: new(uint),
 	}
 
 	err = h.useCase.CreateUser(user)
