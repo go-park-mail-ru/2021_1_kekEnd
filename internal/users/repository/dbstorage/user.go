@@ -1,19 +1,20 @@
 package localstorage
 
 import (
-	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"golang.org/x/crypto/bcrypt"
-	"github.com/jackc/pgx/v4/pgxpool"
+    "errors"
+    "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+    "golang.org/x/crypto/bcrypt"
+    "github.com/jackc/pgx/v4/pgxpool"
     "context"
 )
 
 func getHashedPassword(password string) (string, error) {
-	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", nil
-	}
-	return string(hashedPasswordBytes), nil
+    hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return "", err
+    }
+
+    return string(hashedPasswordBytes), nil
 }
 
 type UserRepository struct {
@@ -31,6 +32,7 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
     if err != nil {
         return err
     }
+
     user.Password = hashedPassword
 
     sqlStatement := `
@@ -71,48 +73,43 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 }
 
 func (storage *UserRepository) CheckPassword(password string, user *models.User) (bool, error) {
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
+    return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }
 
 func (storage *UserRepository) UpdateUser(user *models.User, change models.User) (*models.User, error) {
-    _, err := storage.GetUserByUsername(user.Username)
-    if err != nil {
-        return nil, errors.New("user not found")
+    if user.Username != change.Username {
+        return nil, errors.New("username doesn't match")
     }
 
-	if user.Username != change.Username {
-		return nil, errors.New("username doesn't match")
-	}
+    if change.Password != "" {
+        newPassword, err := getHashedPassword(change.Password)
+        if err != nil {
+            return nil, err
+        }
 
-	if change.Password != "" {
-		newPassword, err := getHashedPassword(change.Password)
-		if err != nil {
-			return nil, err
-		}
+        user.Password = newPassword
+    }
 
-		user.Password = newPassword
-	}
+    if change.Email != "" {
+        user.Email = change.Email
+    }
 
-	if change.Email != "" {
-		user.Email = change.Email
-	}
+    if change.Avatar != "" {
+        user.Avatar = change.Avatar
+    }
 
-	if change.Avatar != "" {
-		user.Avatar = change.Avatar
-	}
+    if change.ReviewsNumber != nil {
+        user.ReviewsNumber = change.ReviewsNumber
+    }
 
-	if change.ReviewsNumber != nil {
-		user.ReviewsNumber = change.ReviewsNumber
-	}
-
-	sqlStatement := `
+    sqlStatement := `
         UPDATE mdb.users
         SET (login, password, email, img_src, movies_watched, reviews_count) =
             ($2, $3, $4, $5, $6, $7)
         WHERE login=$1
     `
 
-    _, err = storage.db.
+    _, err := storage.db.
            Exec(context.Background(), sqlStatement, user.Username,
                 user.Username, user.Password,
                 user.Email, user.Avatar,

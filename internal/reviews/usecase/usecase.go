@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
 type ReviewsUseCase struct {
@@ -44,7 +45,9 @@ func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) []*models.Rev
 }
 
 func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string, page int) (int, []*models.Review) {
-	return reviewsUC.reviewRepository.GetMovieReviews(movieID, page)
+	startIndex := (page - 1) * _const.ReviewsPageSize
+
+	return reviewsUC.reviewRepository.GetMovieReviews(movieID, startIndex)
 }
 
 func (reviewsUC *ReviewsUseCase) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {

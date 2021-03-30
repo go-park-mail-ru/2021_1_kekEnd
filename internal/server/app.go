@@ -25,6 +25,7 @@ import (
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -39,6 +40,12 @@ type App struct {
 	reviewsUC      reviews.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
+}
+
+func init() {
+    if err := godotenv.Load(); err != nil {
+        log.Print("No .env file found")
+    }
 }
 
 func NewApp() *App {
@@ -57,9 +64,11 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
+    connStr, exists := os.LookupEnv("DB_CONNECT")
+    if exists {
+		fmt.Println(connStr)
+    }
 
-    // TO DO Сделать конфиг-файл и считывать его, например, с помощью viper
-    connStr := "postgres://mdb:mdb@localhost:5432/mdb"
     dbpool, err := pgxpool.Connect(context.Background(), connStr)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)

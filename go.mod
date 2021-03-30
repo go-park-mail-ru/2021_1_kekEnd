@@ -12,6 +12,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/jackc/pgx/v4 v4.11.0 // indirect
+	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

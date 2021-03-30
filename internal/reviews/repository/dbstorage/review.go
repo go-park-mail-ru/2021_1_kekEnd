@@ -1,13 +1,13 @@
 package localstorage
 
 import (
-	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"strconv"
+    "errors"
+    "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+    "strconv"
     "github.com/jackc/pgx/v4/pgxpool"
     "context"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-
+    _const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+    "math"
 )
 
 type ReviewRepository struct {
@@ -17,6 +17,33 @@ type ReviewRepository struct {
 func NewReviewRepository(database *pgxpool.Pool) *ReviewRepository {
     return &ReviewRepository{
         db: database,
+    }
+}
+
+func convertReviewTypeFromIntToStr(review_type int) models.ReviewType {
+    switch review_type {
+        case 1:
+            return "positive"
+        case 0:
+            return "neutral"
+        case -1:
+            return "negative"
+        default:
+            return ""
+    }
+}
+
+func convertReviewTypeFromStrToInt(review_type models.ReviewType) int {
+    switch review_type {
+        case "positive":
+            return 1
+        case "neutral":
+            return 0
+        case "negative":
+            return -1
+        default:
+            return -100
+
     }
 }
 
@@ -30,7 +57,7 @@ func (storage *ReviewRepository) CreateReview(review *models.Review) error {
     err := storage.db.
            QueryRow(context.Background(), sqlStatement,
                     review.Author, review.MovieID,
-                    review.ReviewType, review.Title,
+                    convertReviewTypeFromStrToInt(review.ReviewType), review.Title,
                     review.Content).
            Scan(&newID)
 
@@ -63,13 +90,15 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
         review := &models.Review{}
         var newID int
         var newMovieID int
-        err = rows.Scan(&newID, &newMovieID, &review.ReviewType, &review.Title, &review.Content)
+        var newReviewType int
+        err = rows.Scan(&newID, &newMovieID, &newReviewType, &review.Title, &review.Content)
         if err != nil {
             return nil
         }
 
         review.ID = strconv.Itoa(newID)
         review.Author = username
+        review.ReviewType = convertReviewTypeFromIntToStr(newReviewType)
 
         reviews = append(reviews, review)
     }
@@ -77,10 +106,22 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
     return reviews
 }
 
-func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int, []*models.Review) {
+func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (int, []*models.Review) {
     var reviews []*models.Review
 
     sqlStatement := `
+        SELECT COUNT(*)
+        FROM mdb.users_review
+    `
+
+    var rowsCount int
+    err := storage.db.
+           QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+    if err != nil {
+        return 0, nil
+    }
+
+    sqlStatement = `
         SELECT id, user_login, review_type, title, content
         FROM mdb.users_review
         WHERE movie_id=$1
@@ -89,50 +130,36 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, page int) (int,
     `
 
     intMovieId, err := strconv.Atoi(movieID)
-
     if err != nil {
         return 0, nil
     }
-
-	startIndex := (page - 1) * _const.ReviewsPageSize
-	endIndex := startIndex + _const.ReviewsPageSize
 
     rows, err := storage.db.
-           Query(context.Background(), sqlStatement, intMovieId, endIndex - startIndex + 1, startIndex)
+           Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
     if err != nil {
         return 0, nil
     }
-	defer rows.Close()
+    defer rows.Close()
 
-	var needToAddPage bool
     for rows.Next() {
         review := &models.Review{}
         var newID int
-        err = rows.Scan(&newID, &review.Author, &review.ReviewType, &review.Title, &review.Content)
+        var newReviewType int
+        err = rows.Scan(&newID, &review.Author, &newReviewType, &review.Title, &review.Content)
         if err != nil {
             return 0, nil
         }
 
         review.ID = strconv.Itoa(newID)
         review.MovieID = movieID
-
-        if (len(reviews) >= 3) {
-        	needToAddPage = true
-        	break
-        }
+        review.ReviewType = convertReviewTypeFromIntToStr(newReviewType)
 
         reviews = append(reviews, review)
     }
 
-    if len(reviews) == 0 {
-    	return 0, nil
-    }
+    pagesNumber := int(math.Ceil(float64(rowsCount) / _const.ReviewsPageSize))
 
-    if (needToAddPage) {
-    	return page + 1, reviews
-    }
-
-    return page, reviews
+    return pagesNumber, reviews
 }
 
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error)  {
@@ -150,10 +177,11 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
     }
 
     var newID int
+    var newReviewType int
 
     err = storage.db.
            QueryRow(context.Background(), sqlStatement, username, intMovieId).
-           Scan(&newID, &review.ReviewType, &review.Title, &review.Content)
+           Scan(&newID, &newReviewType, &review.Title, &review.Content)
 
     if err != nil {
         return nil, errors.New("Review not found")
@@ -161,6 +189,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
 
     review.Author = username
     review.MovieID = movieID
+    review.ReviewType = convertReviewTypeFromIntToStr(newReviewType)
 
     return &review, nil
 }
@@ -169,7 +198,7 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
     sqlStatement := `
         UPDATE mdb.users_review
         SET (review_type, title, content) =
-        	($3, $4, $5)
+            ($3, $4, $5)
         WHERE user_login=$1 AND movie_id=$2;
     `
 
@@ -180,7 +209,7 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
 
     _, err = storage.db.
            Exec(context.Background(), sqlStatement, review.Author, intMovieId,
-           review.ReviewType, review.Title,
+           convertReviewTypeFromStrToInt(review.ReviewType), review.Title,
            review.Content)
 
     if err != nil {
@@ -191,10 +220,10 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
 }
 
 func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movieID string) error {
-	_, err := storage.GetUserReviewForMovie(username, movieID)
-	if err != nil {
-		return err
-	}
+    _, err := storage.GetUserReviewForMovie(username, movieID)
+    if err != nil {
+        return err
+    }
 
     sqlStatement := `
         DELETE FROM mdb.users_review

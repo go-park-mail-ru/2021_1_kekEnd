@@ -61,8 +61,6 @@ VALUES ('Чужой', 'Группа космонавтов высаживает�
         );
 
 
-CREATE TYPE sex_t AS ENUM ('male', 'female');
-
 CREATE TABLE mdb.users
 (
     login               VARCHAR(100) PRIMARY KEY,
@@ -71,8 +69,8 @@ CREATE TABLE mdb.users
 
     firstname           VARCHAR(100),
     lastname            VARCHAR(100),
-    sex                 sex_t,
-    email               VARCHAR(100) NOT NULL,
+    sex                 INTEGER CONSTRAINT sex_t CHECK (sex = 1 OR sex = 0),
+    email               VARCHAR(100) NOT NULL UNIQUE,
     registration_date   timestamp NOT NULL DEFAULT NOW(),
 
     description         VARCHAR(600),
@@ -90,13 +88,11 @@ COMMENT ON TABLE mdb.users IS 'Пользователи';
 
 
 -- TO DO Сделать тригер на пересчет рейтинга в поле rating таблицы mdb.movie
-CREATE TYPE movie_rating_t AS ENUM ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
-
 CREATE TABLE mdb.movie_rating
 (
     user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    status movie_rating_t,
+    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating > 1 AND rating <= 10),
     PRIMARY KEY (user_login, movie_id)
 );
 
@@ -120,14 +116,12 @@ COMMENT ON TABLE mdb.watched_movies IS 'Просмотренные фильмы'
 
 
 
-CREATE TYPE review_type_t AS ENUM ('negative', 'neutral', 'positive');
-
 CREATE TABLE mdb.users_review
 (
     id serial PRIMARY KEY,
     user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    review_type review_type_t,
+    review_type INTEGER CONSTRAINT review_type_t CHECK (review_type = -1 OR review_type = 0 OR review_type = 1),
     title VARCHAR(200),
     content text,
     creation_date timestamp NOT NULL DEFAULT NOW(),
@@ -141,12 +135,11 @@ COMMENT ON TABLE mdb.users_review IS 'Просмотренные фильмы';
 
 
 
-CREATE TYPE friend_status_t AS ENUM ('Запрос отправлен', 'Игнор', 'Дружба подтверждена');
-
 CREATE TABLE mdb.friends
 (
     friend_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     friend_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    friend_status INTEGER CONSTRAINT friend_status_t CHECK (friend_status = 0 OR friend_status = 1 OR friend_status = 2),
     PRIMARY KEY (friend_1, friend_2)
 );
 
@@ -157,13 +150,11 @@ COMMENT ON TABLE mdb.friends IS 'Друзья';
 
 
 -- TO DO Сделать тригер на пересчет рейтинга в поле user_rating таблицы mdb.users
-CREATE TYPE user_rating_t AS ENUM ('Лайк', 'Дизлайк');
-
 CREATE TABLE mdb.users_rating
 (
     user_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     user_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    status user_rating_t,
+    user_rating INTEGER CONSTRAINT user_rating_t CHECK (user_rating = -1 OR user_rating = 1),
     PRIMARY KEY (user_1, user_2)
 );
 
