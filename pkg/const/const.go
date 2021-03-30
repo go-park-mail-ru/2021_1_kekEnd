@@ -13,4 +13,6 @@ const (
 
 	// TODO: should be 10, but for testing purposes is 3
 	ReviewsPageSize = 3
+
+	PageDefault = "1"
 )
