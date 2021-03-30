@@ -73,7 +73,8 @@ func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	if err != nil {
-		page = 1
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
 	}
 
 	pagesNumber, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, page)
