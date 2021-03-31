@@ -69,14 +69,14 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
-	connStr, exists := os.LookupEnv("DB_CONNECT")
-	if !exists {
-		log.Fatal("Failed to read DB connection data", p, err)
+	connStr, err := os.LookupEnv("DB_CONNECT")
+	if !err {
+		log.Fatal("Failed to read DB connection data", err)
 	}
 
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		log.Fatal("Unable to connect to database: %v\n", err)
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
