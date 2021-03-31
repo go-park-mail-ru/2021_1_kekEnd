@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-    "github.com/jackc/pgx/v4/pgxpool"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
@@ -29,6 +28,7 @@ import (
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -38,19 +38,19 @@ import (
 )
 
 type App struct {
-	server   *http.Server
-	usersUC  users.UseCase
-	moviesUC movies.UseCase
+	server         *http.Server
+	usersUC        users.UseCase
+	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
-	sessions sessions.Delivery
+	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 }
 
 func init() {
-    if err := godotenv.Load(); err != nil {
-        log.Print("No .env file found")
-    }
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
 }
 
 func NewApp() *App {
@@ -69,26 +69,25 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
-    connStr, exists := os.LookupEnv("DB_CONNECT")
-    if exists {
+	connStr, exists := os.LookupEnv("DB_CONNECT")
+	if exists {
 		fmt.Println(connStr)
-    }
+	}
 
-    dbpool, err := pgxpool.Connect(context.Background(), connStr)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-        os.Exit(1)
-    }
+	dbpool, err := pgxpool.Connect(context.Background(), connStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
 
-    usersRepo := usersDBStorage.NewUserRepository(dbpool)
-    usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+	usersRepo := usersDBStorage.NewUserRepository(dbpool)
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
-    moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
-    moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
-    reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
-    reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
-
+	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
+	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	// usersRepo := usersLocalStorage.NewUserLocalStorage()
 	// usersUC := usersUseCase.NewUsersUseCase(usersRepo)
@@ -96,13 +95,11 @@ func NewApp() *App {
 	// moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
 	// moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
-
 	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
 	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	ratingsRepo := ratingsLocalStorage.NewRatingsLocalStorage()
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
-
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 

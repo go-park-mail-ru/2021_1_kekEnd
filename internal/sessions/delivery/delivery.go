@@ -26,5 +26,3 @@ func (d *Delivery) GetUser(sessionID string) (string, error) {
 func (d *Delivery) Delete(sessionID string) error {
 	return d.UseCase.Delete(sessionID)
 }
-
-

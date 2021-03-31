@@ -13,7 +13,6 @@ func respondWithError(ctx *gin.Context, code int, message interface{}) {
 	ctx.AbortWithStatusJSON(code, gin.H{"error": message})
 }
 
-
 type Auth interface {
 	CheckAuth() gin.HandlerFunc
 }
@@ -25,7 +24,7 @@ type AuthMiddleware struct {
 
 func NewAuthMiddleware(useCase users.UseCase, sessions sessions.Delivery) *AuthMiddleware {
 	return &AuthMiddleware{
-		useCase: useCase,
+		useCase:  useCase,
 		sessions: sessions,
 	}
 }

@@ -20,9 +20,9 @@ func TestMoviesHandlers(t *testing.T) {
 	RegisterHttpEndpoints(r, moviesUC)
 
 	movie := &models.Movie{
-		ID:             "7",
-		Title:          "Yet another movie",
-		Description:    "Generic description",
+		ID:          "7",
+		Title:       "Yet another movie",
+		Description: "Generic description",
 	}
 
 	body, err := json.Marshal(movie)
@@ -42,7 +42,7 @@ func TestMoviesHandlers(t *testing.T) {
 		moviesUC.On("GetMovie", movie.ID).Return(movie, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/movies/" + movie.ID, bytes.NewBuffer(body))
+		req, _ := http.NewRequest("GET", "/movies/"+movie.ID, bytes.NewBuffer(body))
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -53,7 +53,7 @@ func TestMoviesHandlers(t *testing.T) {
 		moviesUC.On("GetMovie", wrongID).Return(nil, errors.New("movie not found"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/movies/" + wrongID, bytes.NewBuffer(body))
+		req, _ := http.NewRequest("GET", "/movies/"+wrongID, bytes.NewBuffer(body))
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)

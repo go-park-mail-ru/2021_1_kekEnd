@@ -6,7 +6,6 @@ import (
 	"log"
 )
 
-
 func main() {
 	app := server.NewApp()
 

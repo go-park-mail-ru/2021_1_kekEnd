@@ -18,7 +18,7 @@ type Handler struct {
 func NewHandler(useCase reviews.UseCase, usersUC users.UseCase) *Handler {
 	return &Handler{
 		reviewsUC: useCase,
-		usersUC: usersUC,
+		usersUC:   usersUC,
 	}
 }
 
@@ -81,7 +81,7 @@ func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"current_page": page,
 		"pages_number": pagesNumber,
-		"reviews": movieReviews,
+		"reviews":      movieReviews,
 	})
 }
 
