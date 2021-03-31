@@ -43,7 +43,7 @@ func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (*models.User, error) {
 	err := usersUC.userRepository.CheckLoginExistenceAndEmailUnique(user.Username, user.Email, change.Email)
 	if err != nil {
-		return nil, errors.New("user not found")
+		return nil, err
 	}
 
 	return usersUC.userRepository.UpdateUser(user, change)
