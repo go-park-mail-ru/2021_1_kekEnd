@@ -42,7 +42,7 @@ CREATE TABLE mdb.movie
     banner          text,
     trailerPreview  text,
 
-    rating          INTEGER
+    rating          INTEGER DEFAULT 0
 );
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie TO mdb;
@@ -92,7 +92,7 @@ CREATE TABLE mdb.movie_rating
 (
     user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating > 1 AND rating <= 10),
+    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating > 1 AND rating <= 10) NOT NULL,
     PRIMARY KEY (user_login, movie_id)
 );
 
@@ -100,6 +100,23 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_rating TO mdb;
 
 COMMENT ON TABLE mdb.movie_rating IS 'Рейтинг фильмов';
 
+CREATE OR REPLACE FUNCTION rating_recalc() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        UPDATE mdb.movie SET rating=rating + NEW.rating WHERE id=NEW.movie_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        UPDATE mdb.movie SET rating=rating - OLD.rating + NEW.rating WHERE id=NEW.movie_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE mdb.movie SET rating=rating - OLD.rating WHERE id=OLD.movie_id;
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_movie_rating
+AFTER INSERT OR UPDATE OR DELETE ON mdb.movie_rating FOR EACH ROW EXECUTE PROCEDURE rating_recalc();
 
 
 
