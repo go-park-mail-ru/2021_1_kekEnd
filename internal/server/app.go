@@ -70,8 +70,9 @@ func NewApp() *App {
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
 	connStr, exists := os.LookupEnv("DB_CONNECT")
-	if exists {
-		fmt.Println(connStr)
+	if !exists {
+		log.Fatal("Failed to read DB connection data", p, err)
+		os.Exit(1)
 	}
 
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)

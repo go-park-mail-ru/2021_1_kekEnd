@@ -50,6 +50,39 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
 	return nil
 }
 
+func (storage *UserRepository) CheckLoginExistenceAndEmailUnique(username string, email string, newEmail string) error {
+	sqlStatement := `
+        SELECT COUNT(*)
+        FROM mdb.users
+        WHERE login=$1 AND email=$2
+    `
+
+	var count int
+
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, username, email).
+		Scan(&count)
+
+	if err != nil || count == 0 {
+		return errors.New("User not found")
+	}
+
+	sqlStatement = `
+        SELECT COUNT(*)
+        FROM mdb.users
+        WHERE email=$1
+    `
+	err = storage.db.
+		QueryRow(context.Background(), sqlStatement, newEmail).
+		Scan(&count)
+
+	if err != nil || count != 0 {
+		return errors.New("Email is not unique")
+	}
+
+	return nil
+}
+
 func (storage *UserRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
 

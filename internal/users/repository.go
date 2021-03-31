@@ -12,4 +12,6 @@ type UserRepository interface {
 	CheckPassword(password string, user *models.User) (bool, error)
 
 	UpdateUser(user *models.User, change models.User) (*models.User, error)
+
+	CheckLoginExistenceAndEmailUnique(username string, email string, newEmail string) error
 }
