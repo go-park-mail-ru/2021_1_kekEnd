@@ -7,7 +7,7 @@ type ReviewRepository interface {
 
 	GetUserReviews(username string) []*models.Review
 
-	GetMovieReviews(movieID string) []*models.Review
+	GetMovieReviews(movieID string, startInd int) (int, []*models.Review)
 
 	GetUserReviewForMovie(username string, movieID string) (*models.Review, error)
 
