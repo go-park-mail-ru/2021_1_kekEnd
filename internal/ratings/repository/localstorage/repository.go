@@ -7,13 +7,13 @@ import (
 )
 
 type RatingsLocalStorage struct {
-	ratings   []models.Rating
+	ratings   []*models.Rating
 	currentID int
 	mutex     sync.Mutex
 }
 
 func NewRatingsLocalStorage() *RatingsLocalStorage {
-	ratings := []models.Rating{
+	ratings := []*models.Rating{
 		{
 			UserID:  "let_robots_reign",
 			MovieID: "1",
@@ -41,7 +41,7 @@ func (r *RatingsLocalStorage) CreateRating(userID string, movieID string, score 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	Rating := models.Rating{
+	Rating := &models.Rating{
 		UserID:  userID,
 		MovieID: movieID,
 		Score:   score,
@@ -54,18 +54,11 @@ func (r *RatingsLocalStorage) CreateRating(userID string, movieID string, score 
 }
 
 func (r *RatingsLocalStorage) GetRating(userID string, movieID string) (models.Rating, error) {
-	index := -1
-	for i, s := range r.ratings {
+	for _, s := range r.ratings {
 		if s.UserID == userID && s.MovieID == movieID {
-			index = i
-			break
+			return *s, nil
 		}
 	}
-
-	if index != -1 {
-		return r.ratings[index], nil
-	}
-
 	return models.Rating{}, errors.New("rating doesn't exist")
 }
 
