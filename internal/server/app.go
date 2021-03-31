@@ -72,13 +72,11 @@ func NewApp() *App {
 	connStr, exists := os.LookupEnv("DB_CONNECT")
 	if !exists {
 		log.Fatal("Failed to read DB connection data", p, err)
-		os.Exit(1)
 	}
 
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)

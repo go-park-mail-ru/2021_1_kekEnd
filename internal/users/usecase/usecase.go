@@ -41,7 +41,7 @@ func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 }
 
 func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (*models.User, error) {
-	err := usersUC.userRepository.CheckLoginExistenceAndEmailUnique(user.Username, user.Email, change.Email)
+	err := usersUC.userRepository.CheckEmailUnique(change.Email)
 	if err != nil {
 		return nil, err
 	}

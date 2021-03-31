@@ -42,7 +42,8 @@ CREATE TABLE mdb.movie
     banner          text,
     trailerPreview  text,
 
-    rating          INTEGER DEFAULT 0
+    rating          INTEGER DEFAULT 0,
+    rating_count    INTEGER DEFAULT 0
 );
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie TO mdb;
@@ -103,13 +104,13 @@ COMMENT ON TABLE mdb.movie_rating IS 'Рейтинг фильмов';
 CREATE OR REPLACE FUNCTION rating_recalc() RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        UPDATE mdb.movie SET rating=rating + NEW.rating WHERE id=NEW.movie_id;
+        UPDATE mdb.movie SET rating=rating + NEW.rating, rating_count = rating_count + 1 WHERE id=NEW.movie_id;
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE mdb.movie SET rating=rating - OLD.rating + NEW.rating WHERE id=NEW.movie_id;
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        UPDATE mdb.movie SET rating=rating - OLD.rating WHERE id=OLD.movie_id;
+        UPDATE mdb.movie SET rating=rating - OLD.rating, rating_count = rating_count - 1 WHERE id=OLD.movie_id;
         RETURN OLD;
     END IF;
 END;

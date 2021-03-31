@@ -13,5 +13,5 @@ type UserRepository interface {
 
 	UpdateUser(user *models.User, change models.User) (*models.User, error)
 
-	CheckLoginExistenceAndEmailUnique(username string, email string, newEmail string) error
+	CheckEmailUnique(newEmail string) error
 }
