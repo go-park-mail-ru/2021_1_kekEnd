@@ -74,7 +74,7 @@ func (h *Handler) GetRating(ctx *gin.Context) {
 
 	rating, err := h.useCase.GetRating(userModel.Username, movieID)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 
 	err = h.useCase.UpdateRating(userModel.Username, ratingData.MovieID, score)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 

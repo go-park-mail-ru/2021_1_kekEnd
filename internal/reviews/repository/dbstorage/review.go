@@ -187,6 +187,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
 		return nil, errors.New("review not found")
 	}
 
+	review.ID = strconv.Itoa(newID)
 	review.Author = username
 	review.MovieID = movieID
 	review.ReviewType = convertReviewTypeFromIntToStr(newReviewType)

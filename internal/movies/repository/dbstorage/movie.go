@@ -27,7 +27,8 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	sqlStatement := `
         SELECT id, title, description, voiceover, subtitles, quality, productionYear, country,
                genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, actors, poster, banner, trailerPreview
+               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+               rating, rating_count
         FROM mdb.movie
         WHERE id=$1
     `
@@ -43,7 +44,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 		&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 		&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
 		&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
-		&movie.Banner, &movie.TrailerPreview)
+		&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
 
 	if err != nil {
 		return nil, err
