@@ -12,7 +12,7 @@ import (
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
-	ratingsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/localstorage"
+	ratingsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/dbstorage"
 	ratingsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
@@ -97,7 +97,7 @@ func NewApp() *App {
 	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
 	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
-	ratingsRepo := ratingsLocalStorage.NewRatingsLocalStorage()
+	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)

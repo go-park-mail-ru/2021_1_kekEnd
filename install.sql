@@ -93,7 +93,7 @@ CREATE TABLE mdb.movie_rating
 (
     user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating > 1 AND rating <= 10) NOT NULL,
+    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating >= 1 AND rating <= 10) NOT NULL,
     PRIMARY KEY (user_login, movie_id)
 );
 
