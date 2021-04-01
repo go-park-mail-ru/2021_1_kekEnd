@@ -20,8 +20,8 @@ func NewReviewRepository(database *pgxpool.Pool) *ReviewRepository {
 	}
 }
 
-func convertReviewTypeFromIntToStr(review_type int) models.ReviewType {
-	switch review_type {
+func convertReviewTypeFromIntToStr(reviewType int) models.ReviewType {
+	switch reviewType {
 	case 1:
 		return "positive"
 	case 0:
@@ -33,8 +33,8 @@ func convertReviewTypeFromIntToStr(review_type int) models.ReviewType {
 	}
 }
 
-func convertReviewTypeFromStrToInt(review_type models.ReviewType) int {
-	switch review_type {
+func convertReviewTypeFromStrToInt(reviewType models.ReviewType) int {
+	switch reviewType {
 	case "positive":
 		return 1
 	case "neutral":
@@ -62,7 +62,7 @@ func (storage *ReviewRepository) CreateReview(review *models.Review) error {
 		Scan(&newID)
 
 	if err != nil {
-		return errors.New("Create Review Error")
+		return errors.New("create review error")
 	}
 
 	review.ID = strconv.Itoa(newID)
@@ -76,7 +76,7 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
 	sqlStatement := `
         SELECT id, movie_id, review_type, title, content
         FROM mdb.users_review
-        WHERE u.login = $1
+        WHERE user_login = $1
     `
 
 	rows, err := storage.db.
@@ -184,7 +184,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
 		Scan(&newID, &newReviewType, &review.Title, &review.Content)
 
 	if err != nil {
-		return nil, errors.New("Review not found")
+		return nil, errors.New("review not found")
 	}
 
 	review.Author = username
@@ -213,7 +213,7 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
 			review.Content)
 
 	if err != nil {
-		return errors.New("Update Review Error")
+		return errors.New("update review error")
 	}
 
 	return nil
@@ -239,7 +239,7 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 		Exec(context.Background(), sqlStatement, username, intMovieId)
 
 	if err != nil {
-		return errors.New("Delete Review Error")
+		return errors.New("delete review error")
 	}
 
 	return nil

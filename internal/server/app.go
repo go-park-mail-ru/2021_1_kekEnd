@@ -69,8 +69,8 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
-	connStr, err := os.LookupEnv("DB_CONNECT")
-	if !err {
+	connStr, connected := os.LookupEnv("DB_CONNECT")
+	if !connected {
 		log.Fatal("Failed to read DB connection data", err)
 	}
 

@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP 1
 
-DROP database mdb;
+DROP database if exists mdb;
 
 drop user if exists mdb;
 
