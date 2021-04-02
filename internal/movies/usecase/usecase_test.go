@@ -13,9 +13,9 @@ func TestMoviesUseCase(t *testing.T) {
 	uc := NewMoviesUseCase(repo)
 
 	movie := &models.Movie{
-		ID:             "7",
-		Title:          "Yet another mock",
-		Description:    "Generic description",
+		ID:          "7",
+		Title:       "Yet another mock",
+		Description: "Generic description",
 	}
 
 	t.Run("CreateMovie", func(t *testing.T) {
@@ -38,9 +38,9 @@ func TestMoviesUseCaseErrors(t *testing.T) {
 	uc := NewMoviesUseCase(repo)
 
 	movie := &models.Movie{
-		ID:             "7",
-		Title:          "Yet another mock",
-		Description:    "Generic description",
+		ID:          "7",
+		Title:       "Yet another mock",
+		Description: "Generic description",
 	}
 
 	t.Run("CreateExistingMovie", func(t *testing.T) {

@@ -26,7 +26,7 @@ func TestCheckAuth(t *testing.T) {
 		mdw := NewAuthMiddleware(&userUseCase, sessionsDelivery)
 
 		Cookie := http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: "1aLetMeIn7e7fa6d",
 		}
 		username := "tester"
@@ -80,7 +80,7 @@ func TestCheckAuth(t *testing.T) {
 		mdw := NewAuthMiddleware(&userUseCase, sessionsDelivery)
 
 		Cookie := http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: "1aLetMeIn7e7fa6d",
 		}
 		username := "tester"
@@ -114,7 +114,7 @@ func TestCheckAuth(t *testing.T) {
 		mdw := NewAuthMiddleware(&userUseCase, sessionsDelivery)
 
 		Cookie := http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: "1aLetMeIn7e7fa6d",
 		}
 		username := "tester"

@@ -45,7 +45,7 @@ func TestHandlers(t *testing.T) {
 		Username:      createBody.Username,
 		Email:         createBody.Email,
 		Password:      createBody.Password,
-		Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+		Avatar:        "http://localhost:8080/avatars/default.jpeg",
 		MoviesWatched: 0,
 		ReviewsNumber: 0,
 	}
@@ -55,10 +55,10 @@ func TestHandlers(t *testing.T) {
 	t.Run("CreateUser", func(t *testing.T) {
 		sessionsUC.
 			EXPECT().
-			Create(user.Username, 240 * time.Hour).
+			Create(user.Username, 240*time.Hour).
 			Return(UUID, nil).AnyTimes()
 
-		sessionID, err := delivery.Create(user.Username, 240 * time.Hour)
+		sessionID, err := delivery.Create(user.Username, 240*time.Hour)
 		assert.NoError(t, err)
 		assert.Equal(t, UUID, sessionID)
 
@@ -76,13 +76,13 @@ func TestHandlers(t *testing.T) {
 			Username:      "let_robots_reign",
 			Email:         "sample@ya.ru",
 			Password:      "1234",
-			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+			Avatar:        "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: 0,
 			ReviewsNumber: 0,
 		}
 
 		cookie := &http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: UUID,
 		}
 
@@ -106,7 +106,7 @@ func TestHandlers(t *testing.T) {
 			Username:      "let_robots_reign",
 			Email:         "corrected@ya.ru",
 			Password:      "1234",
-			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
+			Avatar:        "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: 0,
 			ReviewsNumber: 0,
 		}
@@ -115,7 +115,7 @@ func TestHandlers(t *testing.T) {
 		assert.NoError(t, err)
 
 		cookie := &http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: UUID,
 		}
 

@@ -12,7 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
-	moviesLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/localstorage"
+	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
@@ -20,7 +20,7 @@ import (
 	ratingsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
-	reviewsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/localstorage"
+	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
@@ -28,10 +28,12 @@ import (
 	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
-	usersLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/localstorage"
+	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -48,6 +50,12 @@ type App struct {
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 	actorsUC       actors.UseCase
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
 }
 
 func NewApp() *App {
@@ -69,17 +77,36 @@ func NewApp() *App {
 	actorsRepo := actorsLocalStorage.NewActorsLocalStorage()
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 
-	usersRepo := usersLocalStorage.NewUserLocalStorage()
+	connStr, err := os.LookupEnv("DB_CONNECT")
+	if !err {
+		log.Fatal("Failed to read DB connection data", err)
+	}
+
+	dbpool, err := pgxpool.Connect(context.Background(), connStr)
+	if err != nil {
+		log.Fatal("Unable to connect to database: %v\n", err)
+	}
+
+	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
-	moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
+	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+
+	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
+	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
+
+	// usersRepo := usersLocalStorage.NewUserLocalStorage()
+	// usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+	// moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
+	// moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+
+	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
+	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	ratingsRepo := ratingsLocalStorage.NewRatingsLocalStorage()
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
-
-	reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
-	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 

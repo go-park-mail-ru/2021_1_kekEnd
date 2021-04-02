@@ -1,9 +1,9 @@
 package models
 
-type reviewType string
+type ReviewType string
 
 const (
-	negative reviewType = "negative"
+	negative ReviewType = "negative"
 	neutral             = "neutral"
 	positive            = "positive"
 )
@@ -11,7 +11,7 @@ const (
 type Review struct {
 	ID         string     `json:"id"`
 	Title      string     `json:"title"`
-	ReviewType reviewType `json:"review_type"`
+	ReviewType ReviewType `json:"review_type"`
 	Content    string     `json:"content"`
 	Author     string     `json:"author"`
 	MovieID    string     `json:"movie_id"`

@@ -10,9 +10,9 @@ func TestMovieLocalStorage(t *testing.T) {
 	storage := NewMovieLocalStorage()
 
 	movie := &models.Movie{
-		ID:             "7",
-		Title:          "Yet another movie",
-		Description:    "Generic description",
+		ID:          "7",
+		Title:       "Yet another movie",
+		Description: "Generic description",
 	}
 
 	t.Run("CreateMovie", func(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -17,7 +18,7 @@ type Handler struct {
 func NewHandler(useCase reviews.UseCase, usersUC users.UseCase) *Handler {
 	return &Handler{
 		reviewsUC: useCase,
-		usersUC: usersUC,
+		usersUC:   usersUC,
 	}
 }
 
@@ -70,8 +71,18 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
-	movieReviews := h.reviewsUC.GetReviewsByMovie(movieID)
-	ctx.JSON(http.StatusOK, movieReviews)
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	pagesNumber, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, page)
+	ctx.JSON(http.StatusOK, gin.H{
+		"current_page": page,
+		"pages_number": pagesNumber,
+		"reviews":      movieReviews,
+	})
 }
 
 func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
