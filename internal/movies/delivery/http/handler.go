@@ -46,6 +46,13 @@ func (h *Handler) GetMovie(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, movie)
 }
 
+func (h *Handler) GetMovies(ctx *gin.Context) {
+	category := ctx.Query("category")
+	if category == "best" {
+		h.GetBestMovies(ctx)
+	}
+}
+
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil {
