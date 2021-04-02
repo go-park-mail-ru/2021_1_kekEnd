@@ -115,8 +115,7 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
     `
 
 	var rowsCount int
-	err := storage.db.
-		QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	err := storage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
 	if err != nil {
 		return 0, nil
 	}
@@ -134,8 +133,7 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 		return 0, nil
 	}
 
-	rows, err := storage.db.
-		Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
 	if err != nil {
 		return 0, nil
 	}

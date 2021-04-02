@@ -6,4 +6,6 @@ type MovieRepository interface {
 	CreateMovie(movie *models.Movie) error
 
 	GetMovieByID(id string) (*models.Movie, error)
+
+	GetBestMovies(page, startIndex int) (int, []*models.Movie)
 }

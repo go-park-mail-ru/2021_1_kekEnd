@@ -4,7 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -42,4 +44,20 @@ func (h *Handler) GetMovie(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, movie)
+}
+
+func (h *Handler) GetBestMovies(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	pagesNumber, bestMovies := h.useCase.GetBestMovies(page)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"current_page": page,
+		"pages_number": pagesNumber,
+		"best_movies":  bestMovies,
+	})
 }
