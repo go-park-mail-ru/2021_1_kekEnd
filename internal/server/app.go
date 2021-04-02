@@ -77,14 +77,14 @@ func NewApp() *App {
 	actorsRepo := actorsLocalStorage.NewActorsLocalStorage()
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 
-	connStr, err := os.LookupEnv("DB_CONNECT")
-	if !err {
+	connStr, exists := os.LookupEnv("DB_CONNECT")
+	if !exists {
 		log.Fatal("Failed to read DB connection data", err)
 	}
 
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
-		log.Fatal("Unable to connect to database: %v\n", err)
+		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
