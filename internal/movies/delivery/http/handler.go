@@ -13,6 +13,12 @@ type Handler struct {
 	useCase movies.UseCase
 }
 
+type moviesPageResponse struct {
+	CurrentPage int             `json:"current_page"`
+	PagesNumber int             `json:"pages_number"`
+	Movies      []*models.Movie `json:"movies"`
+}
+
 func NewHandler(useCase movies.UseCase) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -55,16 +61,18 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
-	if err != nil {
+	if err != nil || page < 1 {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	pagesNumber, bestMovies := h.useCase.GetBestMovies(page)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"current_page": page,
-		"pages_number": pagesNumber,
-		"best_movies":  bestMovies,
-	})
+	moviesResponse := moviesPageResponse{
+		CurrentPage: page,
+		PagesNumber: pagesNumber,
+		Movies:      bestMovies,
+	}
+
+	ctx.JSON(http.StatusOK, moviesResponse)
 }
