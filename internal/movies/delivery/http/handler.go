@@ -16,6 +16,7 @@ type Handler struct {
 type moviesPageResponse struct {
 	CurrentPage int             `json:"current_page"`
 	PagesNumber int             `json:"pages_number"`
+	MaxItems    int             `json:"max_items"`
 	Movies      []*models.Movie `json:"movies"`
 }
 
@@ -66,11 +67,17 @@ func (h *Handler) GetBestMovies(ctx *gin.Context) {
 		return
 	}
 
-	pagesNumber, bestMovies := h.useCase.GetBestMovies(page)
+	pagesNumber, bestMovies, err := h.useCase.GetBestMovies(page)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	moviesResponse := moviesPageResponse{
 		CurrentPage: page,
 		PagesNumber: pagesNumber,
+		MaxItems:    _const.MoviesPageSize,
 		Movies:      bestMovies,
 	}
 

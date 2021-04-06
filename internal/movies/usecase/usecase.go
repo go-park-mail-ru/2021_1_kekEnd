@@ -29,7 +29,7 @@ func (moviesUC *MoviesUseCase) GetMovie(id string) (*models.Movie, error) {
 	return moviesUC.movieRepository.GetMovieByID(id)
 }
 
-func (moviesUC *MoviesUseCase) GetBestMovies(page int) (int, []*models.Movie) {
+func (moviesUC *MoviesUseCase) GetBestMovies(page int) (int, []*models.Movie, error) {
 	startIndex := (page - 1) * _const.MoviesPageSize
 	return moviesUC.movieRepository.GetBestMovies(page, startIndex)
 }

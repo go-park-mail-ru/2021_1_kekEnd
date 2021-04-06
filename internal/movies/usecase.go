@@ -7,5 +7,5 @@ type UseCase interface {
 
 	GetMovie(id string) (*models.Movie, error)
 
-	GetBestMovies(page int) (int, []*models.Movie)
+	GetBestMovies(page int) (int, []*models.Movie, error)
 }

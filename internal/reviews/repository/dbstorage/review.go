@@ -2,6 +2,7 @@ package localstorage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -70,7 +71,7 @@ func (storage *ReviewRepository) CreateReview(review *models.Review) error {
 	return nil
 }
 
-func (storage *ReviewRepository) GetUserReviews(username string) []*models.Review {
+func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Review, error) {
 	var reviews []*models.Review
 
 	sqlStatement := `
@@ -82,7 +83,7 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
 	rows, err := storage.db.
 		Query(context.Background(), sqlStatement, username)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -92,8 +93,8 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
 		var newMovieID int
 		var newReviewType int
 		err = rows.Scan(&newID, &newMovieID, &newReviewType, &review.Title, &review.Content)
-		if err != nil {
-			return nil
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
 		}
 
 		review.ID = strconv.Itoa(newID)
@@ -103,10 +104,10 @@ func (storage *ReviewRepository) GetUserReviews(username string) []*models.Revie
 		reviews = append(reviews, review)
 	}
 
-	return reviews
+	return reviews, nil
 }
 
-func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (int, []*models.Review) {
+func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (int, []*models.Review, error) {
 	var reviews []*models.Review
 
 	sqlStatement := `
@@ -116,8 +117,11 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 
 	var rowsCount int
 	err := storage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	if err == sql.ErrNoRows {
+		return 0, reviews, nil
+	}
 	if err != nil {
-		return 0, nil
+		return 0, nil, err
 	}
 
 	sqlStatement = `
@@ -130,12 +134,12 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 
 	intMovieId, err := strconv.Atoi(movieID)
 	if err != nil {
-		return 0, nil
+		return 0, nil, err
 	}
 
 	rows, err := storage.db.Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
 	if err != nil {
-		return 0, nil
+		return 0, nil, err
 	}
 	defer rows.Close()
 
@@ -144,8 +148,8 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 		var newID int
 		var newReviewType int
 		err = rows.Scan(&newID, &review.Author, &newReviewType, &review.Title, &review.Content)
-		if err != nil {
-			return 0, nil
+		if err != nil && err != sql.ErrNoRows {
+			return 0, nil, err
 		}
 
 		review.ID = strconv.Itoa(newID)
@@ -157,7 +161,7 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.ReviewsPageSize))
 
-	return pagesNumber, reviews
+	return pagesNumber, reviews, nil
 }
 
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {

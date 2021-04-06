@@ -2,6 +2,7 @@ package localstorage
 
 import (
 	"context"
+	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -57,7 +58,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	return &movie, nil
 }
 
-func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, []*models.Movie) {
+func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
@@ -67,8 +68,11 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 
 	var rowsCount int
 	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	if err == sql.ErrNoRows {
+		return 0, bestMovies, nil
+	}
 	if err != nil {
-		return 0, nil
+		return 0, nil, err
 	}
 
 	sqlStatement = `
@@ -83,7 +87,7 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 
 	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, _const.MoviesPageSize, startIndex)
 	if err != nil {
-		return 0, nil
+		return 0, nil, err
 	}
 	defer rows.Close()
 
@@ -95,8 +99,8 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
 			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
 			&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
-		if err != nil {
-			return 0, nil
+		if err != nil && err != sql.ErrNoRows {
+			return 0, nil, err
 		}
 		movie.ID = strconv.Itoa(id)
 		bestMovies = append(bestMovies, movie)
@@ -104,5 +108,5 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
 
-	return pagesNumber, bestMovies
+	return pagesNumber, bestMovies, nil
 }

@@ -7,5 +7,5 @@ type MovieRepository interface {
 
 	GetMovieByID(id string) (*models.Movie, error)
 
-	GetBestMovies(page, startIndex int) (int, []*models.Movie)
+	GetBestMovies(page, startIndex int) (int, []*models.Movie, error)
 }

@@ -70,7 +70,12 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 		return
 	}
 
-	userReviews := h.reviewsUC.GetReviewsByUser(userModel.Username)
+	userReviews, err := h.reviewsUC.GetReviewsByUser(userModel.Username)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	ctx.JSON(http.StatusOK, userReviews)
 }
@@ -83,7 +88,12 @@ func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 		return
 	}
 
-	pagesNumber, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, page)
+	pagesNumber, movieReviews, err := h.reviewsUC.GetReviewsByMovie(movieID, page)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	reviewsResponse := ReviewsResponse{
 		CurrentPage: page,
