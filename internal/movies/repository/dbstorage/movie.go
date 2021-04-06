@@ -62,9 +62,10 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
-		SELECT COUNT(*) 
-		FROM mdb.movie
-		LIMIT ` + _const.BestMoviesLimit
+		SELECT movies_count 
+		FROM mdb.meta
+		ORDER BY version DESC
+	`
 
 	var rowsCount int
 	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)

@@ -119,7 +119,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users TO mdb;
 
 COMMENT ON TABLE mdb.users IS 'Пользователи';
 
+CREATE TABLE mdb.meta
+(
+    version serial PRIMARY KEY,
+    movies_count INTEGER,
+    users_count INTEGER
+);
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.meta TO mdb;
+
+COMMENT ON TABLE mdb.meta IS 'Метаинформация';
 
 
 -- TO DO Сделать тригер на пересчет рейтинга в поле rating таблицы mdb.movie
