@@ -28,10 +28,10 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	var movie models.Movie
 
 	sqlStatement := `
-        SELECT id, title, description, voiceover, subtitles, quality, productionYear, country,
+        SELECT id, title, description, productionYear, country,
                genre, slogan, director, scriptwriter, producer, operator, composer,
                artist, montage, budget, duration, actors, poster, banner, trailerPreview,
-               rating, rating_count
+               ROUND(CAST(rating AS numeric), 1) AS rating, rating_count
         FROM mdb.movie
         WHERE id=$1
     `
@@ -43,7 +43,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 
 	err = movieStorage.db.
 		QueryRow(context.Background(), sqlStatement, idFilm).Scan(&idFilm,
-		&movie.Title, &movie.Description, &movie.Voiceover, &movie.Subtitles, &movie.Quality,
+		&movie.Title, &movie.Description,
 		&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 		&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
 		&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
@@ -76,10 +76,10 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	}
 
 	sqlStatement = `
-        SELECT id, title, description, voiceover, subtitles, quality, productionYear, country,
+        SELECT id, title, description, productionYear, country,
                genre, slogan, director, scriptwriter, producer, operator, composer,
                artist, montage, budget, duration, actors, poster, banner, trailerPreview,
-               rating, rating_count
+               ROUND(CAST(rating AS numeric), 1), rating_count
         FROM mdb.movie
         ORDER BY rating DESC
         LIMIT $1 OFFSET $2
@@ -94,7 +94,7 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	for rows.Next() {
 		movie := &models.Movie{}
 		var id int
-		err = rows.Scan(&id, &movie.Title, &movie.Description, &movie.Voiceover, &movie.Subtitles, &movie.Quality,
+		err = rows.Scan(&id, &movie.Title, &movie.Description,
 			&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
 			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,

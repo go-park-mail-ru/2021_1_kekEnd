@@ -13,8 +13,7 @@ const (
 
 	// TODO: should be 10, but for testing purposes is 3
 	ReviewsPageSize = 3
-	// TODO: should be 10, but for testing purposes is 4
-	MoviesPageSize = 4
+	MoviesPageSize = 15
 	BestMoviesLimit = "100"
 	PageDefault = "1"
 )

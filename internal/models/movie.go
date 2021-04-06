@@ -4,9 +4,6 @@ type Movie struct {
 	ID             string   `json:"id"`
 	Title          string   `json:"title"`
 	Description    string   `json:"description"`
-	Voiceover      []string `json:"voiceover"`
-	Subtitles      []string `json:"subtitles"`
-	Quality        string   `json:"quality"`
 	ProductionYear uint     `json:"production_year"`
 	Country        []string `json:"country"`
 	Genre          []string `json:"genre"`
