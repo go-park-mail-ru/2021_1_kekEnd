@@ -6,4 +6,6 @@ type UseCase interface {
 	CreateMovie(movie *models.Movie) error
 
 	GetMovie(id string) (*models.Movie, error)
+
+	GetBestMovies(page int) (int, []*models.Movie, error)
 }

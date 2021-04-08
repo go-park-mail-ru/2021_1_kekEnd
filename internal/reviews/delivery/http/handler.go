@@ -15,6 +15,12 @@ type Handler struct {
 	usersUC   users.UseCase
 }
 
+type ReviewsResponse struct {
+	CurrentPage int              `json:"current_page"`
+	PagesNumber int              `json:"pages_number"`
+	Movies      []*models.Review `json:"reviews"`
+}
+
 func NewHandler(useCase reviews.UseCase, usersUC users.UseCase) *Handler {
 	return &Handler{
 		reviewsUC: useCase,
@@ -64,7 +70,12 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 		return
 	}
 
-	userReviews := h.reviewsUC.GetReviewsByUser(userModel.Username)
+	userReviews, err := h.reviewsUC.GetReviewsByUser(userModel.Username)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	ctx.JSON(http.StatusOK, userReviews)
 }
@@ -72,17 +83,25 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
-	if err != nil {
+	if err != nil || page < 1 {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
-	pagesNumber, movieReviews := h.reviewsUC.GetReviewsByMovie(movieID, page)
-	ctx.JSON(http.StatusOK, gin.H{
-		"current_page": page,
-		"pages_number": pagesNumber,
-		"reviews":      movieReviews,
-	})
+	pagesNumber, movieReviews, err := h.reviewsUC.GetReviewsByMovie(movieID, page)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	reviewsResponse := ReviewsResponse{
+		CurrentPage: page,
+		PagesNumber: pagesNumber,
+		Movies:      movieReviews,
+	}
+
+	ctx.JSON(http.StatusOK, reviewsResponse)
 }
 
 func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
