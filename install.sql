@@ -130,6 +130,25 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.meta TO mdb;
 
 COMMENT ON TABLE mdb.meta IS 'Метаинформация';
 
+CREATE OR REPLACE FUNCTION update_meta() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_TABLE_NAME = 'movie' THEN
+        UPDATE mdb.meta
+        SET movies_count = movies_count + 1;
+        RETURN NEW;
+    ELSIF TG_TABLE_NAME = 'users' THEN
+        UPDATE mdb.meta
+        SET users_count = users_count + 1;
+        RETURN NEW;
+    END IF;
+end;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_added_movie
+    AFTER INSERT ON mdb.movie FOR EACH ROW EXECUTE PROCEDURE update_meta();
+CREATE TRIGGER tr_added_user
+    AFTER INSERT ON mdb.users FOR EACH ROW EXECUTE PROCEDURE update_meta();
+
 
 -- TO DO Сделать тригер на пересчет рейтинга в поле rating таблицы mdb.movie
 CREATE TABLE mdb.movie_rating
