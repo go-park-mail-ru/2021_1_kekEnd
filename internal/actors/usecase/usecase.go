@@ -41,6 +41,7 @@ func (u ActorUseCase) EditActor(user models.User, change models.Actor) (models.A
 	for _, admin := range _const.AdminUsers {
 		if user.Username == admin {
 			permission = true
+			break
 		}
 	}
 	if !permission {
