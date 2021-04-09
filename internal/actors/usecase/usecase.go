@@ -22,6 +22,7 @@ func (u ActorUseCase) CreateActor(user models.User, actor models.Actor) error {
 	for _, admin := range _const.AdminUsers {
 		if user.Username == admin {
 			permission = true
+			break
 		}
 	}
 	if !permission {

@@ -79,8 +79,8 @@ func NewApp() *App {
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
-
-
+		log.Fatal("Failed to read DB connection data", err)
+	}
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
