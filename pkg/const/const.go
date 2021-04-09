@@ -17,3 +17,10 @@ const (
 
 	PageDefault = "1"
 )
+
+var AdminUsers = []string{
+	"let_robots_reign",
+	"IfuryI",
+	"grillow",
+	"polyanimal",
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
 type ActorUseCase struct {
@@ -17,10 +18,13 @@ func NewActorsUseCase(repository actors.Repository) *ActorUseCase {
 }
 
 func (u ActorUseCase) CreateActor(user models.User, actor models.Actor) error {
-	if !(user.Username == "let_robots_reign" ||
-		user.Username == "IfuryI" ||
-		user.Username == "grillow" ||
-		user.Username == "polyanimal") {
+	permission := false
+	for _, admin := range _const.AdminUsers {
+		if user.Username == admin {
+			permission = true
+		}
+	}
+	if !permission {
 		return errors.New("user does not have permission for this action")
 	}
 
@@ -32,10 +36,13 @@ func (u ActorUseCase) GetActor(id string) (models.Actor, error) {
 }
 
 func (u ActorUseCase) EditActor(user models.User, change models.Actor) (models.Actor, error) {
-	if !(user.Username == "let_robots_reign" ||
-		user.Username == "IfuryI" ||
-		user.Username == "grillow" ||
-		user.Username == "polyanimal") {
+	permission := false
+	for _, admin := range _const.AdminUsers {
+		if user.Username == admin {
+			permission = true
+		}
+	}
+	if !permission {
 		return models.Actor{}, errors.New("user does not have permission for this action")
 	}
 
