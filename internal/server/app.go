@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
+	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery"
+	actorsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/localstorage"
+	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
@@ -45,6 +49,7 @@ type App struct {
 	reviewsUC      reviews.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
+	actorsUC       actors.UseCase
 }
 
 func init() {
@@ -69,14 +74,16 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
 
+	actorsRepo := actorsLocalStorage.NewActorsLocalStorage()
+	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
+
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
 		log.Fatal("Failed to read DB connection data", err)
 	}
-
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
-		log.Fatal("Unable to connect to database: %v\n", err)
+		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
@@ -109,6 +116,7 @@ func NewApp() *App {
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
+		actorsUC:       actorsUC,
 	}
 }
 
@@ -141,6 +149,7 @@ func (app *App) Run(port string) error {
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)
+	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

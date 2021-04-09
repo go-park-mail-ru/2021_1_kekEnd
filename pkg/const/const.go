@@ -4,6 +4,7 @@ import "time"
 
 const (
 	UserKey           = "user"
+	ActorKey          = "actor"
 	CookieExpires     = 240 * time.Hour
 	Host              = "localhost"
 	Port              = "8080"
@@ -17,3 +18,10 @@ const (
 	BestMoviesLimit = "100"
 	PageDefault = "1"
 )
+
+var AdminUsers = []string{
+	"let_robots_reign",
+	"IfuryI",
+	"grillow",
+	"polyanimal",
+}
