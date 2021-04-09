@@ -54,7 +54,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	err = h.useCase.CreateUser(user)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 

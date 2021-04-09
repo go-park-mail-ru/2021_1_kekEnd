@@ -57,7 +57,7 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
         WHERE email=$1
     `
 
-    var count int
+	var count int
 	err := storage.db.
 		QueryRow(context.Background(), sqlStatement, newEmail).
 		Scan(&count)

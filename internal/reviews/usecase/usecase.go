@@ -40,11 +40,11 @@ func (reviewsUC *ReviewsUseCase) CreateReview(user *models.User, review *models.
 	return err
 }
 
-func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) []*models.Review {
+func (reviewsUC *ReviewsUseCase) GetReviewsByUser(username string) ([]*models.Review, error) {
 	return reviewsUC.reviewRepository.GetUserReviews(username)
 }
 
-func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string, page int) (int, []*models.Review) {
+func (reviewsUC *ReviewsUseCase) GetReviewsByMovie(movieID string, page int) (int, []*models.Review, error) {
 	startIndex := (page - 1) * _const.ReviewsPageSize
 
 	return reviewsUC.reviewRepository.GetMovieReviews(movieID, startIndex)
