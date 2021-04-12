@@ -3,6 +3,7 @@ package localstorage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -119,5 +120,56 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
 	var movies []*models.Movie
 
-	return 0, movies, nil
+	sqlStatement := `
+		SELECT COUNT(*)
+		FROM mdb.movie
+		WHERE genre @> $1
+	`
+	var rowsCount int
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
+	if err == sql.ErrNoRows {
+		return 0, movies, nil
+	}
+	if err != nil {
+		fmt.Println(err)
+		return 0, nil, err
+	}
+
+	sqlStatement = `
+        SELECT id, title, description, productionYear, country,
+               genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+               ROUND(CAST(rating AS numeric), 1), rating_count
+        FROM mdb.movie
+		WHERE genre @> $1
+        ORDER BY rating DESC
+        LIMIT $2 OFFSET $3
+    `
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
+	if err != nil {
+		fmt.Println(err)
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		movie := &models.Movie{}
+		var id int
+		err = rows.Scan(&id, &movie.Title, &movie.Description,
+			&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
+			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
+			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
+			&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
+		if err != nil && err != sql.ErrNoRows {
+			return 0, nil, err
+		}
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	fmt.Println(rowsCount)
+	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
+
+	return pagesNumber, movies, nil
 }
