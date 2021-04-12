@@ -58,7 +58,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	return &movie, nil
 }
 
-func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, []*models.Movie, error) {
+func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
@@ -74,6 +74,10 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	}
 	if err != nil {
 		return 0, nil, err
+	}
+
+	if rowsCount > _const.MoviesTop100Size {
+		rowsCount = _const.MoviesTop100Size
 	}
 
 	sqlStatement = `
@@ -110,4 +114,10 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
 
 	return pagesNumber, bestMovies, nil
+}
+
+func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
+	var movies []*models.Movie
+
+	return 0, movies, nil
 }
