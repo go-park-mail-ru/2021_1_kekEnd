@@ -3,7 +3,6 @@ package localstorage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -131,7 +130,6 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 		return 0, movies, nil
 	}
 	if err != nil {
-		fmt.Println(err)
 		return 0, nil, err
 	}
 
@@ -148,7 +146,6 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 
 	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
 	if err != nil {
-		fmt.Println(err)
 		return 0, nil, err
 	}
 	defer rows.Close()
@@ -168,7 +165,6 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 		movies = append(movies, movie)
 	}
 
-	fmt.Println(rowsCount)
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
 
 	return pagesNumber, movies, nil
