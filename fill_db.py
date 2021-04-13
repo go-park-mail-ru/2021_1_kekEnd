@@ -107,7 +107,8 @@ def main():
 
     for index in range(START_MOVIE_INDEX, END_MOVIE_INDEX):
         try:
-            info, genres = [item if item is not None else 'нет данных' for item in get_movie_info(index)]
+            info, genres = get_movie_info(index)
+            info = [item if item is not None else 'нет данных' for item in info]
             if available_genres:
                 available_genres |= genres
             else:
