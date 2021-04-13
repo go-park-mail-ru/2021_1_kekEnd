@@ -116,6 +116,25 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 	return pagesNumber, bestMovies, nil
 }
 
+func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
+	sqlStatement := `
+		SELECT available_genres
+		FROM mdb.meta
+		ORDER BY version DESC
+	`
+
+	var genres []string
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&genres)
+	if err == sql.ErrNoRows {
+		return genres, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return genres, nil
+}
+
 func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
 	var movies []*models.Movie
 

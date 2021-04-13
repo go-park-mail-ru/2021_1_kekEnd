@@ -9,5 +9,7 @@ type MovieRepository interface {
 
 	GetBestMovies(startIndex int) (int, []*models.Movie, error)
 
+	GetAllGenres() ([]string, error)
+
 	GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error)
 }

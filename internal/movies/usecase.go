@@ -9,5 +9,7 @@ type UseCase interface {
 
 	GetBestMovies(page int) (int, []*models.Movie, error)
 
+	GetAllGenres() ([]string, error)
+
 	GetMoviesByGenres(genres []string, page int) (int, []*models.Movie, error)
 }
