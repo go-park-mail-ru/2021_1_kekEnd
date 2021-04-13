@@ -34,7 +34,7 @@ CREATE TABLE mdb.movie
     montage         VARCHAR(50),
     budget          VARCHAR(50),
     duration        VARCHAR(50),
-    actors          VARCHAR (100)[],
+    actors          VARCHAR(100)[],
     poster          text,
     banner          text,
     trailerPreview  text,
@@ -121,9 +121,10 @@ COMMENT ON TABLE mdb.users IS 'Пользователи';
 
 CREATE TABLE mdb.meta
 (
-    version serial PRIMARY KEY,
-    movies_count INTEGER,
-    users_count INTEGER
+    version          serial PRIMARY KEY,
+    movies_count     INTEGER,
+    users_count      INTEGER,
+    available_genres VARCHAR(100)[]
 );
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.meta TO mdb;

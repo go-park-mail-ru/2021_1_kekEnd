@@ -1,10 +1,11 @@
 import os
-import time
 
 import psycopg2
 import requests
+import time
 
-API_KEY = os.environ.get('API_KEY')
+# API_KEY = os.environ.get('API_KEY')
+API_KEY = '8860149e-c0b2-4350-b080-5fc17381f5e4'
 MOVIE_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v2.1/films'
 MOVIE_API_APPEND = '?append_to_response=BUDGET&append_to_response=RATING'
 STAFF_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v1/staff'
@@ -89,7 +90,7 @@ def get_movie_info(movie_id):
         trailer_thumbnail,
         rating['rating'],
         rating['ratingVoteCount']
-    ]
+    ], set([item['genre'] for item in data['genres']])
 
 
 def main():
@@ -102,9 +103,16 @@ def main():
     cursor = conn.cursor()
 
     counter = 0
+    available_genres = set()
+
     for index in range(START_MOVIE_INDEX, END_MOVIE_INDEX):
         try:
-            info = [item if item is not None else 'нет данных' for item in get_movie_info(index)]
+            info, genres = [item if item is not None else 'нет данных' for item in get_movie_info(index)]
+            if available_genres:
+                available_genres |= genres
+            else:
+                available_genres = genres
+
             cursor.execute(
                 'INSERT INTO movie (title, description, productionyear, country, genre, slogan, '
                 'director, scriptwriter, producer, operator, composer, artist, montage, '
@@ -122,8 +130,8 @@ def main():
         time.sleep(0.2)
 
     cursor.execute(
-        'INSERT INTO meta (version, movies_count, users_count)'
-        'VALUES(%s, %s, %s)', (1, counter, 0))
+        'INSERT INTO meta (version, movies_count, users_count, available_genres)'
+        'VALUES(%s, %s, %s, %s)', (1, counter, 0, list(available_genres)))
     conn.commit()
 
     cursor.close()
