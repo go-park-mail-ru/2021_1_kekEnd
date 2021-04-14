@@ -15,14 +15,6 @@ func NewActorsUseCase(repository actors.Repository) *ActorUseCase {
 	}
 }
 
-func (u ActorUseCase) CreateActor(actor models.Actor) error {
-	return u.repository.CreateActor(actor)
-}
-
 func (u ActorUseCase) GetActor(id string) (models.Actor, error) {
-	return u.repository.GetActor(id)
-}
-
-func (u ActorUseCase) EditActor(change models.Actor) (models.Actor, error) {
-	return u.repository.EditActor(change)
+	return u.repository.GetActorByID(id)
 }

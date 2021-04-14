@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
+	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery/http"
+	actorsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/dbstorage"
+	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
@@ -40,6 +44,7 @@ import (
 type App struct {
 	server         *http.Server
 	usersUC        users.UseCase
+	actorsUC 	   actors.UseCase
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
@@ -82,20 +87,14 @@ func NewApp() *App {
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
+	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
+	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
+
 	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
-
-	// usersRepo := usersLocalStorage.NewUserLocalStorage()
-	// usersUC := usersUseCase.NewUsersUseCase(usersRepo)
-
-	// moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
-	// moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
-
-	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
-	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
@@ -104,6 +103,7 @@ func NewApp() *App {
 
 	return &App{
 		usersUC:        usersUC,
+		actorsUC:       actorsUC,
 		moviesUC:       moviesUC,
 		ratingsUC:      ratingsUC,
 		sessions:       sessionsDL,
@@ -138,6 +138,7 @@ func (app *App) Run(port string) error {
 	router.Use(gin.Recovery())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
+	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)

@@ -96,6 +96,18 @@ COMMENT ON TABLE mdb.movie IS 'Фильмы';
 --        );
 
 
+CREATE TABLE mdb.actors
+(
+    id              serial PRIMARY KEY,
+    name            text not null,
+    biography       text,
+    birthdate       VARCHAR(100),
+    origin          VARCHAR(100),
+    profession      VARCHAR(200),
+    avatar          text
+);
+
+
 CREATE TABLE mdb.users
 (
     login               VARCHAR(100) PRIMARY KEY,

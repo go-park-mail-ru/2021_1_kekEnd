@@ -1,5 +1,3 @@
-import os
-
 import psycopg2
 import requests
 import time
@@ -34,6 +32,7 @@ def get_staff_info(movie_id):
         filter_by_profession(staff_array, 'DESIGN')[0],
         filter_by_profession(staff_array, 'EDITOR')[0],
         filter_by_profession(staff_array, 'ACTOR'),
+        [(person['personId'], person['nameRu']) for person in staff_array if person['professionKey'] == 'ACTOR']
     ]
 
 
@@ -62,6 +61,20 @@ def get_trailer_info(movie_id):
     return get_youtube_thumbnail(youtube_id)
 
 
+def get_actor_info(actor_id):
+    response = requests.get(f'{STAFF_API_PATH}/{actor_id}',
+                            headers={'X-API-KEY': API_KEY}).json()
+    return [
+        response['personId'],
+        response['nameRu'],
+        response['birthplace'],
+        response['birthday'],
+        response['profession'],
+        "\n".join(response['facts']),
+        [film['nameRu'] for film in response['films']]
+    ]
+
+
 def get_movie_info(movie_id):
     response = requests.get(f'{MOVIE_API_PATH}/{movie_id}{MOVIE_API_APPEND}',
                             headers={'X-API-KEY': API_KEY}).json()
@@ -72,25 +85,28 @@ def get_movie_info(movie_id):
 
     staff = get_staff_info(movie_id)
     frame = get_frames_info(movie_id)
-    trailer_thumbnail = get_trailer_info(movie_id)
+    # trailer_thumbnail = get_trailer_info(movie_id)
+
+    actors = staff[-1][:5]
 
     return [
-        data['nameRu'],
-        data['description'],
-        data['year'],
-        format_array([item['country'] for item in data['countries']]),
-        format_array([item['genre'] for item in data['genres']]),
-        data['slogan'],
-        *staff[:-1],
-        budget['budget'],
-        data['filmLength'],
-        staff[-1][:5],
-        data['posterUrlPreview'],
-        frame,
-        trailer_thumbnail,
-        rating['rating'],
-        rating['ratingVoteCount']
-    ], set([item['genre'] for item in data['genres']])
+               data['nameRu'],
+               data['description'],
+               data['year'],
+               format_array([item['country'] for item in data['countries']]),
+               format_array([item['genre'] for item in data['genres']]),
+               data['slogan'],
+               *staff[:-1],
+               budget['budget'],
+               data['filmLength'],
+               actors,
+               data['posterUrlPreview'],
+               frame,
+               # trailer_thumbnail,
+               '',
+               rating['rating'],
+               rating['ratingVoteCount']
+           ], set([item['genre'] for item in data['genres']]), actors
 
 
 def main():
@@ -107,7 +123,7 @@ def main():
 
     for index in range(START_MOVIE_INDEX, END_MOVIE_INDEX):
         try:
-            info, genres = get_movie_info(index)
+            info, genres, actors = get_movie_info(index)
             info = [item if item is not None else 'нет данных' for item in info]
             if available_genres:
                 available_genres |= genres
