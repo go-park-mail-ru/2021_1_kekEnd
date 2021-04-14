@@ -7,6 +7,7 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type Handler struct {
@@ -57,6 +58,8 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 	category := ctx.Query("category")
 	if category == "best" {
 		h.GetBestMovies(ctx)
+	} else if category == "genre" {
+		h.GetMoviesByGenres(ctx)
 	}
 }
 
@@ -79,6 +82,48 @@ func (h *Handler) GetBestMovies(ctx *gin.Context) {
 		PagesNumber: pagesNumber,
 		MaxItems:    _const.MoviesPageSize,
 		Movies:      bestMovies,
+	}
+
+	ctx.JSON(http.StatusOK, moviesResponse)
+}
+
+func (h *Handler) GetGenres(ctx *gin.Context) {
+	genres, err := h.useCase.GetAllGenres()
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, genres)
+}
+
+func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
+	genresQuery := ctx.Query("filter")
+	if genresQuery == "" {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	genres := strings.Split(genresQuery, " ")
+
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil || page < 1 {
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	pagesNumber, moviesList, err := h.useCase.GetMoviesByGenres(genres, page)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	moviesResponse := moviesPageResponse{
+		CurrentPage: page,
+		PagesNumber: pagesNumber,
+		MaxItems:    _const.MoviesPageSize,
+		Movies:      moviesList,
 	}
 
 	ctx.JSON(http.StatusOK, moviesResponse)

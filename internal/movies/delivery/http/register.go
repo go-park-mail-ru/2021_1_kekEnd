@@ -11,4 +11,5 @@ func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase) {
 	router.POST("/movies", handler.CreateMovie)
 	router.GET("/movies", handler.GetMovies)
 	router.GET("/movies/:id", handler.GetMovie)
+	router.GET("/genres", handler.GetGenres)
 }
