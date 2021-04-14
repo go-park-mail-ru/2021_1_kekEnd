@@ -5,8 +5,8 @@ type Actor struct {
 	Name         string           `json:"name"`
 	Biography    string           `json:"biography"`
 	BirthDate    string           `json:"birthdate"`
-	Origin       []string         `json:"origin"`
-	Profession   string			  `json:"profession"`
+	Origin       string           `json:"origin"`
+	Profession   string           `json:"profession"`
 	MoviesCount  int              `json:"movies_count"`
 	MoviesRating int              `json:"movies_rating"`
 	Movies       []MovieReference `json:"movies"`
@@ -14,7 +14,7 @@ type Actor struct {
 }
 
 type MovieReference struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Rating string `json:"rating"`
+	ID     string  `json:"id"`
+	Title  string  `json:"title"`
+	Rating float64 `json:"rating"`
 }
