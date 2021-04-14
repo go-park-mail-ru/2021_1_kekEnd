@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery"
 	actorsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/localstorage"
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
+	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
@@ -50,6 +51,7 @@ type App struct {
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 	actorsUC       actors.UseCase
+	logger         *logger.Logger
 }
 
 func init() {
@@ -70,13 +72,16 @@ func NewApp() *App {
 		log.Fatal("Failed to create redis client", p, err)
 	}
 
+	accessLogger := logger.NewAccessLogger()
+
 	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
-	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
+	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
 	actorsRepo := actorsLocalStorage.NewActorsLocalStorage()
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 
+	//connStr := "postgres://mdb:mdb@localhost:5432/mdb"
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
 		log.Fatal("Failed to read DB connection data", err)
@@ -95,15 +100,6 @@ func NewApp() *App {
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 
-	// usersRepo := usersLocalStorage.NewUserLocalStorage()
-	// usersUC := usersUseCase.NewUsersUseCase(usersRepo)
-
-	// moviesRepo := moviesLocalStorage.NewMovieLocalStorage()
-	// moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
-
-	// reviewsRepo := reviewsLocalStorage.NewReviewLocalStorage()
-	// reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
-
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
@@ -117,6 +113,7 @@ func NewApp() *App {
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
 		actorsUC:       actorsUC,
+		logger:         accessLogger,
 	}
 }
 
@@ -126,20 +123,7 @@ func (app *App) Run(port string) error {
 	config.AllowOrigins = []string{"http://localhost:3000", "http://89.208.198.186:3000"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
-
-	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
-			param.ClientIP,
-			param.TimeStamp.Format(time.RFC1123),
-			param.Method,
-			param.Path,
-			param.Request.Proto,
-			param.StatusCode,
-			param.Latency,
-			param.Request.UserAgent(),
-			param.ErrorMessage,
-		)
-	}))
+	router.Use(middleware.AccessLogMiddleware(app.logger))
 
 	router.Static("/avatars", _const.AvatarsFileDir)
 

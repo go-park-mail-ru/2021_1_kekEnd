@@ -1,7 +1,9 @@
 package http
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
@@ -14,9 +16,10 @@ import (
 type Handler struct {
 	useCase  users.UseCase
 	sessions sessions.Delivery
+	Log *logger.Logger
 }
 
-func NewHandler(useCase users.UseCase, sessions sessions.Delivery) *Handler {
+func NewHandler(useCase users.UseCase, sessions sessions.Delivery, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase:  useCase,
 		sessions: sessions,
@@ -34,11 +37,15 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	err := ctx.BindJSON(signupData)
 	if err != nil {
+		msg := "Failed to bind request data " + err.Error()
+		h.Log.LogWarning(ctx, "users", "CreateUser", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	if signupData.Username == "" || signupData.Email == "" || signupData.Password == "" {
+		err := fmt.Errorf("%s", "invalid value in user data")
+		h.Log.LogWarning(ctx, "users", "CreateUser", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -54,12 +61,14 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	err = h.useCase.CreateUser(user)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "CreateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	userSessionID, err := h.sessions.Create(signupData.Username, _const.CookieExpires)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "CreateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -77,20 +86,17 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated) // 201
 }
 
-type loginData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func (h *Handler) Logout(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("session_id")
 	if err != nil {
+		h.Log.LogError(ctx, "users", "Logout", err)
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 		return
 	}
 
 	err = h.sessions.Delete(cookie)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "Logout", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -100,23 +106,33 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+type loginData struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func (h *Handler) Login(ctx *gin.Context) {
 	loginData := new(loginData)
 
 	err := ctx.BindJSON(loginData)
 	if err != nil {
+		msg := "Failed to bind request data " + err.Error()
+		h.Log.LogWarning(ctx, "users", "Login", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	loginStatus := h.useCase.Login(loginData.Username, loginData.Password)
 	if !loginStatus {
+		err := fmt.Errorf("%s", "User is already logged in")
+		h.Log.LogWarning(ctx, "users", "Login", err.Error())
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 		return
 	}
 
 	userSessionID, err := h.sessions.Create(loginData.Username, _const.CookieExpires)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "Login", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -137,12 +153,16 @@ func (h *Handler) Login(ctx *gin.Context) {
 func (h *Handler) GetUser(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "users", "GetUser", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
 
 	userModel, ok := user.(models.User)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogWarning(ctx, "users", "GetUser", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -155,18 +175,24 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	changed := new(models.User)
 	err := ctx.BindJSON(changed)
 	if err != nil {
+		msg := "Failed to bind request data " + err.Error()
+		h.Log.LogWarning(ctx, "users", "UpdateUser", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "users", "UpdateUser", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	userModel, ok := user.(models.User)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogWarning(ctx, "users", "UpdateUser", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -175,6 +201,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	changed.Avatar = userModel.Avatar
 	newUser, err := h.useCase.UpdateUser(&userModel, *changed)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "UpdateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -186,6 +213,8 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {
+		msg := "Failed to form file " + err.Error()
+		h.Log.LogWarning(ctx, "users", "UploadAvatar", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -197,18 +226,23 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	err = ctx.SaveUploadedFile(file, _const.AvatarsFileDir+newFileName)
 
 	if err != nil {
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "users", "UploadAvatar", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	userModel, ok := user.(models.User)
 	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogWarning(ctx, "users", "UploadAvatar", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -221,6 +255,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 
 	newUser, err := h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}

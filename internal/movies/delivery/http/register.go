@@ -2,11 +2,12 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase) {
-	handler := NewHandler(moviesUC)
+func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase, Log *logger.Logger) {
+	handler := NewHandler(moviesUC, Log)
 
 	router.POST("/movies", handler.CreateMovie)
 	router.GET("/movies", handler.GetMovies)
