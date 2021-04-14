@@ -58,7 +58,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	return &movie, nil
 }
 
-func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, []*models.Movie, error) {
+func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
@@ -74,6 +74,10 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	}
 	if err != nil {
 		return 0, nil, err
+	}
+
+	if rowsCount > _const.MoviesTop100Size {
+		rowsCount = _const.MoviesTop100Size
 	}
 
 	sqlStatement = `
@@ -110,4 +114,77 @@ func (movieStorage *MovieRepository) GetBestMovies(page, startIndex int) (int, [
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
 
 	return pagesNumber, bestMovies, nil
+}
+
+func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
+	sqlStatement := `
+		SELECT available_genres
+		FROM mdb.meta
+		ORDER BY version DESC
+	`
+
+	var genres []string
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&genres)
+	if err == sql.ErrNoRows {
+		return genres, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return genres, nil
+}
+
+func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
+	var movies []*models.Movie
+
+	sqlStatement := `
+		SELECT COUNT(*)
+		FROM mdb.movie
+		WHERE genre && $1
+	`
+	var rowsCount int
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
+	if err == sql.ErrNoRows {
+		return 0, movies, nil
+	}
+	if err != nil {
+		return 0, nil, err
+	}
+
+	sqlStatement = `
+        SELECT id, title, description, productionYear, country,
+               genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+               ROUND(CAST(rating AS numeric), 1), rating_count
+        FROM mdb.movie
+		WHERE genre && $1
+        ORDER BY rating DESC
+        LIMIT $2 OFFSET $3
+    `
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		movie := &models.Movie{}
+		var id int
+		err = rows.Scan(&id, &movie.Title, &movie.Description,
+			&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
+			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
+			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
+			&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
+		if err != nil && err != sql.ErrNoRows {
+			return 0, nil, err
+		}
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
+
+	return pagesNumber, movies, nil
 }
