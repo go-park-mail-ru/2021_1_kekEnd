@@ -12,13 +12,13 @@ import (
 
 type Handler struct {
 	useCase actors.UseCase
-	Log *logger.Logger
+	Log     *logger.Logger
 }
 
 func NewHandler(useCase actors.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
-		Log : Log,
+		Log:     Log,
 	}
 }
 
@@ -33,7 +33,7 @@ func (h *Handler) CreateActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogWarning(ctx, "actors", "CreateActor", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -79,7 +79,7 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogWarning(ctx, "actors", "EditActor", err.Error())
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
