@@ -141,7 +141,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 	sqlStatement := `
 		SELECT COUNT(*)
 		FROM mdb.movie
-		WHERE genre @> $1
+		WHERE genre && $1
 	`
 	var rowsCount int
 	err := movieStorage.db.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
@@ -158,7 +158,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
                artist, montage, budget, duration, actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1), rating_count
         FROM mdb.movie
-		WHERE genre @> $1
+		WHERE genre && $1
         ORDER BY rating DESC
         LIMIT $2 OFFSET $3
     `
