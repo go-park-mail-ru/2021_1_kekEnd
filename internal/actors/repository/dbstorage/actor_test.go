@@ -2,11 +2,8 @@ package dbstorage
 
 import (
 	"context"
-
-	// "fmt"
 	"testing"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	// "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/pashagolub/pgxmock"
 )
 
