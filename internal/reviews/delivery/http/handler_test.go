@@ -36,7 +36,7 @@ func TestHandlers(t *testing.T) {
 
 	RegisterHttpEndpoints(r, reviewsUC, usersUC, authMiddleware, lg)
 
-	createBody := &models.Review{
+	review := &models.Review{
 		ID:         "1",
 		Title:      "Review",
 		ReviewType: "positive",
@@ -53,7 +53,7 @@ func TestHandlers(t *testing.T) {
 		ReviewsNumber: new(uint),
 	}
 
-	body, err := json.Marshal(createBody)
+	body, err := json.Marshal(review)
 	assert.NoError(t, err)
 
 	UUID := uuid.NewV4().String()
@@ -71,7 +71,7 @@ func TestHandlers(t *testing.T) {
 			Check(UUID).
 			Return(user.Username, nil).AnyTimes()
 
-		reviewsUC.EXPECT().CreateReview(user, createBody).Return(nil)
+		reviewsUC.EXPECT().CreateReview(user, review).Return(nil)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users/reviews", bytes.NewBuffer(body))
@@ -79,5 +79,118 @@ func TestHandlers(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
+	})
+
+	t.Run("GetUserReviews", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		reviewsUC.EXPECT().GetReviewsByUser(user.Username).Return([]*models.Review{review}, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/users/reviews", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GetMovieReviews", func(t *testing.T) {
+		reviewsUC.EXPECT().GetReviewsByMovie(review.MovieID, 1).Return(1, []*models.Review{review}, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/movies/1/reviews", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GetUserReviewForMovie", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		reviewsUC.EXPECT().GetUserReviewForMovie(user.Username, review.MovieID).Return(review, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/users/movies/1/reviews", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("EditUserReviewForMovie", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		newReview := &models.Review{
+			ID:         "1",
+			Title:      "New",
+			ReviewType: "neutral",
+			Content:    "new content",
+			MovieID:    "1",
+		}
+
+		newBody, err := json.Marshal(newReview)
+		assert.NoError(t, err)
+
+		reviewsUC.EXPECT().EditUserReviewForMovie(user, newReview).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/users/movies/1/reviews", bytes.NewBuffer(newBody))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("DeleteUserReviewForMovie", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		reviewsUC.EXPECT().DeleteUserReviewForMovie(user, review.MovieID).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/users/movies/1/reviews", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }

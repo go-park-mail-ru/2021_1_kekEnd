@@ -4,15 +4,24 @@ import (
 	"context"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"strconv"
 )
 
-type RatingsRepository struct {
-	db *pgxpool.Pool
+type PgxPoolIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
-func NewRatingsRepository(database *pgxpool.Pool) *RatingsRepository {
+type RatingsRepository struct {
+	db PgxPoolIface
+}
+
+func NewRatingsRepository(database PgxPoolIface) *RatingsRepository {
 	return &RatingsRepository{
 		db: database,
 	}

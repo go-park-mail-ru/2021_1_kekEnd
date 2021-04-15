@@ -6,16 +6,25 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"math"
 	"strconv"
 )
 
-type ReviewRepository struct {
-	db *pgxpool.Pool
+type PgxPoolIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
-func NewReviewRepository(database *pgxpool.Pool) *ReviewRepository {
+type ReviewRepository struct {
+	db PgxPoolIface
+}
+
+func NewReviewRepository(database PgxPoolIface) *ReviewRepository {
 	return &ReviewRepository{
 		db: database,
 	}
