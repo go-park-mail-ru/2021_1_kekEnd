@@ -50,7 +50,7 @@ func (h *Handler) CreateRating(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogError(ctx, "ratings", "CreateRating", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
@@ -85,14 +85,14 @@ func (h *Handler) GetRating(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
+		h.Log.LogError(ctx, "ratings", "GetRating", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	rating, err := h.useCase.GetRating(userModel.Username, movieID)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "GetRating", err)
+		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
@@ -121,7 +121,7 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "ratings", "UpdateRating", err.Error())
+		h.Log.LogError(ctx, "ratings", "UpdateRating", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -136,6 +136,7 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 
 	err = h.useCase.UpdateRating(userModel.Username, ratingData.MovieID, score)
 	if err != nil {
+		h.Log.LogError(ctx, "ratings", "UpdateRating", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -156,15 +157,15 @@ func (h *Handler) DeleteRating(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "ratings", "DeleteRating", err.Error())
+		h.Log.LogError(ctx, "ratings", "DeleteRating", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	err := h.useCase.DeleteRating(userModel.Username, movieID)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "DeleteRating", err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		h.Log.LogWarning(ctx, "ratings", "DeleteRating", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 

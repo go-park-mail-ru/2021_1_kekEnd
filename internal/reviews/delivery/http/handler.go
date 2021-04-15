@@ -44,7 +44,7 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "reviews", "CreateReview", err.Error())
+		h.Log.LogError(ctx, "reviews", "CreateReview", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -52,14 +52,14 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "reviews", "CreateReview", err.Error())
+		h.Log.LogError(ctx, "reviews", "CreateReview", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	err = h.reviewsUC.CreateReview(&userModel, review)
 	if err != nil {
-		h.Log.LogError(ctx, "reviews", "CreateReview", err)
+		h.Log.LogWarning(ctx, "reviews", "CreateReview", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -71,7 +71,7 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "reviews", "GetUserReviews", err.Error())
+		h.Log.LogError(ctx, "reviews", "GetUserReviews", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -79,7 +79,7 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "reviews", "GetUserReviews", err.Error())
+		h.Log.LogError(ctx, "reviews", "GetUserReviews", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -128,7 +128,7 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "reviews", "GetUserReviewForMovie", err.Error())
+		h.Log.Error(ctx, "reviews", "GetUserReviewForMovie", err.Error)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -136,14 +136,14 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "reviews", "GetUserReviewForMovie", err.Error())
+		h.Log.Error(ctx, "reviews", "GetUserReviewForMovie", err.Error)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	review, err := h.reviewsUC.GetUserReviewForMovie(userModel.Username, movieID)
 	if err != nil {
-		h.Log.LogError(ctx, "reviews", "GetUserReviewForMovie", err)
+		h.Log.LogWarning(ctx, "reviews", "GetUserReviewForMovie", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
@@ -164,7 +164,7 @@ func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "reviews", "EditUserReviewForMovie", err.Error())
+		h.Log.LogError(ctx, "reviews", "EditUserReviewForMovie", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -172,7 +172,7 @@ func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "reviews", "EditUserReviewForMovie", err.Error())
+		h.Log.LogError(ctx, "reviews", "EditUserReviewForMovie", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -193,7 +193,7 @@ func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "reviews", "DeleteUserReviewForMovie", err.Error())
+		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -201,7 +201,7 @@ func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "reviews", "DeleteUserReviewForMovie", err.Error())
+		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}

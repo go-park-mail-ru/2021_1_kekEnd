@@ -34,7 +34,7 @@ func (h *Handler) CreateActor(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s","Failed to cast user to model")
-		h.Log.LogWarning(ctx, "actors", "CreateActor", err.Error())
+		h.Log.LogError(ctx, "actors", "CreateActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -42,7 +42,7 @@ func (h *Handler) CreateActor(ctx *gin.Context) {
 	actorModel := new(models.Actor)
 	err := ctx.BindJSON(actorModel)
 	if err != nil {
-		h.Log.LogError(ctx, "actors", "CreateActor", err)
+		h.Log.LogWarning(ctx, "actors", "CreateActor", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -60,7 +60,7 @@ func (h *Handler) GetActor(ctx *gin.Context) {
 
 	actor, err := h.useCase.GetActor(id)
 	if err != nil {
-		h.Log.LogError(ctx, "actors", "GetActor", err)
+		h.Log.LogWarning(ctx, "actors", "GetActor", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -80,7 +80,7 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s","Failed to cast user to model")
-		h.Log.LogWarning(ctx, "actors", "EditActor", err.Error())
+		h.Log.LogError(ctx, "actors", "EditActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -90,7 +90,7 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 	change := new(models.Actor)
 	err := ctx.BindJSON(change)
 	if err != nil {
-		h.Log.LogError(ctx, "actors", "EditActor", err)
+		h.Log.LogWarning(ctx, "actors", "EditActor", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}

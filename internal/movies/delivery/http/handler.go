@@ -33,7 +33,7 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 	movieData := new(models.Movie)
 	err := ctx.BindJSON(movieData)
 	if err != nil {
-		h.Log.LogError(ctx, "movie", "CreateMovie", err)
+		h.Log.LogWarning(ctx, "movie", "CreateMovie", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -51,7 +51,7 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 func (h *Handler) GetMovie(ctx *gin.Context) {
 	movie, err := h.useCase.GetMovie(ctx.Param("id"))
 	if err != nil {
-		h.Log.LogError(ctx, "movie", "GetMovie", err)
+		h.Log.LogWarning(ctx, "movie", "GetMovie", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
@@ -69,7 +69,7 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil || page < 1 {
-		h.Log.LogError(ctx, "movie", "GetBestMovies", err)
+		h.Log.LogWarning(ctx, "movie", "GetBestMovies", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}

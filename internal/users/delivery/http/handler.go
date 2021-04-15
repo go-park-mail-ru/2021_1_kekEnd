@@ -89,7 +89,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 func (h *Handler) Logout(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("session_id")
 	if err != nil {
-		h.Log.LogError(ctx, "users", "Logout", err)
+		h.Log.LogWarning(ctx, "users", "Logout", err.Error())
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 		return
 	}
@@ -162,7 +162,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "users", "GetUser", err.Error())
+		h.Log.LogError(ctx, "users", "GetUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -184,7 +184,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "users", "UpdateUser", err.Error())
+		h.Log.LogError(ctx, "users", "UpdateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -192,7 +192,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "users", "UpdateUser", err.Error())
+		h.Log.LogError(ctx, "users", "UpdateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -234,7 +234,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "users", "UploadAvatar", err.Error())
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -242,7 +242,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogWarning(ctx, "users", "UploadAvatar", err.Error())
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
