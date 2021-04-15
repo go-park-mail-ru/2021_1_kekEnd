@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/mocks"
 	"github.com/golang/mock/gomock"
@@ -19,8 +20,8 @@ func TestMoviesHandlers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	moviesUC := mocks.NewMockUseCase(ctrl)
-
-	RegisterHttpEndpoints(r, moviesUC)
+	lg := logger.NewAccessLogger()
+	RegisterHttpEndpoints(r, moviesUC, lg)
 
 	movie := &models.Movie{
 		ID:          "7",

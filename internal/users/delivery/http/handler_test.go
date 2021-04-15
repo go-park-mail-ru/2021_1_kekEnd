@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
@@ -24,13 +25,15 @@ func TestHandlers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	lg := logger.NewAccessLogger()
+
 	usersUC := usersMock.NewMockUseCase(ctrl)
 	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
-	delivery := sessions.NewDelivery(sessionsUC)
+	delivery := sessions.NewDelivery(sessionsUC, lg)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware)
+	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, lg)
 
 	createBody := &signupData{
 		Username: "let_robots_reign",
