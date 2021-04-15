@@ -45,12 +45,13 @@ import (
 type App struct {
 	server         *http.Server
 	usersUC        users.UseCase
-	actorsUC 	   actors.UseCase
+	actorsUC       actors.UseCase
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
+	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
 }
 
@@ -73,7 +74,6 @@ func NewApp() *App {
 	}
 
 	accessLogger := logger.NewAccessLogger()
-
 
 	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
@@ -104,6 +104,7 @@ func NewApp() *App {
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
+	csrfMiddleware := middleware.NewCsrfMiddleware(accessLogger)
 
 	return &App{
 		usersUC:        usersUC,
@@ -113,6 +114,7 @@ func NewApp() *App {
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
+		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
 	}
 }
