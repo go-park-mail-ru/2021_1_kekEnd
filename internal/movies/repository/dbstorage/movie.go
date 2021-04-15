@@ -41,14 +41,20 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 		return nil, err
 	}
 
+	var actorsNames []string
 	err = movieStorage.db.
 		QueryRow(context.Background(), sqlStatement, idFilm).Scan(&idFilm,
 		&movie.Title, &movie.Description,
 		&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 		&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
-		&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
+		&movie.Montage, &movie.Budget, &movie.Duration, &actorsNames, &movie.Poster,
 		&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
 
+	if err != nil {
+		return nil, err
+	}
+
+	movie.Actors, err = movieStorage.getActorsData(actorsNames)
 	if err != nil {
 		return nil, err
 	}
@@ -99,15 +105,22 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 	for rows.Next() {
 		movie := &models.Movie{}
 		var id int
+		var actorsNames []string
 		err = rows.Scan(&id, &movie.Title, &movie.Description,
 			&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
-			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
+			&movie.Montage, &movie.Budget, &movie.Duration, &actorsNames, &movie.Poster,
 			&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
 		if err != nil && err != sql.ErrNoRows {
 			return 0, nil, err
 		}
+
 		movie.ID = strconv.Itoa(id)
+		movie.Actors, err = movieStorage.getActorsData(actorsNames)
+		if err != nil {
+			return 0, nil, err
+		}
+
 		bestMovies = append(bestMovies, movie)
 	}
 
@@ -172,19 +185,47 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 	for rows.Next() {
 		movie := &models.Movie{}
 		var id int
+		var actorsNames []string
 		err = rows.Scan(&id, &movie.Title, &movie.Description,
 			&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
 			&movie.Scriptwriter, &movie.Producer, &movie.Operator, &movie.Composer, &movie.Artist,
-			&movie.Montage, &movie.Budget, &movie.Duration, &movie.Actors, &movie.Poster,
+			&movie.Montage, &movie.Budget, &movie.Duration, &actorsNames, &movie.Poster,
 			&movie.Banner, &movie.TrailerPreview, &movie.Rating, &movie.RatingCount)
 		if err != nil && err != sql.ErrNoRows {
 			return 0, nil, err
 		}
+
 		movie.ID = strconv.Itoa(id)
+		movie.Actors, err = movieStorage.getActorsData(actorsNames)
+		if err != nil {
+			return 0, nil, err
+		}
+
 		movies = append(movies, movie)
 	}
 
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
 
 	return pagesNumber, movies, nil
+}
+
+func (movieStorage *MovieRepository) getActorsData(names []string) ([]models.ActorData, error) {
+	var actors []models.ActorData
+
+	sqlStatement := `
+		SELECT id, name
+		FROM mdb.actors
+		WHERE name=$1
+	`
+	for _, name := range names {
+		var actor models.ActorData
+		err := movieStorage.db.QueryRow(context.Background(), sqlStatement, name).Scan(&actor.ID, &actor.Name)
+		if err != nil && err != sql.ErrNoRows {
+			return []models.ActorData{}, err
+		}
+
+		actors = append(actors, actor)
+	}
+
+	return actors, nil
 }
