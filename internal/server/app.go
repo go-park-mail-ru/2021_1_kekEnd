@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery/http"
 	actorsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/dbstorage"
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
+	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
@@ -50,6 +51,7 @@ type App struct {
 	reviewsUC      reviews.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
+	logger         *logger.Logger
 }
 
 func init() {
@@ -70,9 +72,12 @@ func NewApp() *App {
 		log.Fatal("Failed to create redis client", p, err)
 	}
 
+	accessLogger := logger.NewAccessLogger()
+
+
 	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
-	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC)
+	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
@@ -108,6 +113,7 @@ func NewApp() *App {
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
+		logger:         accessLogger,
 	}
 }
 
@@ -117,30 +123,17 @@ func (app *App) Run(port string) error {
 	config.AllowOrigins = []string{"http://localhost:3000", "http://89.208.198.186:3000"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
-
-	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
-			param.ClientIP,
-			param.TimeStamp.Format(time.RFC1123),
-			param.Method,
-			param.Path,
-			param.Request.Proto,
-			param.StatusCode,
-			param.Latency,
-			param.Request.UserAgent(),
-			param.ErrorMessage,
-		)
-	}))
+	router.Use(middleware.AccessLogMiddleware(app.logger))
 
 	router.Static("/avatars", _const.AvatarsFileDir)
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
-	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
-	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
-	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware, app.logger)
+	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.logger)
+	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
+	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
+	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

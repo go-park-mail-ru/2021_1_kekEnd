@@ -1,15 +1,16 @@
 package http
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+"github.com/gin-gonic/gin"
+"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
+"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
+"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
 func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions sessions.Delivery,
-	authMiddleware middleware.Auth) {
-	handler := NewHandler(usersUC, sessions)
+	authMiddleware middleware.Auth, Log *logger.Logger) {
+	handler := NewHandler(usersUC, sessions, Log)
 
 	router.POST("/users", handler.CreateUser)
 	router.POST("/users/avatar", authMiddleware.CheckAuth(), handler.UploadAvatar)
