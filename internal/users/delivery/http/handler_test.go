@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
+	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
