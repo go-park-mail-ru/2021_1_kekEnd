@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
@@ -84,6 +85,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		true,
 	)
 
+	csrf.CreateCsrfToken(ctx)
+
 	ctx.Status(http.StatusCreated) // 201
 }
 
@@ -147,6 +150,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		false,
 		true,
 	)
+	csrf.CreateCsrfToken(ctx)
 
 	ctx.Status(http.StatusOK) // 200
 }

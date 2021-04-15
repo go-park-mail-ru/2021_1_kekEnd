@@ -8,12 +8,13 @@ import (
 
 type Delivery struct {
 	UseCase sessions.UseCase
-	Log *logger.Logger
+	Log     *logger.Logger
 }
 
 func NewDelivery(uc sessions.UseCase, Log *logger.Logger) *Delivery {
 	return &Delivery{
 		UseCase: uc,
+		Log:     Log,
 	}
 }
 
