@@ -1,17 +1,20 @@
 package models
 
 type Actor struct {
-	ID           string   `json:"id"`
-	FirstName    string   `json:"first_name"`
-	LastName     string   `json:"last_name"`
-	Career       []string `json:"career"`
-	Genres       []string `json:"genres"`
-	PlaceOfBirth []string `json:"place_of_birth"`
-	Birthday     string   `json:"birthday"`
-	Height       string   `json:"height"`
-	Spouse       string   `json:"spouse"`
-	Photo        string   `json:"avatar"`
-	BestMovies   []string `json:"best_movies"`
-	BestSeries   []string `json:"best_series"`
-	TotalMovies  uint     `json:"total_movies"`
+	ID           string           `json:"id"`
+	Name         string           `json:"name"`
+	Biography    string           `json:"biography"`
+	BirthDate    string           `json:"birthdate"`
+	Origin       string           `json:"origin"`
+	Profession   string           `json:"profession"`
+	MoviesCount  int              `json:"movies_count"`
+	MoviesRating int              `json:"movies_rating"`
+	Movies       []MovieReference `json:"movies"`
+	Avatar       string           `json:"avatar"`
+}
+
+type MovieReference struct {
+	ID     string  `json:"id"`
+	Title  string  `json:"title"`
+	Rating float64 `json:"rating"`
 }

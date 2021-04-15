@@ -12,10 +12,11 @@ const (
 	DefaultAvatarPath = "http://" + Host + ":" + Port + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
 
-	ReviewsPageSize = 3
-	MoviesPageSize = 15
-	MoviesTop100Size = 100
-	PageDefault = "1"
+	ReviewsPageSize         = 3
+	MoviesPageSize          = 15
+	MoviesTop100Size        = 100
+	MoviesNumberOnActorPage = 10
+	PageDefault             = "1"
 )
 
 var AdminUsers = []string{
