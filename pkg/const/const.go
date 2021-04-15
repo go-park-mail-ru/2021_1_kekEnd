@@ -18,3 +18,10 @@ const (
 	MoviesNumberOnActorPage = 10
 	PageDefault             = "1"
 )
+
+var AdminUsers = []string{
+	"let_robots_reign",
+	"IfuryI",
+	"grillow",
+	"polyanimal",
+}

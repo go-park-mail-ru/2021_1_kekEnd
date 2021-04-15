@@ -98,3 +98,11 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 
 	return rowsCount, movies, nil
 }
+
+func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
+	return nil
+}
+
+func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
+	return models.Actor{}, nil
+}

@@ -78,10 +78,9 @@ func NewApp() *App {
 	if !connected {
 		log.Fatal("Failed to read DB connection data", err)
 	}
-
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
-		log.Fatal("Unable to connect to database: %v\n", err)
+		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
@@ -138,7 +137,7 @@ func (app *App) Run(port string) error {
 	router.Use(gin.Recovery())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
-	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC)
+	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)
