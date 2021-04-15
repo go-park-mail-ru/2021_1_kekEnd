@@ -3,17 +3,26 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"strconv"
 )
 
-type ActorRepository struct {
-	db *pgxpool.Pool
+type PgxPoolIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
-func NewActorRepository(database *pgxpool.Pool) *ActorRepository {
+type ActorRepository struct {
+	db PgxPoolIface
+}
+
+func NewActorRepository(database PgxPoolIface) *ActorRepository {
 	return &ActorRepository{
 		db: database,
 	}
@@ -23,7 +32,7 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 	var actor models.Actor
 
 	sqlStatement := `
-        SELECT id, name, biography, birthdate, origin, profession, avatar 
+        SELECT id, name, biography, birthdate, origin, profession, avatar
         FROM mdb.actors
         WHERE id=$1
     `
@@ -57,7 +66,7 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 	var movies []models.MovieReference
 
 	sqlStatement := `
-		SELECT COUNT(*)
+		SELECT COUNT(*) as cnt
 		FROM mdb.movie
 		WHERE $1=ANY(actors)
 	`
@@ -72,13 +81,13 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 	}
 
 	sqlStatement = `
-		SELECT id, title, ROUND(CAST(rating AS numeric), 1)
+		SELECT id, title, ROUND(CAST(rating AS numeric), 1) as rnd
 		FROM mdb.movie
 		WHERE $1=ANY(actors)
 		ORDER BY rating DESC
 		LIMIT $2
 	`
-	
+
 	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, name, _const.MoviesNumberOnActorPage)
 	if err != nil {
 		return 0, movies, err
