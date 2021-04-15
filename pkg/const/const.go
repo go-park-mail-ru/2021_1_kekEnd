@@ -6,11 +6,14 @@ const (
 	UserKey           = "user"
 	ActorKey          = "actor"
 	CookieExpires     = 240 * time.Hour
+	CsrfExpires       = 10 * time.Minute
 	Host              = "localhost"
 	Port              = "8080"
 	AvatarsPath       = "http://" + Host + ":" + Port + "/avatars/"
 	DefaultAvatarPath = "http://" + Host + ":" + Port + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
+	//TODO
+	RequestID = "RequestID"
 
 	ReviewsPageSize         = 3
 	MoviesPageSize          = 15
