@@ -4,9 +4,15 @@ import (
 	"context"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
+	// "fmt"
 )
+
+type PgxIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Close(context.Context) error
+}
 
 func getHashedPassword(password string) (string, error) {
 	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -18,29 +24,42 @@ func getHashedPassword(password string) (string, error) {
 }
 
 type UserRepository struct {
-	db *pgxpool.Pool
+	db PgxIface
 }
 
-func NewUserRepository(database *pgxpool.Pool) *UserRepository {
+func NewUserRepository(database PgxIface) *UserRepository {
 	return &UserRepository{
 		db: database,
 	}
 }
 
 func (storage *UserRepository) CreateUser(user *models.User) error {
-	hashedPassword, err := getHashedPassword(user.Password)
+	tx, err := storage.db.Begin(context.Background())
 	if err != nil {
 		return err
 	}
 
-	user.Password = hashedPassword
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit(context.Background())
+		default:
+			_ = tx.Rollback(context.Background())
+		}
+	}()
+
+	// hashedPassword, err := getHashedPassword(user.Password)
+	// if err != nil {
+	// 	return err
+	// }
+	// user.Password = hashedPassword
 
 	sqlStatement := `
         INSERT INTO mdb.users (login, password, email)
         VALUES ($1, $2, $3)
     `
 
-	_, errDB := storage.db.
+	_, errDB := tx.
 		Exec(context.Background(), sqlStatement, user.Username, user.Password, user.Email)
 
 	if errDB != nil {
@@ -51,14 +70,28 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
 }
 
 func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
+	tx, err := storage.db.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit(context.Background())
+		default:
+			_ = tx.Rollback(context.Background())
+		}
+	}()
+
 	sqlStatement := `
-        SELECT COUNT(*)
+        SELECT COUNT(*) as count
         FROM mdb.users
         WHERE email=$1
     `
 
 	var count int
-	err := storage.db.
+	err = tx.
 		QueryRow(context.Background(), sqlStatement, newEmail).
 		Scan(&count)
 
@@ -70,6 +103,20 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
 }
 
 func (storage *UserRepository) GetUserByUsername(username string) (*models.User, error) {
+	tx, err := storage.db.Begin(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit(context.Background())
+		default:
+			_ = tx.Rollback(context.Background())
+		}
+	}()
+
 	var user models.User
 
 	sqlStatement := `
@@ -78,7 +125,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
         WHERE login=$1
     `
 
-	err := storage.db.
+	err = tx.
 		QueryRow(context.Background(), sqlStatement, username).
 		Scan(&user.Username, &user.Password,
 			&user.Email, &user.Avatar,
@@ -96,6 +143,20 @@ func (storage *UserRepository) CheckPassword(password string, user *models.User)
 }
 
 func (storage *UserRepository) UpdateUser(user *models.User, change models.User) (*models.User, error) {
+	tx, err := storage.db.Begin(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit(context.Background())
+		default:
+			_ = tx.Rollback(context.Background())
+		}
+	}()
+
 	if user.Username != change.Username {
 		return nil, errors.New("username doesn't match")
 	}
@@ -128,7 +189,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
         WHERE login=$1
     `
 
-	_, err := storage.db.
+	_, err = tx.
 		Exec(context.Background(), sqlStatement, user.Username,
 			user.Username, user.Password,
 			user.Email, user.Avatar,

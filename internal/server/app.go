@@ -34,6 +34,8 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v4"
+
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -88,14 +90,24 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	usersRepo := usersDBStorage.NewUserRepository(dbpool)
+	dbpool1, err := pgx.Connect(context.Background(), connStr)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+
+	usersRepo := usersDBStorage.NewUserRepository(dbpool1)
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+	// dbpool2, err := pgx.Connect(context.Background(), connStr)
+	// if err != nil {
+	// 	log.Fatalf("Unable to connect to database: %v\n", err)
+	// }
+
+	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool1)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
 	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
-
-	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
 
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
