@@ -46,8 +46,8 @@ func TestHandlers(t *testing.T) {
 		Email:         createBody.Email,
 		Password:      createBody.Password,
 		Avatar:        "http://localhost:8080/avatars/default.jpeg",
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
+		MoviesWatched: new(uint),
+		ReviewsNumber: new(uint),
 	}
 
 	UUID := uuid.NewV4().String()
@@ -77,8 +77,8 @@ func TestHandlers(t *testing.T) {
 			Email:         "sample@ya.ru",
 			Password:      "1234",
 			Avatar:        "http://localhost:8080/avatars/default.jpeg",
-			MoviesWatched: 0,
-			ReviewsNumber: 0,
+			MoviesWatched: new(uint),
+			ReviewsNumber: new(uint),
 		}
 
 		cookie := &http.Cookie{
@@ -107,8 +107,8 @@ func TestHandlers(t *testing.T) {
 			Email:         "corrected@ya.ru",
 			Password:      "1234",
 			Avatar:        "http://localhost:8080/avatars/default.jpeg",
-			MoviesWatched: 0,
-			ReviewsNumber: 0,
+			MoviesWatched: new(uint),
+			ReviewsNumber: new(uint),
 		}
 
 		body, err := json.Marshal(newMockUser)

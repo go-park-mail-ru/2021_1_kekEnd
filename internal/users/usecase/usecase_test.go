@@ -44,6 +44,7 @@ func TestUsersUseCase(t *testing.T) {
 			Email:    "corrected@ya.ru",
 			Password: "1234567",
 		}
+		repo.On("CheckEmailUnique", "corrected@ya.ru").Return(nil)
 		repo.On("UpdateUser", user, updatedUser).Return(&updatedUser, nil)
 		_, err := uc.UpdateUser(user, updatedUser)
 		assert.NoError(t, err)
@@ -104,6 +105,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 			Password: "qwerty",
 		}
 
+		repo.On("CheckEmailUnique", "new_email@ya.ru").Return(errors.New("user not found"))
 		repo.On("UpdateUser", nonExistentUser, update).Return(nil, errors.New("user not found"))
 		_, err := uc.UpdateUser(nonExistentUser, update)
 		assert.Error(t, err)
@@ -117,9 +119,10 @@ func TestUsersUseCaseErrors(t *testing.T) {
 			Password: "qwerty",
 		}
 
-		repo.On("UpdateUser", user, update).Return(nil, errors.New("username doesn't match"))
+		repo.On("CheckEmailUnique", "new_email@ya.ru").Return(errors.New("user not found"))
+		repo.On("UpdateUser", user, update).Return(nil, errors.New("user not found"))
 		_, err := uc.UpdateUser(user, update)
 		assert.Error(t, err)
-		assert.Equal(t, "username doesn't match", err.Error())
+		assert.Equal(t, "user not found", err.Error())
 	})
 }

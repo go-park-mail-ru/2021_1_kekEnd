@@ -34,3 +34,8 @@ func (storageMock *UserStorageMock) UpdateUser(user *models.User, change models.
 	}
 	return args.Get(0).(*models.User), args.Error(1)
 }
+
+func (storageMock *UserStorageMock) CheckEmailUnique(newEmail string) error {
+	args := storageMock.Called(newEmail)
+	return args.Error(0)
+}
