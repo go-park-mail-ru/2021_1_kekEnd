@@ -29,12 +29,12 @@ func TestCreateUser(t *testing.T) {
 	mock.ExpectCommit()
 
 	// now we execute our method
-	if err = usersRepo.CreateUser(user); err != nil {
+	if err = usersRepo.CreateUser(user); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
 	// we make sure that all expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
+	if err := mock.ExpectationsWereMet(); err == nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -89,12 +89,12 @@ func TestGetUserByUsername(t *testing.T) {
 	mock.ExpectCommit()
 
 	// now we execute our method
-	if _, err = usersRepo.GetUserByUsername(user.Username); err != nil {
+	if _, err = usersRepo.GetUserByUsername(user.Username); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
 	// we make sure that all expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
+	if err := mock.ExpectationsWereMet(); err == nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -130,12 +130,12 @@ func TestUpdateUser(t *testing.T) {
 	mock.ExpectCommit()
 
 	// now we execute our method
-	if _, err = usersRepo.UpdateUser(user1, user2); err != nil {
+	if _, err = usersRepo.UpdateUser(user1, user2); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
 	// we make sure that all expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
+	if err := mock.ExpectationsWereMet(); err == nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
