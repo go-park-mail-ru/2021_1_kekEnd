@@ -3,13 +3,16 @@ package usecase
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	mock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/mock"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestUsersUseCase(t *testing.T) {
-	repo := &mock.UserStorageMock{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mocks.NewMockUserRepository(ctrl)
 	uc := NewUsersUseCase(repo)
 
 	user := &models.User{
@@ -19,20 +22,21 @@ func TestUsersUseCase(t *testing.T) {
 	}
 
 	t.Run("CreateUser", func(t *testing.T) {
-		repo.On("GetUserByUsername", user.Username).Return(nil, errors.New("user not found")).Once()
-		repo.On("CreateUser", user).Return(nil)
+		repo.EXPECT().GetUserByUsername(user.Username).Return(nil, errors.New("user not found"))
+		repo.EXPECT().CreateUser(user).Return(nil)
 		err := uc.CreateUser(user)
 		assert.NoError(t, err)
 	})
 
 	t.Run("LoginUser", func(t *testing.T) {
-		repo.On("GetUserByUsername", user.Username).Return(user, nil)
-		repo.On("CheckPassword", user.Password, user).Return(true, nil)
+		repo.EXPECT().GetUserByUsername(user.Username).Return(user, nil)
+		repo.EXPECT().CheckPassword(user.Password, user).Return(true, nil)
 		success := uc.Login(user.Username, user.Password)
 		assert.True(t, success)
 	})
 
 	t.Run("GetUser", func(t *testing.T) {
+		repo.EXPECT().GetUserByUsername(user.Username).Return(user, nil)
 		gotUser, err := uc.GetUser(user.Username)
 		assert.NoError(t, err)
 		assert.Equal(t, user, gotUser)
@@ -44,15 +48,17 @@ func TestUsersUseCase(t *testing.T) {
 			Email:    "corrected@ya.ru",
 			Password: "1234567",
 		}
-		repo.On("CheckEmailUnique", "corrected@ya.ru").Return(nil)
-		repo.On("UpdateUser", user, updatedUser).Return(&updatedUser, nil)
+		repo.EXPECT().CheckEmailUnique("corrected@ya.ru").Return(nil)
+		repo.EXPECT().UpdateUser(user, updatedUser).Return(&updatedUser, nil)
 		_, err := uc.UpdateUser(user, updatedUser)
 		assert.NoError(t, err)
 	})
 }
 
 func TestUsersUseCaseErrors(t *testing.T) {
-	repo := &mock.UserStorageMock{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mocks.NewMockUserRepository(ctrl)
 	uc := NewUsersUseCase(repo)
 
 	user := &models.User{
@@ -62,30 +68,30 @@ func TestUsersUseCaseErrors(t *testing.T) {
 	}
 
 	t.Run("CreateExistingUser", func(t *testing.T) {
-		repo.On("GetUserByUsername", user.Username).Return(user, nil)
-		repo.On("CreateUser", user).Return(nil)
+		repo.EXPECT().GetUserByUsername(user.Username).Return(user, nil)
 		err := uc.CreateUser(user)
 		assert.Error(t, err)
 		assert.Equal(t, "user already exists", err.Error())
 	})
 
 	t.Run("LoginWrongUsername", func(t *testing.T) {
-		repo.On("CheckPassword", user.Password, user).Return(true, nil).Once()
-		repo.On("GetUserByUsername", "nonexistent_user").Return(nil, errors.New("user not found"))
+		//repo.EXPECT().CheckPassword(user.Password, user).Return(true, nil)
+		repo.EXPECT().GetUserByUsername("nonexistent_user").Return(nil, errors.New("user not found"))
 		success := uc.Login("nonexistent_user", user.Password)
 		assert.False(t, success)
 	})
 
 	t.Run("LoginWrongPassword", func(t *testing.T) {
 		wrongPassword := "123"
-		repo.On("CheckPassword", wrongPassword, user).Return(false, nil).Once()
+		repo.EXPECT().GetUserByUsername(user.Username).Return(user, nil)
+		repo.EXPECT().CheckPassword(wrongPassword, user).Return(false, nil)
 		success := uc.Login(user.Username, wrongPassword)
 		assert.False(t, success)
 	})
 
 	t.Run("GetUserError", func(t *testing.T) {
 		wrongUsername := "nonexistent_user"
-		repo.On("GetUserByUsername", wrongUsername).Return(nil, errors.New("user not found"))
+		repo.EXPECT().GetUserByUsername(wrongUsername).Return(nil, errors.New("user not found"))
 		gotUser, err := uc.GetUser(wrongUsername)
 		assert.Nil(t, gotUser)
 		assert.Error(t, err)
@@ -105,8 +111,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 			Password: "qwerty",
 		}
 
-		repo.On("CheckEmailUnique", "new_email@ya.ru").Return(errors.New("user not found"))
-		repo.On("UpdateUser", nonExistentUser, update).Return(nil, errors.New("user not found"))
+		repo.EXPECT().CheckEmailUnique(update.Email).Return(errors.New("user not found"))
 		_, err := uc.UpdateUser(nonExistentUser, update)
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())
@@ -119,8 +124,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 			Password: "qwerty",
 		}
 
-		repo.On("CheckEmailUnique", "new_email@ya.ru").Return(errors.New("user not found"))
-		repo.On("UpdateUser", user, update).Return(nil, errors.New("user not found"))
+		repo.EXPECT().CheckEmailUnique(update.Email).Return(errors.New("user not found"))
 		_, err := uc.UpdateUser(user, update)
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())

@@ -8,7 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +20,11 @@ import (
 
 func TestHandlers(t *testing.T) {
 	r := gin.Default()
-	usersUC := &usecase.UsersUseCaseMock{}
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	usersUC := usersMock.NewMockUseCase(ctrl)
 	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
 	delivery := sessions.NewDelivery(sessionsUC)
 
@@ -62,7 +62,7 @@ func TestHandlers(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, UUID, sessionID)
 
-		usersUC.On("CreateUser", user).Return(nil)
+		usersUC.EXPECT().CreateUser(user).Return(nil)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
@@ -86,7 +86,7 @@ func TestHandlers(t *testing.T) {
 			Value: UUID,
 		}
 
-		usersUC.On("GetUser", user.Username).Return(mockUser, nil)
+		usersUC.EXPECT().GetUser(user.Username).Return(mockUser, nil).AnyTimes()
 
 		sessionsUC.
 			EXPECT().
@@ -119,7 +119,7 @@ func TestHandlers(t *testing.T) {
 			Value: UUID,
 		}
 
-		usersUC.On("UpdateUser", user, newMockUser).Return(&newMockUser, nil)
+		usersUC.EXPECT().UpdateUser(user, newMockUser).Return(&newMockUser, nil)
 
 		sessionsUC.
 			EXPECT().
