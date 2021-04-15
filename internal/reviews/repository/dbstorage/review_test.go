@@ -139,6 +139,67 @@ func TestGetUserReviewForMovie(t *testing.T) {
 	}
 }
 
+func TestEditUserReviewForMovie(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	movieRepo := NewReviewRepository(mock)
+	review := &models.Review{
+		ID: "1",
+		Title: "Goog",
+		Content: "good film",
+		ReviewType: "neutral",
+		Author: "ILYA",
+		MovieID: "1",
+	}
+
+	mock.ExpectExec("UPDATE").WithArgs(review.Author, 1, 0, review.Title, review.Content).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+	// now we execute our method
+	if err = movieRepo.EditUserReviewForMovie(review); err != nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDeleteUserReviewForMovie(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	movieRepo := NewReviewRepository(mock)
+	review := &models.Review{
+		ID: "1",
+		Title: "Goog",
+		Content: "good film",
+		ReviewType: "neutral",
+		Author: "ILYA",
+		MovieID: "1",
+	}
+
+	mock.ExpectExec("DELETE").WithArgs(review.Author, 1).WillReturnResult(pgxmock.NewResult("DELETE", 1))
+
+	// now we execute our method
+	if err = movieRepo.DeleteUserReviewForMovie(review.Author, review.MovieID); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+
 // func TestGetRating(t *testing.T) {
 // 	mock, err := pgxmock.NewConn()
 // 	if err != nil {
