@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	reviewsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/mocks"
@@ -24,14 +25,16 @@ func TestHandlers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	lg := logger.NewAccessLogger()
+
 	reviewsUC := reviewsMock.NewMockUseCase(ctrl)
 	usersUC := usersMock.NewMockUseCase(ctrl)
 	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
-	delivery := sessions.NewDelivery(sessionsUC)
+	delivery := sessions.NewDelivery(sessionsUC, lg)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	RegisterHttpEndpoints(r, reviewsUC, usersUC, authMiddleware)
+	RegisterHttpEndpoints(r, reviewsUC, usersUC, authMiddleware, lg)
 
 	createBody := &models.Review{
 		ID:         "1",
