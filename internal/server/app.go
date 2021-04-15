@@ -5,8 +5,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
-	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery"
-	actorsLocalStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/localstorage"
+	actorsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/delivery/http"
+	actorsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/repository/dbstorage"
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
@@ -45,12 +45,12 @@ import (
 type App struct {
 	server         *http.Server
 	usersUC        users.UseCase
+	actorsUC 	   actors.UseCase
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
-	actorsUC       actors.UseCase
 	logger         *logger.Logger
 }
 
@@ -78,10 +78,6 @@ func NewApp() *App {
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
-	actorsRepo := actorsLocalStorage.NewActorsLocalStorage()
-	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
-
-	//connStr := "postgres://mdb:mdb@localhost:5432/mdb"
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
 		log.Fatal("Failed to read DB connection data", err)
@@ -93,6 +89,9 @@ func NewApp() *App {
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
+
+	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
+	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 
 	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
@@ -107,12 +106,12 @@ func NewApp() *App {
 
 	return &App{
 		usersUC:        usersUC,
+		actorsUC:       actorsUC,
 		moviesUC:       moviesUC,
 		ratingsUC:      ratingsUC,
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
-		actorsUC:       actorsUC,
 		logger:         accessLogger,
 	}
 }

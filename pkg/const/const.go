@@ -14,11 +14,11 @@ const (
 	//TODO
 	RequestID         = "RequestID"
 
-	ReviewsPageSize = 3
-	MoviesPageSize  = 15
-	BestMoviesLimit = "100"
-	MoviesTop100Size = 100
-	PageDefault     = "1"
+	ReviewsPageSize         = 3
+	MoviesPageSize          = 15
+	MoviesTop100Size        = 100
+	MoviesNumberOnActorPage = 10
+	PageDefault             = "1"
 )
 
 var AdminUsers = []string{

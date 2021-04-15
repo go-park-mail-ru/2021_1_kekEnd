@@ -17,6 +17,10 @@ func NewActorsUseCase(repository actors.Repository) *ActorUseCase {
 	}
 }
 
+func (u ActorUseCase) GetActor(id string) (models.Actor, error) {
+	return u.repository.GetActorByID(id)
+}
+
 func (u ActorUseCase) CreateActor(user models.User, actor models.Actor) error {
 	permission := false
 	for _, admin := range _const.AdminUsers {
@@ -30,10 +34,6 @@ func (u ActorUseCase) CreateActor(user models.User, actor models.Actor) error {
 	}
 
 	return u.repository.CreateActor(actor)
-}
-
-func (u ActorUseCase) GetActor(id string) (models.Actor, error) {
-	return u.repository.GetActor(id)
 }
 
 func (u ActorUseCase) EditActor(user models.User, change models.Actor) (models.Actor, error) {
