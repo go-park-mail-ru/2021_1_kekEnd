@@ -2,7 +2,9 @@ package dbstorage
 
 import (
 	"context"
+	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"strconv"
 )
@@ -41,5 +43,58 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 
 	actor.ID = strconv.Itoa(idActor)
 
+	moviesCount, actorMovies, err := actorStorage.getMoviesForActor(actor.Name)
+	if err != nil {
+		return models.Actor{}, err
+	}
+	actor.MoviesCount = moviesCount
+	actor.Movies = actorMovies
+
 	return actor, nil
+}
+
+func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []models.MovieReference, error) {
+	var movies []models.MovieReference
+
+	sqlStatement := `
+		SELECT COUNT(*)
+		FROM mdb.movie
+		WHERE $1=ANY(actors)
+	`
+
+	var rowsCount int
+	err := actorStorage.db.QueryRow(context.Background(), sqlStatement, name).Scan(&rowsCount)
+	if err == sql.ErrNoRows {
+		return 0, movies, nil
+	}
+	if err != nil {
+		return 0, movies, err
+	}
+
+	sqlStatement = `
+		SELECT id, title, ROUND(CAST(rating AS numeric), 1)
+		FROM mdb.movie
+		WHERE $1=ANY(actors)
+		ORDER BY rating DESC
+		LIMIT $2
+	`
+	
+	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, name, _const.MoviesNumberOnActorPage)
+	if err != nil {
+		return 0, movies, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		movieReference := &models.MovieReference{}
+		var id int
+		err = rows.Scan(&id, &movieReference.Title, &movieReference.Rating)
+		if err != nil && err != sql.ErrNoRows {
+			return 0, []models.MovieReference{}, err
+		}
+		movieReference.ID = strconv.Itoa(id)
+		movies = append(movies, *movieReference)
+	}
+
+	return rowsCount, movies, nil
 }
