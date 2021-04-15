@@ -5,16 +5,25 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"math"
 	"strconv"
 )
 
-type MovieRepository struct {
-	db *pgxpool.Pool
+type PgxPoolIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
-func NewMovieRepository(database *pgxpool.Pool) *MovieRepository {
+type MovieRepository struct {
+	db PgxPoolIface
+}
+
+func NewMovieRepository(database PgxPoolIface) *MovieRepository {
 	return &MovieRepository{
 		db: database,
 	}
@@ -68,7 +77,7 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
-		SELECT movies_count 
+		SELECT movies_count
 		FROM mdb.meta
 		ORDER BY version DESC
 	`
