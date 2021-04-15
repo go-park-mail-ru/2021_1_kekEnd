@@ -15,7 +15,7 @@ import (
 type Handler struct {
 	reviewsUC reviews.UseCase
 	usersUC   users.UseCase
-	Log *logger.Logger
+	Log       *logger.Logger
 }
 
 type ReviewsResponse struct {
@@ -28,6 +28,7 @@ func NewHandler(useCase reviews.UseCase, usersUC users.UseCase, Log *logger.Logg
 	return &Handler{
 		reviewsUC: useCase,
 		usersUC:   usersUC,
+		Log:       Log,
 	}
 }
 

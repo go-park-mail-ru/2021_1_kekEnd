@@ -14,10 +14,10 @@ const (
 	//TODO
 	RequestID         = "RequestID"
 
-	// TODO: should be 10, but for testing purposes is 3
 	ReviewsPageSize = 3
 	MoviesPageSize  = 15
 	BestMoviesLimit = "100"
+	MoviesTop100Size = 100
 	PageDefault     = "1"
 )
 

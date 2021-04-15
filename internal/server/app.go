@@ -129,11 +129,11 @@ func (app *App) Run(port string) error {
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC)
-	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware)
-	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware)
-	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware, app.logger)
+	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.logger)
+	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
+	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
+	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

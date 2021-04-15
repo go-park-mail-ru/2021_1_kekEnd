@@ -12,13 +12,13 @@ import (
 
 type Handler struct {
 	useCase actors.UseCase
-	Log *logger.Logger
+	Log     *logger.Logger
 }
 
 func NewHandler(useCase actors.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
-		Log : Log,
+		Log:     Log,
 	}
 }
 

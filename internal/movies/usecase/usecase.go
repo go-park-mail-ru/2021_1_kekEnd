@@ -31,5 +31,14 @@ func (moviesUC *MoviesUseCase) GetMovie(id string) (*models.Movie, error) {
 
 func (moviesUC *MoviesUseCase) GetBestMovies(page int) (int, []*models.Movie, error) {
 	startIndex := (page - 1) * _const.MoviesPageSize
-	return moviesUC.movieRepository.GetBestMovies(page, startIndex)
+	return moviesUC.movieRepository.GetBestMovies(startIndex)
+}
+
+func (moviesUC *MoviesUseCase) GetAllGenres() ([]string, error) {
+	return moviesUC.movieRepository.GetAllGenres()
+}
+
+func (moviesUC *MoviesUseCase) GetMoviesByGenres(genres []string, page int) (int, []*models.Movie, error) {
+	startIndex := (page - 1) * _const.MoviesPageSize
+	return moviesUC.movieRepository.GetMoviesByGenres(genres, startIndex)
 }
