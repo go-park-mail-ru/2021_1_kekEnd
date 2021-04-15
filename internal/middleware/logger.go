@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type AccessLog interface {
+	AccessLogMiddleware(log *logger.Logger) gin.HandlerFunc
+}
+
 func AccessLogMiddleware(log *logger.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		rand.Seed(time.Now().UnixNano())

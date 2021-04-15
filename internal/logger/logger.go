@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -18,7 +19,8 @@ func NewAccessLogger() *Logger {
 }
 
 func (l *Logger) GetIdFromContext(ctx context.Context) string {
-	rid, ok := ctx.Value(_const.RequestID).(string)
+	ridV := ctx.Value(_const.RequestID)
+	rid, ok := ridV.(string)
 	if !ok {
 		l.WithFields(logrus.Fields{
 			"id":       "NO_ID",
@@ -51,14 +53,14 @@ func (l *Logger) EndReq(r http.Request, start time.Time, rid string) {
 	}).Info("request ended")
 }
 
-func (l *Logger) HttpInfo(ctx context.Context, msg string, status int) {
+func (l *Logger) HttpInfo(ctx *gin.Context, msg string, status int) {
 	l.WithFields(logrus.Fields{
 		"id":     l.GetIdFromContext(ctx),
 		"status": status,
 	}).Info(msg)
 }
 
-func (l *Logger) LogWarning(ctx context.Context, pkg string, funcName string, msg string) {
+func (l *Logger) LogWarning(ctx *gin.Context, pkg string, funcName string, msg string) {
 	l.WithFields(logrus.Fields{
 		"id":       l.GetIdFromContext(ctx),
 		"package":  pkg,
@@ -66,7 +68,7 @@ func (l *Logger) LogWarning(ctx context.Context, pkg string, funcName string, ms
 	}).Warn(msg)
 }
 
-func (l *Logger) LogError(ctx context.Context, pkg string, funcName string, err error) {
+func (l *Logger) LogError(ctx *gin.Context, pkg string, funcName string, err error) {
 	l.WithFields(logrus.Fields{
 		"id":       l.GetIdFromContext(ctx),
 		"package":  pkg,

@@ -16,13 +16,14 @@ import (
 type Handler struct {
 	useCase  users.UseCase
 	sessions sessions.Delivery
-	Log *logger.Logger
+	Log      *logger.Logger
 }
 
 func NewHandler(useCase users.UseCase, sessions sessions.Delivery, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase:  useCase,
 		sessions: sessions,
+		Log:      Log,
 	}
 }
 

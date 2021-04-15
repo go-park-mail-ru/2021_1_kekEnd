@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -73,6 +74,7 @@ func NewApp() *App {
 	}
 
 	accessLogger := logger.NewAccessLogger()
+
 
 	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
 	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
