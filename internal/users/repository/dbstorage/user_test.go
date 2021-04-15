@@ -51,9 +51,7 @@ func TestCheckEmailUnique(t *testing.T) {
 
 	rows := pgxmock.NewRows([]string{"count"}).AddRow(0)
 
-	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT").WithArgs(email).WillReturnRows(rows)
-	mock.ExpectCommit()
 
 	// now we execute our method
 	if err = usersRepo.CheckEmailUnique(email); err != nil {

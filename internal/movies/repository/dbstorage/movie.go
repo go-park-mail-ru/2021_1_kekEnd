@@ -6,44 +6,34 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"math"
 	"strconv"
 )
 
-type PgxIface interface {
+type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
-	Close(context.Context) error
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
 type MovieRepository struct {
-	db PgxIface
+	db PgxPoolIface
 }
 
-func NewMovieRepository(database PgxIface) *MovieRepository {
+func NewMovieRepository(database PgxPoolIface) *MovieRepository {
 	return &MovieRepository{
 		db: database,
 	}
 }
 
-func (storage *MovieRepository) CreateMovie(movie *models.Movie) error {
+func (movieStorage *MovieRepository) CreateMovie(movie *models.Movie) error {
 	return nil
 }
 
-func (storage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
+func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
 	var movie models.Movie
 
 	sqlStatement := `
@@ -61,7 +51,7 @@ func (storage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
 	}
 
 	var actorsNames []string
-	err = tx.
+	err = movieStorage.db.
 		QueryRow(context.Background(), sqlStatement, idFilm).Scan(&idFilm,
 		&movie.Title, &movie.Description,
 		&movie.ProductionYear, &movie.Country, &movie.Genre, &movie.Slogan, &movie.Director,
@@ -73,7 +63,7 @@ func (storage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
 		return nil, err
 	}
 
-	movie.Actors, err = storage.getActorsData(actorsNames)
+	movie.Actors, err = movieStorage.getActorsData(actorsNames)
 	if err != nil {
 		return nil, err
 	}
@@ -83,21 +73,7 @@ func (storage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
 	return &movie, nil
 }
 
-func (storage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Movie, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return 0, nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
+func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
@@ -107,7 +83,7 @@ func (storage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Mo
 	`
 
 	var rowsCount int
-	err = tx.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, bestMovies, nil
 	}
@@ -129,7 +105,7 @@ func (storage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Mo
         LIMIT $1 OFFSET $2
     `
 
-	rows, err := tx.Query(context.Background(), sqlStatement, _const.MoviesPageSize, startIndex)
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, _const.MoviesPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -149,7 +125,7 @@ func (storage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Mo
 		}
 
 		movie.ID = strconv.Itoa(id)
-		movie.Actors, err = storage.getActorsData(actorsNames)
+		movie.Actors, err = movieStorage.getActorsData(actorsNames)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -162,21 +138,7 @@ func (storage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Mo
 	return pagesNumber, bestMovies, nil
 }
 
-func (storage *MovieRepository) GetAllGenres() ([]string, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
+func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
 	sqlStatement := `
 		SELECT available_genres
 		FROM mdb.meta
@@ -184,7 +146,7 @@ func (storage *MovieRepository) GetAllGenres() ([]string, error) {
 	`
 
 	var genres []string
-	err = tx.QueryRow(context.Background(), sqlStatement).Scan(&genres)
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&genres)
 	if err == sql.ErrNoRows {
 		return genres, nil
 	}
@@ -195,21 +157,7 @@ func (storage *MovieRepository) GetAllGenres() ([]string, error) {
 	return genres, nil
 }
 
-func (storage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return 0, nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
+func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
 	var movies []*models.Movie
 
 	sqlStatement := `
@@ -218,7 +166,7 @@ func (storage *MovieRepository) GetMoviesByGenres(genres []string, startIndex in
 		WHERE genre && $1
 	`
 	var rowsCount int
-	err = tx.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
+	err := movieStorage.db.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, movies, nil
 	}
@@ -237,7 +185,7 @@ func (storage *MovieRepository) GetMoviesByGenres(genres []string, startIndex in
         LIMIT $2 OFFSET $3
     `
 
-	rows, err := tx.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -257,7 +205,7 @@ func (storage *MovieRepository) GetMoviesByGenres(genres []string, startIndex in
 		}
 
 		movie.ID = strconv.Itoa(id)
-		movie.Actors, err = storage.getActorsData(actorsNames)
+		movie.Actors, err = movieStorage.getActorsData(actorsNames)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -270,21 +218,7 @@ func (storage *MovieRepository) GetMoviesByGenres(genres []string, startIndex in
 	return pagesNumber, movies, nil
 }
 
-func (storage *MovieRepository) getActorsData(names []string) ([]models.ActorData, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
+func (movieStorage *MovieRepository) getActorsData(names []string) ([]models.ActorData, error) {
 	var actors []models.ActorData
 
 	sqlStatement := `
@@ -294,7 +228,7 @@ func (storage *MovieRepository) getActorsData(names []string) ([]models.ActorDat
 	`
 	for _, name := range names {
 		var actor models.ActorData
-		err := tx.QueryRow(context.Background(), sqlStatement, name).Scan(&actor.ID, &actor.Name)
+		err := movieStorage.db.QueryRow(context.Background(), sqlStatement, name).Scan(&actor.ID, &actor.Name)
 		if err != nil && err != sql.ErrNoRows {
 			return []models.ActorData{}, err
 		}

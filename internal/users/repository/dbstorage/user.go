@@ -5,13 +5,17 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgconn"
 	"golang.org/x/crypto/bcrypt"
 	// "fmt"
 )
 
-type PgxIface interface {
+type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
-	Close(context.Context) error
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
 }
 
 func getHashedPassword(password string) (string, error) {
@@ -24,42 +28,28 @@ func getHashedPassword(password string) (string, error) {
 }
 
 type UserRepository struct {
-	db PgxIface
+	db PgxPoolIface
 }
 
-func NewUserRepository(database PgxIface) *UserRepository {
+func NewUserRepository(database PgxPoolIface) *UserRepository {
 	return &UserRepository{
 		db: database,
 	}
 }
 
 func (storage *UserRepository) CreateUser(user *models.User) error {
-	tx, err := storage.db.Begin(context.Background())
+	hashedPassword, err := getHashedPassword(user.Password)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
-	// hashedPassword, err := getHashedPassword(user.Password)
-	// if err != nil {
-	// 	return err
-	// }
-	// user.Password = hashedPassword
+	user.Password = hashedPassword
 
 	sqlStatement := `
         INSERT INTO mdb.users (login, password, email)
         VALUES ($1, $2, $3)
     `
 
-	_, errDB := tx.
+	_, errDB := storage.db.
 		Exec(context.Background(), sqlStatement, user.Username, user.Password, user.Email)
 
 	if errDB != nil {
@@ -70,20 +60,6 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
 }
 
 func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
 	sqlStatement := `
         SELECT COUNT(*) as count
         FROM mdb.users
@@ -91,7 +67,7 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
     `
 
 	var count int
-	err = tx.
+	err := storage.db.
 		QueryRow(context.Background(), sqlStatement, newEmail).
 		Scan(&count)
 
@@ -103,20 +79,6 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
 }
 
 func (storage *UserRepository) GetUserByUsername(username string) (*models.User, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
 	var user models.User
 
 	sqlStatement := `
@@ -125,7 +87,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
         WHERE login=$1
     `
 
-	err = tx.
+	err := storage.db.
 		QueryRow(context.Background(), sqlStatement, username).
 		Scan(&user.Username, &user.Password,
 			&user.Email, &user.Avatar,
@@ -143,20 +105,6 @@ func (storage *UserRepository) CheckPassword(password string, user *models.User)
 }
 
 func (storage *UserRepository) UpdateUser(user *models.User, change models.User) (*models.User, error) {
-	tx, err := storage.db.Begin(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		switch err {
-		case nil:
-			err = tx.Commit(context.Background())
-		default:
-			_ = tx.Rollback(context.Background())
-		}
-	}()
-
 	if user.Username != change.Username {
 		return nil, errors.New("username doesn't match")
 	}
@@ -189,7 +137,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
         WHERE login=$1
     `
 
-	_, err = tx.
+	_, err := storage.db.
 		Exec(context.Background(), sqlStatement, user.Username,
 			user.Username, user.Password,
 			user.Email, user.Avatar,
