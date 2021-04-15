@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
@@ -11,7 +12,6 @@ import (
 func respondWithError(ctx *gin.Context, code int, message interface{}) {
 	ctx.AbortWithStatusJSON(code, gin.H{"error": message})
 }
-
 
 type Auth interface {
 	CheckAuth() gin.HandlerFunc
@@ -24,7 +24,7 @@ type AuthMiddleware struct {
 
 func NewAuthMiddleware(useCase users.UseCase, sessions sessions.Delivery) *AuthMiddleware {
 	return &AuthMiddleware{
-		useCase: useCase,
+		useCase:  useCase,
 		sessions: sessions,
 	}
 }
@@ -33,12 +33,14 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		sessionID, err := ctx.Cookie("session_id")
 		if err != nil {
+			fmt.Println("no sessions_id in request", err)
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions_id in request") //401
 			return
 		}
 
 		username, err := m.sessions.GetUser(sessionID)
 		if err != nil {
+			fmt.Println("no sessions for this user", err)
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions for this user") //401
 			return
 		}

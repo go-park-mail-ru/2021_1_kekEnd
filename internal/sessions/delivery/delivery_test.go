@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
@@ -18,7 +19,8 @@ func TestCreate(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
 
 		username := "whaevaforeva"
 		UUID := uuid.NewV4().String()
@@ -38,7 +40,9 @@ func TestCreate(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
+
 
 		username := "whaevaforeva"
 		UUID := uuid.NewV4().String()
@@ -61,7 +65,9 @@ func TestGetUser(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
+
 
 		username := "whaevaforeva"
 		sessionID := uuid.NewV4().String()
@@ -81,7 +87,9 @@ func TestGetUser(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
+
 
 		username := "whaevaforeva"
 		sessionID := uuid.NewV4().String()
@@ -104,7 +112,9 @@ func TestDelete(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
+
 
 		sessionID := uuid.NewV4().String()
 
@@ -122,7 +132,9 @@ func TestDelete(t *testing.T) {
 		defer ctrl.Finish()
 
 		mUC := sessions.NewMockUseCase(ctrl)
-		delivery := NewDelivery(mUC)
+		lg := logger.NewAccessLogger()
+		delivery := NewDelivery(mUC, lg)
+
 		sessionID := uuid.NewV4().String()
 
 		mUC.

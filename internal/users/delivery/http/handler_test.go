@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
+	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -20,17 +21,19 @@ import (
 
 func TestHandlers(t *testing.T) {
 	r := gin.Default()
-	usersUC := &usecase.UsersUseCaseMock{}
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	lg := logger.NewAccessLogger()
+
+	usersUC := usersMock.NewMockUseCase(ctrl)
 	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
-	delivery := sessions.NewDelivery(sessionsUC)
+	delivery := sessions.NewDelivery(sessionsUC, lg)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware)
+	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, lg)
 
 	createBody := &signupData{
 		Username: "let_robots_reign",
@@ -45,9 +48,9 @@ func TestHandlers(t *testing.T) {
 		Username:      createBody.Username,
 		Email:         createBody.Email,
 		Password:      createBody.Password,
-		Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
-		MoviesWatched: 0,
-		ReviewsNumber: 0,
+		Avatar:        "http://localhost:8080/avatars/default.jpeg",
+		MoviesWatched: new(uint),
+		ReviewsNumber: new(uint),
 	}
 
 	UUID := uuid.NewV4().String()
@@ -55,14 +58,14 @@ func TestHandlers(t *testing.T) {
 	t.Run("CreateUser", func(t *testing.T) {
 		sessionsUC.
 			EXPECT().
-			Create(user.Username, 240 * time.Hour).
+			Create(user.Username, 240*time.Hour).
 			Return(UUID, nil).AnyTimes()
 
-		sessionID, err := delivery.Create(user.Username, 240 * time.Hour)
+		sessionID, err := delivery.Create(user.Username, 240*time.Hour)
 		assert.NoError(t, err)
 		assert.Equal(t, UUID, sessionID)
 
-		usersUC.On("CreateUser", user).Return(nil)
+		usersUC.EXPECT().CreateUser(user).Return(nil)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
@@ -76,17 +79,17 @@ func TestHandlers(t *testing.T) {
 			Username:      "let_robots_reign",
 			Email:         "sample@ya.ru",
 			Password:      "1234",
-			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
-			MoviesWatched: 0,
-			ReviewsNumber: 0,
+			Avatar:        "http://localhost:8080/avatars/default.jpeg",
+			MoviesWatched: new(uint),
+			ReviewsNumber: new(uint),
 		}
 
 		cookie := &http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: UUID,
 		}
 
-		usersUC.On("GetUser", user.Username).Return(mockUser, nil)
+		usersUC.EXPECT().GetUser(user.Username).Return(mockUser, nil).AnyTimes()
 
 		sessionsUC.
 			EXPECT().
@@ -106,20 +109,20 @@ func TestHandlers(t *testing.T) {
 			Username:      "let_robots_reign",
 			Email:         "corrected@ya.ru",
 			Password:      "1234",
-			Avatar: 	   "http://localhost:8080/avatars/default.jpeg",
-			MoviesWatched: 0,
-			ReviewsNumber: 0,
+			Avatar:        "http://localhost:8080/avatars/default.jpeg",
+			MoviesWatched: new(uint),
+			ReviewsNumber: new(uint),
 		}
 
 		body, err := json.Marshal(newMockUser)
 		assert.NoError(t, err)
 
 		cookie := &http.Cookie{
-			Name: "session_id",
+			Name:  "session_id",
 			Value: UUID,
 		}
 
-		usersUC.On("UpdateUser", user, newMockUser).Return(&newMockUser, nil)
+		usersUC.EXPECT().UpdateUser(user, newMockUser).Return(&newMockUser, nil)
 
 		sessionsUC.
 			EXPECT().
