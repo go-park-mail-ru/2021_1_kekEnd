@@ -49,6 +49,8 @@ def get_youtube_thumbnail(youtube_id):
 def get_trailer_info(movie_id):
     trailers_array = requests.get(f'{MOVIE_API_PATH}/{movie_id}/videos',
                                   headers={'X-API-KEY': API_KEY}).json()
+    if not trailers_array['trailers']:
+        return ''
     youtube_trailer_link = [trailer['url'] for trailer in trailers_array['trailers']
                             if trailer['site'] in ['YOUTUBE', 'YouTube']][0]
 
@@ -83,7 +85,7 @@ def get_movie_info(movie_id):
 
     staff = get_staff_info(movie_id)
     frame = get_frames_info(movie_id)
-    # trailer_thumbnail = get_trailer_info(movie_id)
+    trailer_thumbnail = get_trailer_info(movie_id)
 
     actors = staff[-1][:5]
 
@@ -100,8 +102,7 @@ def get_movie_info(movie_id):
         [actor[1] for actor in actors],
         data['posterUrlPreview'],
         frame,
-        # trailer_thumbnail,
-        '',
+        trailer_thumbnail,
         rating['rating'],
         rating['ratingVoteCount']
     ], set([item['genre'] for item in data['genres']]), [actor[0] for actor in actors]
