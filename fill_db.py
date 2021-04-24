@@ -2,11 +2,15 @@ import psycopg2
 import requests
 import time
 
-# API_KEY = os.environ.get('API_KEY')
-API_KEY = '8860149e-c0b2-4350-b080-5fc17381f5e4'
+with open('keys.txt') as keys:
+    KINO_API_KEY = keys.readline().strip()
+    YOUTUBE_API_KEY = keys.readline().strip()
+
 MOVIE_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v2.1/films'
 MOVIE_API_APPEND = '?append_to_response=BUDGET&append_to_response=RATING'
 STAFF_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v1/staff'
+YOUTUBE_TRAILER_PATH = f'https://www.googleapis.com/youtube/v3/search' \
+                       f'?key={YOUTUBE_API_KEY}&part=snippet&type=video&maxResults=1&q='
 
 START_MOVIE_INDEX = 300
 END_MOVIE_INDEX = 400
@@ -22,7 +26,7 @@ def filter_by_profession(people, profession):
 
 def get_staff_info(movie_id):
     staff_array = requests.get(f'{STAFF_API_PATH}?filmId={movie_id}',
-                               headers={'X-API-KEY': API_KEY}).json()
+                               headers={'X-API-KEY': KINO_API_KEY}).json()
     return [
         filter_by_profession(staff_array, 'DIRECTOR')[0],
         filter_by_profession(staff_array, 'WRITER')[0],
@@ -37,34 +41,20 @@ def get_staff_info(movie_id):
 
 def get_frames_info(movie_id):
     frames_array = requests.get(f'{MOVIE_API_PATH}/{movie_id}/frames',
-                                headers={'X-API-KEY': API_KEY}).json()
+                                headers={'X-API-KEY': KINO_API_KEY}).json()
     frame = frames_array['frames'][0]['image']
     return frame
 
 
-def get_youtube_thumbnail(youtube_id):
-    return f'https://img.youtube.com/vi/{youtube_id}/0.jpg'
-
-
-def get_trailer_info(movie_id):
-    trailers_array = requests.get(f'{MOVIE_API_PATH}/{movie_id}/videos',
-                                  headers={'X-API-KEY': API_KEY}).json()
-    if not trailers_array['trailers']:
-        return ''
-    youtube_trailer_link = [trailer['url'] for trailer in trailers_array['trailers']
-                            if trailer['site'] in ['YOUTUBE', 'YouTube']][0]
-
-    if 'v/' in youtube_trailer_link:
-        youtube_id = youtube_trailer_link.split('/')[-1]
-    else:
-        youtube_id = youtube_trailer_link.split('?v=')[1]
-
-    return get_youtube_thumbnail(youtube_id)
+def get_trailer_info(title):
+    trailer_response = requests.get(f'{YOUTUBE_TRAILER_PATH}{title}+трейлер').json()
+    trailer_link = 'https://www.youtube.com/embed/' + trailer_response['items'][0]['id']['videoId']
+    return trailer_link
 
 
 def get_actor_info(actor_id):
     response = requests.get(f'{STAFF_API_PATH}/{actor_id}',
-                            headers={'X-API-KEY': API_KEY}).json()
+                            headers={'X-API-KEY': KINO_API_KEY}).json()
     return [
         response['nameRu'],
         "\n\n".join(response['facts']),
@@ -77,7 +67,7 @@ def get_actor_info(actor_id):
 
 def get_movie_info(movie_id):
     response = requests.get(f'{MOVIE_API_PATH}/{movie_id}{MOVIE_API_APPEND}',
-                            headers={'X-API-KEY': API_KEY}).json()
+                            headers={'X-API-KEY': KINO_API_KEY}).json()
 
     data = response['data']
     rating = response['rating']
@@ -85,7 +75,7 @@ def get_movie_info(movie_id):
 
     staff = get_staff_info(movie_id)
     frame = get_frames_info(movie_id)
-    trailer_thumbnail = get_trailer_info(movie_id)
+    trailer_thumbnail = get_trailer_info(data['nameRu'])
 
     actors = staff[-1][:5]
 
