@@ -268,3 +268,50 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
+
+func (h *Handler) Subscribe(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	target := ctx.Param("user_id")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.Subscribe(&userModel, targetModel)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func (h *Handler) Unsubscribe(ctx *gin.Context) {
+
+}
+
+func (h *Handler) GetSubscribers(ctx *gin.Context) {
+
+}
+
+func (h *Handler) GetSubscriptions(ctx *gin.Context) {
+
+}
