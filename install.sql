@@ -269,6 +269,20 @@ COMMENT ON TABLE mdb.friends IS 'Друзья';
 
 
 
+
+CREATE TABLE mdb.subscriptions
+(
+    user_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    user_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    PRIMARY KEY (user_1, user_2)
+);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.subscriptions TO mdb;
+
+COMMENT ON TABLE mdb.subscriptions IS 'Подписки';
+
+
+
 -- TO DO Сделать тригер на пересчет рейтинга в поле user_rating таблицы mdb.users
 CREATE TABLE mdb.users_rating
 (
