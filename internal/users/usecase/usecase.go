@@ -48,3 +48,19 @@ func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (
 
 	return usersUC.userRepository.UpdateUser(user, change)
 }
+
+func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
+	return usersUC.userRepository.Subscribe(subscriber, user)
+}
+
+func (usersUC *UsersUseCase) Unsubscribe(subscriber *models.User, user *models.User) error {
+	return nil
+}
+
+func (usersUC *UsersUseCase) GetSubscribers(user *models.User) []models.User {
+	return nil
+}
+
+func (usersUC *UsersUseCase) GetSubscriptions(user *models.User) []models.User {
+	return nil
+}

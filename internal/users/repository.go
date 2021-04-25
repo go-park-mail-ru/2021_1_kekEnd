@@ -15,4 +15,12 @@ type UserRepository interface {
 	UpdateUser(user *models.User, change models.User) (*models.User, error)
 
 	CheckEmailUnique(newEmail string) error
+
+	Subscribe(subscriber string, user string) error
+
+	Unsubscribe(subscriber *models.User, user *models.User) error
+
+	GetSubscribers(user *models.User) []models.User
+
+	GetSubscriptions(user *models.User) []models.User
 }

@@ -294,12 +294,13 @@ func (h *Handler) Subscribe(ctx *gin.Context) {
 		return
 	}
 
-	err = h.useCase.Subscribe(&userModel, targetModel)
+	err = h.useCase.Subscribe(userModel.Username, targetModel.Username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Subscribe", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
+
 
 	ctx.Status(http.StatusOK)
 }

@@ -3,9 +3,10 @@ package localstorage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
 	// "fmt"
 )
@@ -148,4 +149,46 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 	}
 
 	return user, nil
+}
+
+func (storage *UserRepository) Subscribe(subscriber string, user string) error {
+	sqlStatement := `
+        SELECT COUNT(*) as count 
+		FROM mdb.subscriptions
+		WHERE user_1 = $1 AND user_2 = $2
+    `
+
+	var count int
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, subscriber, user).
+		Scan(&count)
+
+	if err != nil {
+		return err
+	}
+
+	if count != 0 {
+		return fmt.Errorf("%s is already subscribed to %s", subscriber, user)
+	}
+
+	sqlStatement = `
+        INSERT INTO mdb.subscriptions(user_1, user_2)
+		VALUES ($1, $2)
+    `
+	_, err = storage.db.
+		Exec(context.Background(), sqlStatement, subscriber, user)
+
+	return err
+}
+
+func (storage *UserRepository) Unsubscribe(subscriber *models.User, user *models.User) error {
+	return nil
+}
+
+func (storage *UserRepository) GetSubscribers(user *models.User) []models.User {
+	return nil
+}
+
+func (storage *UserRepository) GetSubscriptions(user *models.User) []models.User {
+	return nil
 }
