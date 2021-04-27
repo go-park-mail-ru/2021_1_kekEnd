@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
 type UsersUseCase struct {
@@ -53,14 +54,16 @@ func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
 	return usersUC.userRepository.Subscribe(subscriber, user)
 }
 
-func (usersUC *UsersUseCase) Unsubscribe(subscriber *models.User, user *models.User) error {
-	return nil
+func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
+	return usersUC.userRepository.Unsubscribe(subscriber, user)
 }
 
-func (usersUC *UsersUseCase) GetSubscribers(user *models.User) []models.User {
-	return nil
+func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*models.User, error) {
+	startIndex := (page - 1) * _const.SubsPageSize
+	return usersUC.userRepository.GetSubscribers(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetSubscriptions(user *models.User) []models.User {
-	return nil
+func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*models.User, error) {
+	startIndex := (page - 1) * _const.SubsPageSize
+	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }

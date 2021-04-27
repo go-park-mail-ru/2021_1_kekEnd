@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type Handler struct {
@@ -32,6 +33,13 @@ type signupData struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type subsResponse struct {
+	CurrentPage int                     `json:"current_page"`
+	PagesNumber int                     `json:"pages_number"`
+	MaxItems    int                     `json:"max_items"`
+	Subs        []models.UserNoPassword `json:"subs"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
@@ -301,18 +309,134 @@ func (h *Handler) Subscribe(ctx *gin.Context) {
 		return
 	}
 
-
-	ctx.Status(http.StatusOK)
+	ctx.Status(http.StatusOK) // 200
 }
 
 func (h *Handler) Unsubscribe(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	target := ctx.Param("user_id")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.Unsubscribe(userModel.Username, targetModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
 }
 
 func (h *Handler) GetSubscribers(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil || page < 1 {
+		var msg string
+		if err != nil {
+			msg = err.Error()
+		} else {
+			msg = "Invalid page number"
+		}
 
+		h.Log.LogWarning(ctx, "users", "GetSubscribers", msg)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	numPages, subs, err := h.useCase.GetSubscribers(page, userModel.Username)
+	usersNoPassword := make([]models.UserNoPassword, len(subs))
+	for _, s := range subs {
+		usersNoPassword = append(usersNoPassword, models.FromUser(*s))
+	}
+
+	subsResponse := subsResponse{
+		CurrentPage: page,
+		PagesNumber: numPages,
+		MaxItems:    _const.SubsPageSize,
+		Subs:        usersNoPassword,
+	}
+
+	ctx.JSON(http.StatusOK, subsResponse)
 }
 
 func (h *Handler) GetSubscriptions(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil || page < 1 {
+		var msg string
+		if err != nil {
+			msg = err.Error()
+		} else {
+			msg = "Invalid page number"
+		}
 
+		h.Log.LogWarning(ctx, "users", "GetSubscriptions", msg)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	numPages, subs, err := h.useCase.GetSubscriptions(page, userModel.Username)
+	usersNoPassword := make([]models.UserNoPassword, len(subs))
+	for _, s := range subs {
+		usersNoPassword = append(usersNoPassword, models.FromUser(*s))
+	}
+
+	subsResponse := subsResponse{
+		CurrentPage: page,
+		PagesNumber: numPages,
+		MaxItems:    _const.SubsPageSize,
+		Subs:        usersNoPassword,
+	}
+
+	ctx.JSON(http.StatusOK, subsResponse)
 }
