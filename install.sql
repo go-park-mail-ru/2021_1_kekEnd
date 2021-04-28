@@ -1,18 +1,14 @@
 \set ON_ERROR_STOP 1
 
-DROP database if exists mdb;
-
-drop user if exists mdb;
-
-create database mdb;
-
-create user mdb with password 'mdb';
+DROP DATABASE IF EXISTS mdb;
+DROP user IF EXISTS mdb;
+CREATE DATABASE mdb;
+CREATE user mdb WITH PASSWORD 'mdb';
 
 \connect mdb
 
-create schema mdb;
-
-grant usage on schema mdb to mdb;
+CREATE SCHEMA mdb;
+GRANT usage ON SCHEMA mdb TO mdb;
 
 
 
@@ -23,7 +19,7 @@ CREATE TABLE mdb.movie
     description     text,
     productionYear  integer,
     country         VARCHAR(100)[],
-    genre           VARCHAR(100)[],
+    -- genre           VARCHAR(100)[],
     slogan          VARCHAR(100),
     director        VARCHAR(50),
     scriptwriter    VARCHAR(50),
@@ -34,7 +30,7 @@ CREATE TABLE mdb.movie
     montage         VARCHAR(50),
     budget          VARCHAR(50),
     duration        VARCHAR(50),
-    actors          VARCHAR(100)[],
+    -- actors          VARCHAR(100)[],
     poster          text,
     banner          text,
     trailerPreview  text,
@@ -42,10 +38,186 @@ CREATE TABLE mdb.movie
     rating          REAL DEFAULT 0.0,
     rating_count    INTEGER DEFAULT 0
 );
-
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie TO mdb;
-
 COMMENT ON TABLE mdb.movie IS 'Фильмы';
+
+CREATE TABLE mdb.genres
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.genres TO mdb;
+COMMENT ON TABLE mdb.genres IS 'Жанры';
+
+
+CREATE TABLE mdb.movie_genres
+(
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
+    genre_id INTEGER REFERENCES mdb.genres (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_genres TO mdb;
+COMMENT ON TABLE mdb.movie_genres IS 'Связочная таблица movie-genres';
+
+
+CREATE TABLE mdb.actors
+(
+    id              serial PRIMARY KEY,
+    name            text not null,
+    biography       text,
+    birthdate       VARCHAR(100),
+    origin          VARCHAR(100),
+    profession      VARCHAR(200),
+    avatar          text
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.actors TO mdb;
+COMMENT ON TABLE mdb.actors IS 'Актеры';
+
+INSERT INTO mdb.movie_actors (movie_id, actor_id) VALUES (1,1);
+CREATE TABLE mdb.movie_actors
+(
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
+    actor_id INTEGER REFERENCES mdb.actors (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_actors TO mdb;
+COMMENT ON TABLE mdb.movie_actors IS 'Связочная таблица movie-actors';
+
+
+CREATE TABLE mdb.users
+(
+    login               VARCHAR(100) PRIMARY KEY,
+    password            VARCHAR(256) NOT NULL,
+    img_src             text DEFAULT 'http://89.208.198.186:8080/avatars/default.jpeg',
+
+    firstname           VARCHAR(100),
+    lastname            VARCHAR(100),
+    sex                 INTEGER CONSTRAINT sex_t CHECK (sex = 1 OR sex = 0),
+    email               VARCHAR(100) NOT NULL UNIQUE,
+    registration_date   timestamp NOT NULL DEFAULT NOW(),
+
+    description         VARCHAR(600),
+    movies_watched      INTEGER DEFAULT 0,
+    reviews_count       INTEGER DEFAULT 0,
+    friends_count       INTEGER DEFAULT 0,
+    user_rating         INTEGER DEFAULT 0
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users TO mdb;
+COMMENT ON TABLE mdb.users IS 'Пользователи';
+
+
+CREATE TABLE mdb.meta
+(
+    version          serial PRIMARY KEY,
+    movies_count     INTEGER,
+    users_count      INTEGER,
+    available_genres VARCHAR(100)[]
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.meta TO mdb;
+COMMENT ON TABLE mdb.meta IS 'Метаинформация';
+
+
+CREATE OR REPLACE FUNCTION update_meta() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_TABLE_NAME = 'movie' THEN
+        UPDATE mdb.meta
+        SET movies_count = movies_count + 1;
+        RETURN NEW;
+    ELSIF TG_TABLE_NAME = 'users' THEN
+        UPDATE mdb.meta
+        SET users_count = users_count + 1;
+        RETURN NEW;
+    END IF;
+end;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_added_movie
+    AFTER INSERT ON mdb.movie FOR EACH ROW EXECUTE PROCEDURE update_meta();
+CREATE TRIGGER tr_added_user
+    AFTER INSERT ON mdb.users FOR EACH ROW EXECUTE PROCEDURE update_meta();
+
+
+-- TO DO Сделать тригер на пересчет рейтинга в поле rating таблицы mdb.movie
+CREATE TABLE mdb.movie_rating
+(
+    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
+    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating >= 1 AND rating <= 10) NOT NULL,
+    PRIMARY KEY (user_login, movie_id)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_rating TO mdb;
+COMMENT ON TABLE mdb.movie_rating IS 'Рейтинг фильмов';
+
+
+CREATE OR REPLACE FUNCTION rating_recalc() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        UPDATE mdb.movie
+        SET rating=rating + (NEW.rating - rating) / (rating_count + 1), rating_count = rating_count + 1 WHERE id=NEW.movie_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        UPDATE mdb.movie
+        SET rating=(rating * rating_count - OLD.rating + NEW.rating) / rating_count WHERE id=NEW.movie_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE mdb.movie
+        SET rating=CASE WHEN rating_count = 1 THEN 0 ELSE (rating * rating_count - OLD.rating) / (rating_count - 1) END,
+            rating_count = rating_count - 1 WHERE id=OLD.movie_id;
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_movie_rating
+AFTER INSERT OR UPDATE OR DELETE ON mdb.movie_rating FOR EACH ROW EXECUTE PROCEDURE rating_recalc();
+
+
+CREATE TABLE mdb.watched_movies
+(
+    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.watched_movies TO mdb;
+COMMENT ON TABLE mdb.watched_movies IS 'Просмотренные фильмы';
+
+
+CREATE TABLE mdb.users_review
+(
+    id serial PRIMARY KEY,
+    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
+    review_type INTEGER CONSTRAINT review_type_t CHECK (review_type = -1 OR review_type = 0 OR review_type = 1),
+    title VARCHAR(200),
+    content text,
+    creation_date timestamp NOT NULL DEFAULT NOW(),
+    UNIQUE (user_login, movie_id)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users_review TO mdb;
+COMMENT ON TABLE mdb.users_review IS 'Просмотренные фильмы';
+
+
+CREATE TABLE mdb.friends
+(
+    friend_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    friend_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    friend_status INTEGER CONSTRAINT friend_status_t CHECK (friend_status = 0 OR friend_status = 1 OR friend_status = 2),
+    PRIMARY KEY (friend_1, friend_2)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.friends TO mdb;
+COMMENT ON TABLE mdb.friends IS 'Друзья';
+
+
+-- TO DO Сделать тригер на пересчет рейтинга в поле user_rating таблицы mdb.users
+CREATE TABLE mdb.users_rating
+(
+    user_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    user_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    user_rating INTEGER CONSTRAINT user_rating_t CHECK (user_rating = -1 OR user_rating = 1),
+    PRIMARY KEY (user_1, user_2)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users_rating TO mdb;
+COMMENT ON TABLE mdb.users_rating IS 'Рейтинг пользователей';
+
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA mdb TO mdb;
+
+
 
 -- INSERT INTO mdb.movie (title, description, productionYear, country,
 --                        genre, slogan, director, scriptwriter, producer,
@@ -96,20 +268,6 @@ COMMENT ON TABLE mdb.movie IS 'Фильмы';
 --        );
 
 
-CREATE TABLE mdb.actors
-(
-    id              serial PRIMARY KEY,
-    name            text not null,
-    biography       text,
-    birthdate       VARCHAR(100),
-    origin          VARCHAR(100),
-    profession      VARCHAR(200),
-    avatar          text
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.actors TO mdb;
-
-COMMENT ON TABLE mdb.actors IS 'Актеры';
 
 -- INSERT INTO mdb.actors (name, biography, birthdate, origin, profession, avatar)
 -- VALUES ('Том Круз',
@@ -129,157 +287,3 @@ COMMENT ON TABLE mdb.actors IS 'Актеры';
 --         'актер, продюссер',
 --         'https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/2eb2fc4d-a8bd-43b0-83cd-35feacb8ccae/280x420'
 --         );
-
-
-CREATE TABLE mdb.users
-(
-    login               VARCHAR(100) PRIMARY KEY,
-    password            VARCHAR(256) NOT NULL,
-    img_src             text DEFAULT 'http://89.208.198.186:8080/avatars/default.jpeg',
-
-    firstname           VARCHAR(100),
-    lastname            VARCHAR(100),
-    sex                 INTEGER CONSTRAINT sex_t CHECK (sex = 1 OR sex = 0),
-    email               VARCHAR(100) NOT NULL UNIQUE,
-    registration_date   timestamp NOT NULL DEFAULT NOW(),
-
-    description         VARCHAR(600),
-    movies_watched      INTEGER DEFAULT 0,
-    reviews_count       INTEGER DEFAULT 0,
-    friends_count       INTEGER DEFAULT 0,
-    user_rating         INTEGER DEFAULT 0
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users TO mdb;
-
-COMMENT ON TABLE mdb.users IS 'Пользователи';
-
-CREATE TABLE mdb.meta
-(
-    version          serial PRIMARY KEY,
-    movies_count     INTEGER,
-    users_count      INTEGER,
-    available_genres VARCHAR(100)[]
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.meta TO mdb;
-
-COMMENT ON TABLE mdb.meta IS 'Метаинформация';
-
-CREATE OR REPLACE FUNCTION update_meta() RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_TABLE_NAME = 'movie' THEN
-        UPDATE mdb.meta
-        SET movies_count = movies_count + 1;
-        RETURN NEW;
-    ELSIF TG_TABLE_NAME = 'users' THEN
-        UPDATE mdb.meta
-        SET users_count = users_count + 1;
-        RETURN NEW;
-    END IF;
-end;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER tr_added_movie
-    AFTER INSERT ON mdb.movie FOR EACH ROW EXECUTE PROCEDURE update_meta();
-CREATE TRIGGER tr_added_user
-    AFTER INSERT ON mdb.users FOR EACH ROW EXECUTE PROCEDURE update_meta();
-
-
--- TO DO Сделать тригер на пересчет рейтинга в поле rating таблицы mdb.movie
-CREATE TABLE mdb.movie_rating
-(
-    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating >= 1 AND rating <= 10) NOT NULL,
-    PRIMARY KEY (user_login, movie_id)
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_rating TO mdb;
-
-COMMENT ON TABLE mdb.movie_rating IS 'Рейтинг фильмов';
-
-CREATE OR REPLACE FUNCTION rating_recalc() RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        UPDATE mdb.movie
-        SET rating=rating + (NEW.rating - rating) / (rating_count + 1), rating_count = rating_count + 1 WHERE id=NEW.movie_id;
-        RETURN NEW;
-    ELSIF TG_OP = 'UPDATE' THEN
-        UPDATE mdb.movie
-        SET rating=(rating * rating_count - OLD.rating + NEW.rating) / rating_count WHERE id=NEW.movie_id;
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        UPDATE mdb.movie
-        SET rating=CASE WHEN rating_count = 1 THEN 0 ELSE (rating * rating_count - OLD.rating) / (rating_count - 1) END,
-            rating_count = rating_count - 1 WHERE id=OLD.movie_id;
-        RETURN OLD;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER tr_movie_rating
-AFTER INSERT OR UPDATE OR DELETE ON mdb.movie_rating FOR EACH ROW EXECUTE PROCEDURE rating_recalc();
-
-
-
-CREATE TABLE mdb.watched_movies
-(
-    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.watched_movies TO mdb;
-
-COMMENT ON TABLE mdb.watched_movies IS 'Просмотренные фильмы';
-
-
-
-
-CREATE TABLE mdb.users_review
-(
-    id serial PRIMARY KEY,
-    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
-    review_type INTEGER CONSTRAINT review_type_t CHECK (review_type = -1 OR review_type = 0 OR review_type = 1),
-    title VARCHAR(200),
-    content text,
-    creation_date timestamp NOT NULL DEFAULT NOW(),
-    UNIQUE (user_login, movie_id)
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users_review TO mdb;
-
-COMMENT ON TABLE mdb.users_review IS 'Просмотренные фильмы';
-
-
-
-
-CREATE TABLE mdb.friends
-(
-    friend_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    friend_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    friend_status INTEGER CONSTRAINT friend_status_t CHECK (friend_status = 0 OR friend_status = 1 OR friend_status = 2),
-    PRIMARY KEY (friend_1, friend_2)
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.friends TO mdb;
-
-COMMENT ON TABLE mdb.friends IS 'Друзья';
-
-
-
--- TO DO Сделать тригер на пересчет рейтинга в поле user_rating таблицы mdb.users
-CREATE TABLE mdb.users_rating
-(
-    user_1 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    user_2 VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
-    user_rating INTEGER CONSTRAINT user_rating_t CHECK (user_rating = -1 OR user_rating = 1),
-    PRIMARY KEY (user_1, user_2)
-);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users_rating TO mdb;
-
-COMMENT ON TABLE mdb.users_rating IS 'Рейтинг пользователей';
-
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA mdb TO mdb;
