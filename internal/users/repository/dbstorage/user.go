@@ -216,9 +216,9 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
-func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []*models.User, error) {
+func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error) {
 	subs := make([]string, 0)
-	var users []*models.User
+	var users []*models.UserNoPassword
 
 	sqlStatement := `
         SELECT user_1
@@ -258,7 +258,6 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 		return 0, nil, err
 	}
 
-
 	sqlStatement = `
         SELECT login, password, email, img_src, movies_watched, reviews_count
         FROM mdb.users
@@ -272,18 +271,18 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 	}
 
 	for rows.Next() {
-		user := &models.User{}
+		user := &models.UserNoPassword{}
 		var moviesWatched string
 		var reviewsNumber string
-		err = rows.Scan(&user.Username, &user.Password, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
 
-		u , err := strconv.ParseUint(moviesWatched, 10, 64)
+		u, err := strconv.ParseUint(moviesWatched, 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}
 		*user.MoviesWatched = uint(u)
 
-		u , err = strconv.ParseUint(reviewsNumber, 10, 64)
+		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -297,9 +296,9 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 	return pagesNumber, users, nil
 }
 
-func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []*models.User, error) {
+func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error) {
 	subs := make([]string, 0)
-	var users []*models.User
+	var users []*models.UserNoPassword
 
 	sqlStatement := `
         SELECT user_2
@@ -340,7 +339,7 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	}
 
 	sqlStatement = `
-        SELECT login, password, email, img_src, movies_watched, reviews_count
+        SELECT login, email, img_src, movies_watched, reviews_count
         FROM mdb.users
         WHERE login && $1 
 		ORDER BY login
@@ -352,18 +351,18 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	}
 
 	for rows.Next() {
-		user := &models.User{}
+		user := &models.UserNoPassword{}
 		var moviesWatched string
 		var reviewsNumber string
-		err = rows.Scan(&user.Username, &user.Password, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
 
-		u , err := strconv.ParseUint(moviesWatched, 10, 64)
+		u, err := strconv.ParseUint(moviesWatched, 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}
 		*user.MoviesWatched = uint(u)
 
-		u , err = strconv.ParseUint(reviewsNumber, 10, 64)
+		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}

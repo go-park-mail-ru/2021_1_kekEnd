@@ -36,10 +36,10 @@ type signupData struct {
 }
 
 type subsResponse struct {
-	CurrentPage int                     `json:"current_page"`
-	PagesNumber int                     `json:"pages_number"`
-	MaxItems    int                     `json:"max_items"`
-	Subs        []models.UserNoPassword `json:"subs"`
+	CurrentPage int                      `json:"current_page"`
+	PagesNumber int                      `json:"pages_number"`
+	MaxItems    int                      `json:"max_items"`
+	Subs        []*models.UserNoPassword `json:"subs"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
@@ -379,16 +379,18 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 	}
 
 	numPages, subs, err := h.useCase.GetSubscribers(page, userModel.Username)
-	usersNoPassword := make([]models.UserNoPassword, len(subs))
-	for _, s := range subs {
-		usersNoPassword = append(usersNoPassword, models.FromUser(*s))
+
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	subsResponse := subsResponse{
 		CurrentPage: page,
 		PagesNumber: numPages,
 		MaxItems:    _const.SubsPageSize,
-		Subs:        usersNoPassword,
+		Subs:        subs,
 	}
 
 	ctx.JSON(http.StatusOK, subsResponse)
@@ -426,16 +428,18 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 	}
 
 	numPages, subs, err := h.useCase.GetSubscriptions(page, userModel.Username)
-	usersNoPassword := make([]models.UserNoPassword, len(subs))
-	for _, s := range subs {
-		usersNoPassword = append(usersNoPassword, models.FromUser(*s))
+
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
 	}
 
 	subsResponse := subsResponse{
 		CurrentPage: page,
 		PagesNumber: numPages,
 		MaxItems:    _const.SubsPageSize,
-		Subs:        usersNoPassword,
+		Subs:        subs,
 	}
 
 	ctx.JSON(http.StatusOK, subsResponse)
