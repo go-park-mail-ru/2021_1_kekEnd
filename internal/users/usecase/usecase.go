@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -51,11 +52,19 @@ func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (
 }
 
 func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
-	return usersUC.userRepository.Subscribe(subscriber, user)
+	if usersUC.userRepository.CheckUnsubscribed(subscriber, user){
+		return usersUC.userRepository.Subscribe(subscriber, user)
+	}
+
+	return fmt.Errorf("%s is already subscribed to %s", subscriber, user)
 }
 
 func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
-	return usersUC.userRepository.Unsubscribe(subscriber, user)
+	if !usersUC.userRepository.CheckUnsubscribed(subscriber, user) {
+		return usersUC.userRepository.Unsubscribe(subscriber, user)
+	}
+
+	return fmt.Errorf("%s is not subscribed to %s", subscriber, user)
 }
 
 func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error) {

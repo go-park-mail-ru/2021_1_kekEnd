@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
@@ -156,7 +155,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 	return user, nil
 }
 
-func (storage *UserRepository) Subscribe(subscriber string, user string) error {
+func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string) bool {
 	sqlStatement := `
         SELECT COUNT(*) as count 
 		FROM mdb.subscriptions
@@ -168,19 +167,19 @@ func (storage *UserRepository) Subscribe(subscriber string, user string) error {
 		QueryRow(context.Background(), sqlStatement, subscriber, user).
 		Scan(&count)
 
-	if err != nil {
-		return err
+	if err != nil || count != 0 {
+		return false
 	}
 
-	if count != 0 {
-		return fmt.Errorf("%s is already subscribed to %s", subscriber, user)
-	}
+	return true
+}
 
-	sqlStatement = `
+func (storage *UserRepository) Subscribe(subscriber string, user string) error {
+	sqlStatement := `
         INSERT INTO mdb.subscriptions(user_1, user_2)
 		VALUES ($1, $2)
     `
-	_, err = storage.db.
+	_, err := storage.db.
 		Exec(context.Background(), sqlStatement, subscriber, user)
 
 	return err
@@ -188,29 +187,10 @@ func (storage *UserRepository) Subscribe(subscriber string, user string) error {
 
 func (storage *UserRepository) Unsubscribe(subscriber string, user string) error {
 	sqlStatement := `
-        SELECT COUNT(*) as count 
-		FROM mdb.subscriptions
-		WHERE user_1 = $1 AND user_2 = $2
-    `
-
-	var count int
-	err := storage.db.
-		QueryRow(context.Background(), sqlStatement, subscriber, user).
-		Scan(&count)
-
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
-		return fmt.Errorf("%s is not subscribed to %s", subscriber, user)
-	}
-
-	sqlStatement = `
         DELETE FROM mdb.subscriptions(user_1, user_2)
 		WHERE user_1 = $1 AND user_2 = $2
     `
-	_, err = storage.db.
+	_, err := storage.db.
 		Exec(context.Background(), sqlStatement, subscriber, user)
 
 	return err
