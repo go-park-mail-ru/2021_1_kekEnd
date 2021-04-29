@@ -2,6 +2,12 @@ package server
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -10,7 +16,6 @@ import (
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
-	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
@@ -35,11 +40,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
 )
 
 type App struct {
