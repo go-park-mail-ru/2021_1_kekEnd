@@ -2,7 +2,6 @@ package localstorage
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -196,9 +195,47 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
+func (storage *UserRepository) GetModels(subs []string, startIndex int) ([]*models.UserNoPassword, error) {
+	users := make([]*models.UserNoPassword, 0)
+
+	sqlStatement := `
+        SELECT login, email, img_src, movies_watched, reviews_count
+        FROM mdb.users
+        WHERE login && $1 
+		ORDER BY login
+		LIMIT $2 OFFSET $3
+    `
+	rows, err := storage.db.Query(context.Background(), sqlStatement, subs, _const.SubsPageSize, startIndex)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		user := &models.UserNoPassword{}
+		var moviesWatched string
+		var reviewsNumber string
+		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+
+		u, err := strconv.ParseUint(moviesWatched, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		*user.MoviesWatched = uint(u)
+
+		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		*user.ReviewsNumber = uint(u)
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error) {
 	subs := make([]string, 0)
-	var users []*models.UserNoPassword
 
 	sqlStatement := `
         SELECT user_1
@@ -231,44 +268,14 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
         WHERE login && $1
     `
 	err = storage.db.QueryRow(context.Background(), sqlStatement, subs).Scan(&rowsCount)
-	if err == sql.ErrNoRows {
-		return 0, users, nil
-	}
 	if err != nil {
 		return 0, nil, err
 	}
 
-	sqlStatement = `
-        SELECT login, password, email, img_src, movies_watched, reviews_count
-        FROM mdb.users
-        WHERE login && $1 
-		ORDER BY login
-		LIMIT $2 OFFSET $3
-    `
-	rows, err = storage.db.Query(context.Background(), sqlStatement, subs, _const.SubsPageSize, startIndex)
+	users, err := storage.GetModels(subs, startIndex)
+
 	if err != nil {
 		return 0, nil, err
-	}
-
-	for rows.Next() {
-		user := &models.UserNoPassword{}
-		var moviesWatched string
-		var reviewsNumber string
-		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
-
-		u, err := strconv.ParseUint(moviesWatched, 10, 64)
-		if err != nil {
-			return 0, nil, err
-		}
-		*user.MoviesWatched = uint(u)
-
-		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
-		if err != nil {
-			return 0, nil, err
-		}
-		*user.ReviewsNumber = uint(u)
-
-		users = append(users, user)
 	}
 
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
@@ -278,7 +285,6 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 
 func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error) {
 	subs := make([]string, 0)
-	var users []*models.UserNoPassword
 
 	sqlStatement := `
         SELECT user_2
@@ -311,44 +317,13 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
         WHERE login && $1
     `
 	err = storage.db.QueryRow(context.Background(), sqlStatement, subs).Scan(&rowsCount)
-	if err == sql.ErrNoRows {
-		return 0, users, nil
-	}
 	if err != nil {
 		return 0, nil, err
 	}
 
-	sqlStatement = `
-        SELECT login, email, img_src, movies_watched, reviews_count
-        FROM mdb.users
-        WHERE login && $1 
-		ORDER BY login
-		LIMIT $2 OFFSET $3
-    `
-	rows, err = storage.db.Query(context.Background(), sqlStatement, subs, _const.SubsPageSize, startIndex)
+	users, err := storage.GetModels(subs, startIndex)
 	if err != nil {
 		return 0, nil, err
-	}
-
-	for rows.Next() {
-		user := &models.UserNoPassword{}
-		var moviesWatched string
-		var reviewsNumber string
-		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
-
-		u, err := strconv.ParseUint(moviesWatched, 10, 64)
-		if err != nil {
-			return 0, nil, err
-		}
-		*user.MoviesWatched = uint(u)
-
-		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
-		if err != nil {
-			return 0, nil, err
-		}
-		*user.ReviewsNumber = uint(u)
-
-		users = append(users, user)
 	}
 
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
