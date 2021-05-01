@@ -277,9 +277,37 @@ CREATE TABLE mdb.users_rating
     user_rating INTEGER CONSTRAINT user_rating_t CHECK (user_rating = -1 OR user_rating = 1),
     PRIMARY KEY (user_1, user_2)
 );
-
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users_rating TO mdb;
-
 COMMENT ON TABLE mdb.users_rating IS 'Рейтинг пользователей';
 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA mdb TO mdb;
+
+
+CREATE TABLE mdb.playlists
+(
+    id SERIAL,
+    name VARCHAR(100),
+    ownerName VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    isShared BOOLEAN
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.playlists TO mdb;
+COMMENT ON TABLE mdb.playlists IS 'Плейлисты';
+
+
+CREATE TABLE mdb.playlistsWhoCanAdd
+(
+    username VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    playlist_id INTEGER REFERENCES mdb.playlist (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.playlistsWhoCanAdd TO mdb;
+COMMENT ON TABLE mdb.playlistsWhoCanAdd IS 'Права на изменение плейлистов';
+
+
+CREATE TABLE mdb.playlistsMovies
+(
+    playlist_id INTEGER REFERENCES mdb.playlist (id) ON DELETE CASCADE,
+    addedBy VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.playlistsMovies TO mdb;
+COMMENT ON TABLE mdb.playlistsMovies IS 'Фильмы в плейлистах';
