@@ -154,7 +154,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 	return user, nil
 }
 
-func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string) bool {
+func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string) (error, bool) {
 	sqlStatement := `
         SELECT COUNT(*) as count 
 		FROM mdb.subscriptions
@@ -167,10 +167,10 @@ func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string)
 		Scan(&count)
 
 	if err != nil || count != 0 {
-		return false
+		return err, false
 	}
 
-	return true
+	return nil, true
 }
 
 func (storage *UserRepository) Subscribe(subscriber string, user string) error {

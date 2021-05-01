@@ -52,7 +52,13 @@ func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (
 }
 
 func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
-	if usersUC.userRepository.CheckUnsubscribed(subscriber, user){
+	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+
+	if err != nil {
+		return err
+	}
+
+	if unsubscribed {
 		return usersUC.userRepository.Subscribe(subscriber, user)
 	}
 
@@ -60,7 +66,13 @@ func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
 }
 
 func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
-	if !usersUC.userRepository.CheckUnsubscribed(subscriber, user) {
+	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+
+	if err != nil {
+		return err
+	}
+
+	if !unsubscribed {
 		return usersUC.userRepository.Unsubscribe(subscriber, user)
 	}
 

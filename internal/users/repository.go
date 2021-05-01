@@ -16,7 +16,7 @@ type UserRepository interface {
 
 	CheckEmailUnique(newEmail string) error
 
-	CheckUnsubscribed(subscriber string, user string) bool
+	CheckUnsubscribed(subscriber string, user string) (error, bool)
 
 	Subscribe(subscriber string, user string) error
 
