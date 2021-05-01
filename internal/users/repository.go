@@ -22,7 +22,7 @@ type UserRepository interface {
 
 	Unsubscribe(subscriber string, user string) error
 
-	GetModels(subs []string, startIndex int) []*models.UserNoPassword
+	GetModels(subs []string, startIndex int) ([]*models.UserNoPassword, error)
 
 	GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error)
 

@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
@@ -54,6 +55,7 @@ func TestHandlers(t *testing.T) {
 	}
 
 	UUID := uuid.NewV4().String()
+	testErr := errors.New("")
 
 	t.Run("CreateUser", func(t *testing.T) {
 		sessionsUC.
@@ -136,4 +138,101 @@ func TestHandlers(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
+
+	t.Run("TestSubscribe", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().Subscribe(user.Username, user.Username).Return(nil)
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("TestSubscribe-FAIL", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().Subscribe(user.Username, user.Username).Return(testErr)
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+	t.Run("TestUnsubscribe", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().Unsubscribe(user.Username, user.Username).Return(nil)
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("TestUnsubscribe-FAIL", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.EXPECT().Unsubscribe(user.Username, user.Username).Return(testErr)
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("TestGetSubscribers", func(t *testing.T) {
+		page := 0
+		subs := make([]*models.UserNoPassword, 0)
+		usersUC.EXPECT().GetSubscribers(page, user.Username).Return(1, subs, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/subscribers/let_robots_reign", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+
 }

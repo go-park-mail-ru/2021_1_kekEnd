@@ -362,23 +362,15 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+	username := ctx.Param("user_id")
+	user, err := h.useCase.GetUser(username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "users", "GetSubscribers", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
-
-	numPages, subs, err := h.useCase.GetSubscribers(page, userModel.Username)
+	numPages, subs, err := h.useCase.GetSubscribers(page, user.Username)
 
 	if err != nil {
 		h.Log.LogError(ctx, "users", "GetSubscribers", err)
@@ -411,23 +403,15 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
+	username := ctx.Param("user_id")
+	user, err := h.useCase.GetUser(username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
-
-	numPages, subs, err := h.useCase.GetSubscriptions(page, userModel.Username)
+	numPages, subs, err := h.useCase.GetSubscriptions(page, user.Username)
 
 	if err != nil {
 		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
