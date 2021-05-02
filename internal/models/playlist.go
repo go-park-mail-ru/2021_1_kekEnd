@@ -12,3 +12,9 @@ type MovieInPlaylist struct {
 	Title   string `json:"title"`
 	AddedBy string `json:"username"`
 }
+
+type PlaylistsInfo struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	IsAdded bool   `json:"isAdded"`
+}

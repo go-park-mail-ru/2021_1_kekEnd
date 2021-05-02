@@ -31,25 +31,21 @@ func NewPlaylistsRepository(database PgxPoolIface) *PlaylistsRepository {
 	}
 }
 
-func (storage *PlaylistsRepository) CreateReview(review *models.Review) error {
+func (storage *PlaylistsRepository) CreatePlaylist(username string, playlistName string, isShared bool) error {
 	sqlStatement := `
-        INSERT INTO mdb.users_review (user_login, movie_id, review_type, title, content)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO mdb.playlists (name, ownerName, isShared)
+        VALUES ($1, $2, $3)
         RETURNING "id";
     `
 	var newID int
 	err := storage.db.
 		QueryRow(context.Background(), sqlStatement,
-			review.Author, review.MovieID,
-			convertReviewTypeFromStrToInt(review.ReviewType), review.Title,
-			review.Content).
+			username, playlistName, isShared).
 		Scan(&newID)
 
 	if err != nil {
 		return errors.New("create review error")
 	}
-
-	review.ID = strconv.Itoa(newID)
 
 	return nil
 }

@@ -1,8 +1,6 @@
 package playlists
 
 import (
-	"errors"
-
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
 )
@@ -17,13 +15,13 @@ func NewPlaylistUseCase(playlistRepo playlists.Repository) *PlaylistUseCase {
 	}
 }
 
-func (playlistUC *PlaylistUseCase) CreatePlaylist(username string, playlistID int, isShared bool) error {
-	_, err := playlistUC.GetPlaylistsInfo(playlistID)
-	if err == nil {
-		return errors.New("playlist already exists")
-	}
+func (playlistUC *PlaylistUseCase) CreatePlaylist(username string, playlistName string, isShared bool) error {
+	// _, err := playlistUC.GetPlaylistsInfo(username, )
+	// if err == nil {
+	// 	return errors.New("playlist already exists")
+	// }
 
-	err = playlistUC.playlistRepository.CreatePlaylist(username, playlistID, isShared)
+	err := playlistUC.playlistRepository.CreatePlaylist(username, playlistName, isShared)
 	if err != nil {
 		return err
 	}
@@ -31,8 +29,8 @@ func (playlistUC *PlaylistUseCase) CreatePlaylist(username string, playlistID in
 	return err
 }
 
-func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(playlistID int) (*models.Playlist, error) {
-	return playlistUC.playlistRepository.GetPlaylistsInfo(playlistID)
+func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
+	return playlistUC.playlistRepository.GetPlaylistsInfo(username, movieID)
 }
 
 func (playlistUC *PlaylistUseCase) UpdatePlaylist(username string, playlistID int, isShared bool) (*models.Playlist, error) {
