@@ -3,12 +3,16 @@ package localstorage
 import (
 	"context"
 	"database/sql"
+	"math"
+	"strconv"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"math"
 	"strconv"
+	pgx "github.com/jackc/pgx/v4"
 )
 
 type PgxPoolIface interface {
@@ -37,12 +41,17 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 	var movie models.Movie
 
 	sqlStatement := `
-        SELECT id, title, description, productionYear, country,
-               genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+        SELECT mv.id, title, description, productionYear, country,
+               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1) AS rating, rating_count
-        FROM mdb.movie
-        WHERE id=$1
+        FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		JOIN mdb.movie_actors mvac ON mv.id = mvac.movie_id
+		JOIN mdb.actors ac ON mvac.actor_id = ac.id
+		WHERE mv.id = $1
+		GROUP BY mv.id
     `
 
 	idFilm, err := strconv.Atoi(id)
@@ -96,12 +105,17 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 	}
 
 	sqlStatement = `
-        SELECT id, title, description, productionYear, country,
-               genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+        SELECT mv.id, title, description, productionYear, country,
+               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1), rating_count
-        FROM mdb.movie
-        ORDER BY rating DESC
+        FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		JOIN mdb.movie_actors mvac ON mv.id = mvac.movie_id
+		JOIN mdb.actors ac ON mvac.actor_id = ac.id
+        GROUP BY mv.id
+		ORDER BY rating DESC
         LIMIT $1 OFFSET $2
     `
 
@@ -162,8 +176,11 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 
 	sqlStatement := `
 		SELECT COUNT(*)
-		FROM mdb.movie
-		WHERE genre && $1
+        FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		GROUP BY mv.id
+		HAVING array_agg(array[gs.name]) && $1
 	`
 	var rowsCount int
 	err := movieStorage.db.QueryRow(context.Background(), sqlStatement, genres).Scan(&rowsCount)
@@ -175,12 +192,17 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 	}
 
 	sqlStatement = `
-        SELECT id, title, description, productionYear, country,
-               genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, actors, poster, banner, trailerPreview,
+        SELECT mv.id, title, description, productionYear, country,
+               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1), rating_count
-        FROM mdb.movie
-		WHERE genre && $1
+        FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		JOIN mdb.movie_actors mvac ON mv.id = mvac.movie_id
+		JOIN mdb.actors ac ON mvac.actor_id = ac.id
+		GROUP BY mv.id
+		HAVING array_agg(array[gs.name]) && $1
         ORDER BY rating DESC
         LIMIT $2 OFFSET $3
     `
