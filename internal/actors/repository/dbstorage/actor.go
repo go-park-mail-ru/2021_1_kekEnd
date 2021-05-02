@@ -3,10 +3,10 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
-	pgx "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgconn"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"strconv"
 )
 
@@ -52,7 +52,7 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 
 	actor.ID = strconv.Itoa(idActor)
 
-	moviesCount, actorMovies, err := actorStorage.getMoviesForActor(actor.Name)
+	moviesCount, actorMovies, err := actorStorage.getMoviesForActor(actor.ID)
 	if err != nil {
 		return models.Actor{}, err
 	}
@@ -62,17 +62,17 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 	return actor, nil
 }
 
-func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []models.MovieReference, error) {
+func (actorStorage *ActorRepository) getMoviesForActor(id string) (int, []models.MovieReference, error) {
 	var movies []models.MovieReference
 
 	sqlStatement := `
 		SELECT COUNT(*) as cnt
-		FROM mdb.movie
-		WHERE $1=ANY(actors)
+		FROM mdb.movie_actors
+		WHERE actor_id=$1
 	`
 
 	var rowsCount int
-	err := actorStorage.db.QueryRow(context.Background(), sqlStatement, name).Scan(&rowsCount)
+	err := actorStorage.db.QueryRow(context.Background(), sqlStatement, id).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, movies, nil
 	}
@@ -82,13 +82,14 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 
 	sqlStatement = `
 		SELECT id, title, ROUND(CAST(rating AS numeric), 1) as rnd
-		FROM mdb.movie
-		WHERE $1=ANY(actors)
+		FROM mdb.movie mv
+		JOIN movie_actors mvac ON mv.id = mvac.movie_id AND mvac.actor_id=$1
+		GROUP BY mv.id
 		ORDER BY rating DESC
 		LIMIT $2
 	`
 
-	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, name, _const.MoviesNumberOnActorPage)
+	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, id, _const.MoviesNumberOnActorPage)
 	if err != nil {
 		return 0, movies, err
 	}

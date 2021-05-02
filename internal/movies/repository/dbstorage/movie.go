@@ -38,8 +38,8 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 
 	sqlStatement := `
         SELECT mv.id, title, description, productionYear, country,
-               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
+               array_agg(distinct (gs.name)) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(distinct (ac.name)) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1) AS rating, rating_count
         FROM mdb.movie mv
 		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
@@ -102,8 +102,8 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 
 	sqlStatement = `
         SELECT mv.id, title, description, productionYear, country,
-               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
+               array_agg(distinct (gs.name)) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(distinct (ac.name)) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1), rating_count
         FROM mdb.movie mv
 		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
@@ -150,18 +150,24 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 
 func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
 	sqlStatement := `
-		SELECT available_genres
-		FROM mdb.meta
-		ORDER BY version DESC
+		SELECT name
+		FROM mdb.genres
 	`
 
 	var genres []string
-	err := movieStorage.db.QueryRow(context.Background(), sqlStatement).Scan(&genres)
-	if err == sql.ErrNoRows {
-		return genres, nil
-	}
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement)
 	if err != nil {
-		return nil, err
+		return genres, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var genre string
+		err = rows.Scan(&genre)
+		if err != nil {
+			return []string{}, err
+		}
+		genres = append(genres, genre)
 	}
 
 	return genres, nil
@@ -189,8 +195,8 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 
 	sqlStatement = `
         SELECT mv.id, title, description, productionYear, country,
-               array_agg(array[gs.name]) as genre, slogan, director, scriptwriter, producer, operator, composer,
-               artist, montage, budget, duration, array_agg(DISTINCT array[ac.name]) as actors, poster, banner, trailerPreview,
+               array_agg(distinct (gs.name)) as genre, slogan, director, scriptwriter, producer, operator, composer,
+               artist, montage, budget, duration, array_agg(distinct (ac.name)) as actors, poster, banner, trailerPreview,
                ROUND(CAST(rating AS numeric), 1), rating_count
         FROM mdb.movie mv
 		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id

@@ -106,3 +106,7 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, changed)
 }
+
+func (h *Handler) LikeActor(ctx *gin.Context) {
+
+}

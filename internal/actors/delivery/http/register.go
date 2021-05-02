@@ -13,4 +13,5 @@ func RegisterHttpEndpoints(router *gin.Engine, actorsUC actors.UseCase, auth mid
 	router.POST("/actors", auth.CheckAuth(), handler.CreateActor)
 	router.GET("/actors/:actor_id", handler.GetActor)
 	router.PUT("/actors/:actor_id", auth.CheckAuth(), handler.EditActor)
+	router.POST("/actors/like", auth.CheckAuth(), handler.LikeActor)
 }

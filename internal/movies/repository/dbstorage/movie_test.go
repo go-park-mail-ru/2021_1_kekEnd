@@ -223,7 +223,7 @@ func TestGetActorsData(t *testing.T) {
 
 	mock.ExpectQuery("SELECT").WillReturnRows(rows)
 
-	if _, err = movieRepo.getActorsData([]string{"ilya", "qwe"}); err == nil {
+	if _, err = movieRepo.GetActorsData([]string{"ilya", "qwe"}); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
