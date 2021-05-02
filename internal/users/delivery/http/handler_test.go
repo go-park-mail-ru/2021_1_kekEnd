@@ -76,6 +76,44 @@ func TestHandlers(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
 
+	t.Run("TestLogout", func(t *testing.T) {
+		mockUser := &models.User{
+			Username:      "let_robots_reign",
+			Email:         "sample@ya.ru",
+			Password:      "1234",
+			Avatar:        "http://localhost:8080/avatars/default.jpeg",
+			MoviesWatched: new(uint),
+			ReviewsNumber: new(uint),
+		}
+
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		usersUC.
+			EXPECT().
+			GetUser(user.Username).
+			Return(mockUser, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Check(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		sessionsUC.
+			EXPECT().
+			Delete(cookie.Value).
+			Return(nil).AnyTimes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/sessions", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
 	t.Run("GetUser", func(t *testing.T) {
 		mockUser := &models.User{
 			Username:      "let_robots_reign",
@@ -180,6 +218,7 @@ func TestHandlers(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
+
 	t.Run("TestUnsubscribe", func(t *testing.T) {
 		cookie := &http.Cookie{
 			Name:  "session_id",
@@ -223,7 +262,7 @@ func TestHandlers(t *testing.T) {
 	})
 
 	t.Run("TestGetSubscribers", func(t *testing.T) {
-		page := 0
+		page := 1
 		subs := make([]*models.UserNoPassword, 0)
 		usersUC.EXPECT().GetSubscribers(page, user.Username).Return(1, subs, nil)
 
@@ -234,5 +273,38 @@ func TestHandlers(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
+	t.Run("TestGetSubscribers-FAIL", func(t *testing.T) {
+		page := 1
+		usersUC.EXPECT().GetSubscribers(page, user.Username).Return(1, nil, testErr)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/subscribers/let_robots_reign", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("TestGetSubscriptions", func(t *testing.T) {
+		page := 1
+		subs := make([]*models.UserNoPassword, 0)
+		usersUC.EXPECT().GetSubscriptions(page, user.Username).Return(1, subs, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("TestGetSubscriptions-FAIL", func(t *testing.T) {
+		page := 1
+		usersUC.EXPECT().GetSubscriptions(page, user.Username).Return(1, nil, testErr)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 
 }

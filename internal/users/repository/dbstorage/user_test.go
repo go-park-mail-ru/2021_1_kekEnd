@@ -5,6 +5,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/pashagolub/pgxmock"
+	"github.com/stretchr/testify/assert"
+
 	// "fmt"
 	"testing"
 )
@@ -131,6 +133,170 @@ func TestUpdateUser(t *testing.T) {
 	// now we execute our method
 	if _, err = usersRepo.UpdateUser(user1, user2); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestCheckUnsubscribed(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+
+	usersRepo := NewUserRepository(mock)
+	user1 := "lol"
+	user2 := "kek"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 0))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if err, _ = usersRepo.CheckUnsubscribed(user1, user2); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+
+func TestSubscribe(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+
+	usersRepo := NewUserRepository(mock)
+	user1 := "lol"
+	user2 := "kek"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT").WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if err = usersRepo.Subscribe(user1, user2); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestUnsubscribe(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+
+	usersRepo := NewUserRepository(mock)
+	user1 := "lol"
+	user2 := "kek"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE").WillReturnResult(pgxmock.NewResult("DELETE", 1))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if err = usersRepo.Unsubscribe(user1, user2); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetModels(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	usersRepo := NewUserRepository(mock)
+
+	subs := []string{"lol", "kek"}
+
+	mock.ExpectBegin()
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 2))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if _, err = usersRepo.GetModels(subs, 0); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetSubscribers(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	usersRepo := NewUserRepository(mock)
+
+	user := "lol"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 0))
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 0))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if _, subs, err := usersRepo.GetSubscribers(0, user); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+		assert.Equal(t, subs, []*models.UserNoPassword{})
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetSubscriptions(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	usersRepo := NewUserRepository(mock)
+
+	user := "lol"
+
+	mock.ExpectBegin()
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 0))
+	mock.ExpectExec("SELECT").WillReturnResult(pgxmock.NewResult("SELECT", 0))
+	mock.ExpectCommit()
+
+	// now we execute our method
+	if _, subs, err := usersRepo.GetSubscriptions(0, user); err == nil {
+		t.Errorf("error was not expected while updating stats: %s", err)
+		assert.Equal(t, subs, []*models.UserNoPassword{})
 	}
 
 	// we make sure that all expectations were met
