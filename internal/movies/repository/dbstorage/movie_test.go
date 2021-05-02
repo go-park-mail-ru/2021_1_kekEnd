@@ -3,9 +3,9 @@ package localstorage
 import (
 	"context"
 
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	// "fmt"
 	"testing"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	// "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/pashagolub/pgxmock"
 )
@@ -223,7 +223,7 @@ func TestGetActorsData(t *testing.T) {
 
 	mock.ExpectQuery("SELECT").WillReturnRows(rows)
 
-	if _, err = movieRepo.GetActorsData([]string{"ilya", "qwe"}); err == nil {
+	if _, err = movieRepo.getActorsData([]string{"ilya", "qwe"}); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
