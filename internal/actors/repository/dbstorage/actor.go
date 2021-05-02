@@ -116,3 +116,15 @@ func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
 func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
 	return models.Actor{}, nil
 }
+
+func (actorStorage *ActorRepository) LikeActor(username string, actorID int) error {
+	sqlStatement := `
+		INSERT INTO mdb.favorite_actors VALUES($1, $2)
+	`
+
+	_, err := actorStorage.db.Exec(context.Background(), sqlStatement, username, actorID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

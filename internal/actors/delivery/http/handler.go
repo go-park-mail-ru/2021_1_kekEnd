@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -108,5 +109,35 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 }
 
 func (h *Handler) LikeActor(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "actors", "CreateActor", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
 
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s","Failed to cast user to model")
+		h.Log.LogError(ctx, "actors", "CreateActor", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	id := ctx.Param("actor_id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		h.Log.LogError(ctx, "actors", "LikeActor", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	err = h.useCase.LikeActor(userModel.Username, idInt)
+	if err != nil {
+		h.Log.LogError(ctx, "actors", "LikeActor", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

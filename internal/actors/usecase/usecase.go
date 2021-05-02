@@ -50,3 +50,7 @@ func (u ActorUseCase) EditActor(user models.User, change models.Actor) (models.A
 
 	return u.repository.EditActor(change)
 }
+
+func (u ActorUseCase) LikeActor(username string, actorID int) error {
+	return u.repository.LikeActor(username, actorID)
+}

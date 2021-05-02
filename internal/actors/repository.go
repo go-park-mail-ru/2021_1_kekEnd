@@ -7,4 +7,5 @@ type Repository interface {
 	CreateActor(models.Actor) error
 	GetActorByID(id string) (models.Actor, error)
 	EditActor(models.Actor) (models.Actor, error)
+	LikeActor(username string, actorID int) error
 }
