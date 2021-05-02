@@ -23,4 +23,5 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	router.POST("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Subscribe)
 	router.DELETE("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Unsubscribe)
 	router.GET("/subscribers/:user_id", handler.GetSubscribers)
+	router.GET("/feed", authMiddleware.CheckAuth(), handler.GetFeed)
 }

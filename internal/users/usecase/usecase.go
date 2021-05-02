@@ -88,3 +88,7 @@ func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*mo
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
+
+func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.Notification, error) {
+	return usersUC.userRepository.GetFeed(username)
+}

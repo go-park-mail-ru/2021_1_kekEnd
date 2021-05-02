@@ -195,7 +195,7 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
-func (storage *UserRepository) GetModels(subs []string, startIndex int) ([]*models.UserNoPassword, error) {
+func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*models.UserNoPassword, error) {
 	users := make([]*models.UserNoPassword, 0)
 
 	sqlStatement := `
@@ -205,7 +205,7 @@ func (storage *UserRepository) GetModels(subs []string, startIndex int) ([]*mode
 		ORDER BY login
 		LIMIT $2 OFFSET $3
     `
-	rows, err := storage.db.Query(context.Background(), sqlStatement, subs, _const.SubsPageSize, startIndex)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, ids, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 		return 0, nil, err
 	}
 
-	users, err := storage.GetModels(subs, startIndex)
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
 
 	if err != nil {
 		return 0, nil, err
@@ -321,7 +321,7 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 		return 0, nil, err
 	}
 
-	users, err := storage.GetModels(subs, startIndex)
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -329,4 +329,32 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
 
 	return pagesNumber, users, nil
+}
+
+func (storage *UserRepository) GetFeed(username string) ([]*models.Notification, error) {
+	feed := make([]*models.Notification, 0)
+
+	sqlStatement := `
+        SELECT user_creator, title, content, creation_date
+        FROM mdb.notifications
+		WHERE user_target = $1
+		ORDER BY creation_date DESC
+    `
+
+	rows, err := storage.db.Query(context.Background(), sqlStatement, username)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		notification := &models.Notification{}
+		err = rows.Scan(&notification.User, &notification.Title, &notification.Text, &notification.Date)
+		if err != nil {
+			return feed, err
+		}
+
+		feed = append(feed)
+	}
+
+	return feed, nil
 }
