@@ -3,13 +3,16 @@ package playlists
 import "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 
 //go:generate mockgen -destination=mocks/repository.go -package=mocks . Repository
-type Repository interface {
+type PlaylistsRepository interface {
 	CreatePlaylist(username string, playlistName string, isShared bool) error
 	GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error)
 	GetPlaylists(username string) ([]*models.Playlist, error)
-	UpdatePlaylist(username string, playlistID int, isShared bool) (*models.Playlist, error)
-	DeletePlaylist(username string, playlistID int) error
+	UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) (*models.Playlist, error)
+	DeletePlaylist(playlistID int) error
 
-	AddToPlaylist(username string, playlistData *models.Playlist) error
-	DeleteFromPlaylist(username string, playlistID int, movieID int) error
+	AddMovieToPlaylist(username string, playlistID int, movieID int) error
+	DeleteMovieFromPlaylist(username string, playlistID int, movieID int) error
+
+	AddUserToPlaylist(username string, playlistID int, usernameToAdd string) error
+	DeleteUserFromPlaylist(username string, playlistID int, usernameToDelete string) error
 }

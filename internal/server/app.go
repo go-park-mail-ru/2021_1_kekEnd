@@ -20,6 +20,7 @@ import (
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
 	ratingsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/dbstorage"
@@ -40,6 +41,10 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+
+	playlistsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/delivery"
+	playlistsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/repository"
+	playlistsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/usecase"
 )
 
 type App struct {
@@ -49,6 +54,7 @@ type App struct {
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
+	playlistsUC    playlists.UseCase
 	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
@@ -103,6 +109,9 @@ func NewApp() *App {
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
+	playlistsRepo := playlistsRepository.NewPlaylistsRepository(dbpool)
+	playlistsUC := playlistsUseCase.NewPlaylistsUseCase(playlistsRepo)
+
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 	csrfMiddleware := middleware.NewCsrfMiddleware(accessLogger)
 
@@ -113,6 +122,7 @@ func NewApp() *App {
 		ratingsUC:      ratingsUC,
 		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
+		playlistsUC:    playlistsUC,
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
@@ -136,6 +146,7 @@ func (app *App) Run(port string) error {
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,
