@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
@@ -50,7 +51,17 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMovie(ctx *gin.Context) {
-	movie, err := h.useCase.GetMovie(ctx.Param("id"))
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		user = ""
+	}
+	userModel, ok := user.(models.User)
+	username := ""
+	if ok {
+		username = userModel.Username
+	}
+
+	movie, err := h.useCase.GetMovie(ctx.Param("id"), username)
 	if err != nil {
 		h.Log.LogWarning(ctx, "movie", "GetMovie", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
@@ -70,6 +81,16 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 }
 
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		user = ""
+	}
+	userModel, ok := user.(models.User)
+	username := ""
+	if ok {
+		username = userModel.Username
+	}
+
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil || page < 1 {
 		h.Log.LogWarning(ctx, "movie", "GetBestMovies", err.Error())
@@ -77,7 +98,7 @@ func (h *Handler) GetBestMovies(ctx *gin.Context) {
 		return
 	}
 
-	pagesNumber, bestMovies, err := h.useCase.GetBestMovies(page)
+	pagesNumber, bestMovies, err := h.useCase.GetBestMovies(page, username)
 
 	if err != nil {
 		h.Log.LogError(ctx, "movie", "GetBestMovies", err)
@@ -106,6 +127,16 @@ func (h *Handler) GetGenres(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		user = ""
+	}
+	userModel, ok := user.(models.User)
+	username := ""
+	if ok {
+		username = userModel.Username
+	}
+
 	genresQuery := ctx.Query("filter")
 	if genresQuery == "" {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -120,7 +151,7 @@ func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
 		return
 	}
 
-	pagesNumber, moviesList, err := h.useCase.GetMoviesByGenres(genres, page)
+	pagesNumber, moviesList, err := h.useCase.GetMoviesByGenres(genres, page, username)
 
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -135,4 +166,38 @@ func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, moviesResponse)
+}
+
+func (h *Handler) MarkWatched(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "movies", "MarkWatched", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s","Failed to cast user to model")
+		h.Log.LogError(ctx, "movies", "MarkWatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	id := ctx.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "MarkWatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	err = h.useCase.MarkWatched(userModel.Username, idInt)
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "MarkWatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

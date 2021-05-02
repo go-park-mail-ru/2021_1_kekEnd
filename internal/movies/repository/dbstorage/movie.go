@@ -33,7 +33,7 @@ func (movieStorage *MovieRepository) CreateMovie(movie *models.Movie) error {
 	return nil
 }
 
-func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, error) {
+func (movieStorage *MovieRepository) GetMovieByID(id string, username string) (*models.Movie, error) {
 	var movie models.Movie
 
 	sqlStatement := `
@@ -73,12 +73,26 @@ func (movieStorage *MovieRepository) GetMovieByID(id string) (*models.Movie, err
 		return nil, err
 	}
 
+	sqlStatementWatched := `
+			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+		`
+	var rowsCount int
+	err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+	isWatched := true
+	if err != nil {
+		return nil, err
+	}
+	if rowsCount == 0 {
+		isWatched = false
+	}
+	movie.IsWatched = isWatched
+
 	movie.ID = strconv.Itoa(idFilm)
 
 	return &movie, nil
 }
 
-func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*models.Movie, error) {
+func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username string) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
 	sqlStatement := `
@@ -140,6 +154,20 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int) (int, []*mode
 			return 0, nil, err
 		}
 
+		sqlStatementWatched := `
+			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+		`
+		var rowsCount int
+		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+		isWatched := true
+		if err != nil {
+			return 0, nil, err
+		}
+		if rowsCount == 0 {
+			isWatched = false
+		}
+		movie.IsWatched = isWatched
+
 		bestMovies = append(bestMovies, movie)
 	}
 
@@ -173,7 +201,7 @@ func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
 	return genres, nil
 }
 
-func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int) (int, []*models.Movie, error) {
+func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int, username string) (int, []*models.Movie, error) {
 	var movies []*models.Movie
 
 	sqlStatement := `
@@ -234,6 +262,20 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 			return 0, nil, err
 		}
 
+		sqlStatementWatched := `
+			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+		`
+		var rowsCount int
+		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+		isWatched := true
+		if err != nil {
+			return 0, nil, err
+		}
+		if rowsCount == 0 {
+			isWatched = false
+		}
+		movie.IsWatched = isWatched
+
 		movies = append(movies, movie)
 	}
 
@@ -261,4 +303,16 @@ func (movieStorage *MovieRepository) getActorsData(names []string) ([]models.Act
 	}
 
 	return actors, nil
+}
+
+func (movieStorage *MovieRepository) MarkWatched(username string, id int) error {
+	sqlStatement := `
+		INSERT INTO mdb.watched_movies VALUES($1, $2)
+	`
+
+	_, err := movieStorage.db.Exec(context.Background(), sqlStatement, username, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
