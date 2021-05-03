@@ -92,7 +92,7 @@ func NewApp() *App {
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
 	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo, usersRepo)
 
 	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)

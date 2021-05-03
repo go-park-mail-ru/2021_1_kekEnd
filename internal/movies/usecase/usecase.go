@@ -4,16 +4,19 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
 type MoviesUseCase struct {
 	movieRepository movies.MovieRepository
+	userRepository  users.UserRepository
 }
 
-func NewMoviesUseCase(repo movies.MovieRepository) *MoviesUseCase {
+func NewMoviesUseCase(repo movies.MovieRepository, userRepo users.UserRepository) *MoviesUseCase {
 	return &MoviesUseCase{
 		movieRepository: repo,
+		userRepository:  userRepo,
 	}
 }
 
@@ -43,10 +46,30 @@ func (moviesUC *MoviesUseCase) GetMoviesByGenres(genres []string, page int, user
 	return moviesUC.movieRepository.GetMoviesByGenres(genres, startIndex, username)
 }
 
-func (moviesUC *MoviesUseCase) MarkWatched(username string, id int) error {
-	return moviesUC.movieRepository.MarkWatched(username, id)
+func (moviesUC *MoviesUseCase) MarkWatched(user *models.User, id int) error {
+	err := moviesUC.movieRepository.MarkWatched(user.Username, id)
+	if err != nil {
+		return err
+	}
+	// successful mark watched, must increment movies_watched for user
+	newMoviesWatchNumber := *user.MoviesWatched + 1
+	_, err = moviesUC.userRepository.UpdateUser(user, models.User{
+		Username:      user.Username,
+		MoviesWatched: &newMoviesWatchNumber,
+	})
+	return err
 }
 
-func (moviesUC *MoviesUseCase) MarkUnwatched(username string, id int) error {
-	return moviesUC.movieRepository.MarkUnwatched(username, id)
+func (moviesUC *MoviesUseCase) MarkUnwatched(user *models.User, id int) error {
+	err := moviesUC.movieRepository.MarkUnwatched(user.Username, id)
+	if err != nil {
+		return err
+	}
+	// successful mark unwatched, must decrement movies_watched for user
+	newMoviesWatchNumber := *user.MoviesWatched - 1
+	_, err = moviesUC.userRepository.UpdateUser(user, models.User{
+		Username:      user.Username,
+		MoviesWatched: &newMoviesWatchNumber,
+	})
+	return err
 }

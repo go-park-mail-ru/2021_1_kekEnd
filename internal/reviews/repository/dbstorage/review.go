@@ -6,8 +6,8 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"math"
 	"strconv"
 )
@@ -53,7 +53,6 @@ func convertReviewTypeFromStrToInt(reviewType models.ReviewType) int {
 		return -1
 	default:
 		return -100
-
 	}
 }
 

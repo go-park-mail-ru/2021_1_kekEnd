@@ -192,7 +192,7 @@ func (h *Handler) MarkWatched(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
-	err = h.useCase.MarkWatched(userModel.Username, idInt)
+	err = h.useCase.MarkWatched(&userModel, idInt)
 	if err != nil {
 		h.Log.LogError(ctx, "movies", "MarkWatched", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -226,7 +226,7 @@ func (h *Handler) MarkUnwatched(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
-	err = h.useCase.MarkUnwatched(userModel.Username, idInt)
+	err = h.useCase.MarkUnwatched(&userModel, idInt)
 	if err != nil {
 		h.Log.LogError(ctx, "movies", "MarkUnwatched", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500

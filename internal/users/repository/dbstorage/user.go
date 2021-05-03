@@ -167,6 +167,10 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 		user.ReviewsNumber = change.ReviewsNumber
 	}
 
+	if change.MoviesWatched != nil {
+		user.MoviesWatched = change.MoviesWatched
+	}
+
 	sqlStatement := `
         UPDATE mdb.users
         SET (login, password, email, img_src, movies_watched, reviews_count) =
