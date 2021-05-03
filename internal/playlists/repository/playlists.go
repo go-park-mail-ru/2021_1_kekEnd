@@ -80,8 +80,6 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 	var playlistsInfo []*models.PlaylistsInfo
 
 	for rows.Next() {
-		playlist := &models.PlaylistsInfo{}
-
 		var newID int
 		var playlistName string
 		var newMovieID int
@@ -91,6 +89,7 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 			return nil, err
 		}
 
+		playlist := &models.PlaylistsInfo{}
 		playlist.ID = strconv.Itoa(newID)
 		playlist.Name = username
 
@@ -106,9 +105,14 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 	return playlistsInfo, nil
 }
 
+type MovieReference2 struct {
+	ID    int    `json:"f1"`
+	Title string `json:"f2"`
+}
+
 func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Playlist, error) {
 	sqlStatement := `
-        SELECT pl.id, pl.name, json_agg(row_to_json(row(m.id, m.title))) as kek
+        SELECT pl.id, pl.name, json_object_agg(coalesce(m.id, -1), coalesce(m.title, '')) as kek
         FROM mdb.playlistsWhoCanAdd plwca
 		LEFT JOIN mdb.playlistsMovies plm ON plwca.playlist_id = plm.playlist_id
 		JOIN mdb.playlists pl ON plwca.playlist_id = pl.id
@@ -118,7 +122,7 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
     `
 
 	rows, err := storage.db.
-		Query(context.Background(), sqlStatement, username, username)
+		Query(context.Background(), sqlStatement, username)
 	if err != nil {
 		return nil, err
 	}
@@ -127,18 +131,25 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
 	var playlistsInfo []*models.Playlist
 
 	for rows.Next() {
-		playlist := &models.Playlist{}
 		var newID int
 		var playlistName string
-		var newMovieID *int
-		err = rows.Scan(&newID, &playlistName, newMovieID)
+		movies := map[int]string{}
+
+		err = rows.Scan(&newID, &playlistName, &movies)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
 		}
 
+		playlist := &models.Playlist{}
 		playlist.ID = strconv.Itoa(newID)
-		playlist.Name = username
-		// playlist.IsAdded = *newMovieID
+		playlist.Name = playlistName
+
+		for id, title := range movies {
+			if id != -1 {
+				newID := strconv.Itoa(id)
+				playlist.Movies = append(playlist.Movies, models.MovieInPlaylist{newID, title, ""})
+			}
+		}
 
 		playlistsInfo = append(playlistsInfo, playlist)
 	}
@@ -146,28 +157,75 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
 	return playlistsInfo, nil
 }
 
-func (storage *PlaylistsRepository) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) (*models.Playlist, error) {
-	// sqlStatement := `
-	//     UPDATE mdb.playlists
-	//     SET (name, isShared) = ($3, $4)
-	//     WHERE id=$2;
-	// `
+func (storage *PlaylistsRepository) CanUserUpdatePlaylist(username string, playlistID int) error {
+	sqlStatement := `
+	    SELECT username
+		FROM mdb.playlists
+	    WHERE id = $1 AND ownerName = $2;
+	`
 
-	// intMovieId, err := strconv.Atoi(review.MovieID)
-	// if err != nil {
-	// 	return err
-	// }
+	_, err := storage.db.
+		Query(context.Background(), sqlStatement, playlistID, username)
 
-	// _, err = storage.db.
-	// 	Exec(context.Background(), sqlStatement, review.Author, intMovieId,
-	// 		convertReviewTypeFromStrToInt(review.ReviewType), review.Title,
-	// 		review.Content)
+	if err != nil {
+		return errors.New("user can't update playlist")
+	}
 
-	// if err != nil {
-	// 	return errors.New("update review error")
-	// }
+	return nil
+}
 
-	return nil, nil
+func (storage *PlaylistsRepository) DeleteAllUserFromPlaylist(username string, playlistID int) error {
+	sqlStatement := `
+	    DELETE
+		FROM mdb.playlistsWhoCanAdd
+	    WHERE playlist_id = $1 AND username <> $2;
+	`
+
+	_, err := storage.db.
+		Query(context.Background(), sqlStatement, playlistID, username)
+
+	if err != nil {
+		return errors.New("can't delete user from playlist")
+	}
+
+	sqlStatement = `
+	    DELETE
+		FROM mdb.playlistsMovies
+	    WHERE playlist_id = $1 AND addedBy <> $2;
+	`
+
+	_, err = storage.db.
+		Query(context.Background(), sqlStatement, playlistID, username)
+
+	if err != nil {
+		return errors.New("can't delete user movie from playlist")
+	}
+
+	return nil
+}
+
+func (storage *PlaylistsRepository) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error {
+	sqlStatement := `
+	    UPDATE mdb.playlists
+	    SET (name, isShared) = ($2, $3)
+	    WHERE id=$1
+		RETURNING isShared;
+	`
+
+	var NewIsShared bool
+
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, playlistID, playlistName, isShared).Scan(&NewIsShared)
+
+	if err != nil {
+		return errors.New("update playlist error")
+	}
+
+	if !NewIsShared {
+		storage.DeleteAllUserFromPlaylist(username, playlistID)
+	}
+
+	return nil
 }
 
 func (storage *PlaylistsRepository) DeletePlaylist(playlistID int) error {
@@ -180,7 +238,26 @@ func (storage *PlaylistsRepository) DeletePlaylist(playlistID int) error {
 		Exec(context.Background(), sqlStatement, playlistID)
 
 	if err != nil {
-		return errors.New("delete review error")
+		return errors.New("delete playlist error")
+	}
+
+	return nil
+}
+
+func (storage *PlaylistsRepository) CanUserUpdateMovieInPlaylist(username string, playlistID int) error {
+	sqlStatement := `
+	    SELECT addedBy
+		FROM mdb.playlistsWhoCanAdd
+	    WHERE playlist_id = $1 AND username = $2;
+	`
+
+	var newAddedBy string
+
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, playlistID, username).Scan(&newAddedBy)
+
+	if err != nil {
+		return errors.New("user can't add movie to playlist")
 	}
 
 	return nil
@@ -209,7 +286,7 @@ func (storage *PlaylistsRepository) DeleteMovieFromPlaylist(username string, pla
     `
 
 	_, err := storage.db.
-		Exec(context.Background(), sqlStatement, playlistID)
+		Exec(context.Background(), sqlStatement, playlistID, movieID)
 
 	if err != nil {
 		return errors.New("delete review error")

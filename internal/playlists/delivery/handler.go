@@ -71,21 +71,21 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 
 func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 	movieIDStr := ctx.Param("movie_id")
-	// user, ok := ctx.Get(_const.UserKey)
-	// if !ok {
-	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
-	// 	h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
-	// 	ctx.AbortWithStatus(http.StatusBadRequest) // 400
-	// 	return
-	// }
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
 
-	// userModel, ok := user.(models.User)
-	// if !ok {
-	// 	err := fmt.Errorf("%s", "Failed to cast user to model")
-	// 	h.Log.LogError(ctx, "playlists", "GetPlaylistsInfo", err)
-	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	// 	return
-	// }
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "playlists", "GetPlaylistsInfo", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
 	movieID, err := strconv.Atoi(movieIDStr)
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 		return
 	}
 
-	playlistInfo, err := h.useCase.GetPlaylistsInfo("user1", movieID)
+	playlistInfo, err := h.useCase.GetPlaylistsInfo(userModel.Username, movieID)
 	if err != nil {
 		h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
@@ -166,14 +166,14 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	playlist, err := h.useCase.UpdatePlaylist(userModel.Username, playlistID, playlistData.Name, playlistData.IsShared)
+	err = h.useCase.UpdatePlaylist(userModel.Username, playlistID, playlistData.Name, playlistData.IsShared)
 	if err != nil {
 		h.Log.LogError(ctx, "playlists", "EditPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	ctx.JSON(http.StatusOK, playlist)
+	ctx.Status(http.StatusOK)
 }
 
 func (h *Handler) DeletePlaylist(ctx *gin.Context) {

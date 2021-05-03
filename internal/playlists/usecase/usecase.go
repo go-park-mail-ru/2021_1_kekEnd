@@ -37,7 +37,7 @@ func (playlistUC *PlaylistUseCase) GetPlaylists(username string) ([]*models.Play
 	return playlistUC.playlistRepository.GetPlaylists(username)
 }
 
-func (playlistUC *PlaylistUseCase) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) (*models.Playlist, error) {
+func (playlistUC *PlaylistUseCase) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error {
 	return playlistUC.playlistRepository.UpdatePlaylist(username, playlistID, playlistName, isShared)
 }
 

@@ -1,16 +1,16 @@
 package models
 
 type Playlist struct {
-	ID       string           `json:"id"`
-	Name     string           `json:"name"`
-	IsShared bool             `json:"isShared"`
-	Movies   []MovieReference `json:"movies"`
+	ID       string            `json:"id"`
+	Name     string            `json:"name"`
+	IsShared bool              `json:"isShared,omitempty"`
+	Movies   []MovieInPlaylist `json:"movies,omitempty"`
 }
 
 type MovieInPlaylist struct {
 	ID      string `json:"id"`
 	Title   string `json:"title"`
-	AddedBy string `json:"username"`
+	AddedBy string `json:"username,omitempty"`
 }
 
 type PlaylistsInfo struct {
