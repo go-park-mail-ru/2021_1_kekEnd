@@ -11,7 +11,8 @@ func RegisterHttpEndpoints(router *gin.Engine, actorsUC actors.UseCase, auth mid
 	handler := NewHandler(actorsUC, Log)
 
 	router.POST("/actors", auth.CheckAuth(), handler.CreateActor)
-	router.GET("/actors/:actor_id", handler.GetActor)
+	router.GET("/actors/:actor_id", auth.CheckAuth(), handler.GetActor)
 	router.PUT("/actors/:actor_id", auth.CheckAuth(), handler.EditActor)
 	router.POST("/actors/:actor_id/like", auth.CheckAuth(), handler.LikeActor)
+	router.DELETE("/actors/:actor_id/like", auth.CheckAuth(), handler.UnlikeActor)
 }

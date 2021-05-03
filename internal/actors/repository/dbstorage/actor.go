@@ -28,7 +28,7 @@ func NewActorRepository(database PgxPoolIface) *ActorRepository {
 	}
 }
 
-func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, error) {
+func (actorStorage *ActorRepository) GetActorByID(id string, username string) (models.Actor, error) {
 	var actor models.Actor
 
 	sqlStatement := `
@@ -49,6 +49,20 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 	if err != nil {
 		return actor, err
 	}
+
+	sqlStatementLiked := `
+		SELECT COUNT(*) FROM mdb.favorite_actors WHERE user_login=$1 AND actor_id=$2
+	`
+	var rowsCount int
+	err = actorStorage.db.QueryRow(context.Background(), sqlStatementLiked, username, idActor).Scan(&rowsCount)
+	isLiked := true
+	if err != nil {
+		return models.Actor{}, err
+	}
+	if rowsCount == 0 {
+		isLiked = false
+	}
+	actor.IsLiked = isLiked
 
 	actor.ID = strconv.Itoa(idActor)
 
@@ -120,6 +134,18 @@ func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor
 func (actorStorage *ActorRepository) LikeActor(username string, actorID int) error {
 	sqlStatement := `
 		INSERT INTO mdb.favorite_actors VALUES($1, $2)
+	`
+
+	_, err := actorStorage.db.Exec(context.Background(), sqlStatement, username, actorID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (actorStorage *ActorRepository) UnlikeActor(username string, actorID int) error {
+	sqlStatement := `
+		DELETE FROM mdb.favorite_actors WHERE user_login=$1 AND actor_id=$2
 	`
 
 	_, err := actorStorage.db.Exec(context.Background(), sqlStatement, username, actorID)
