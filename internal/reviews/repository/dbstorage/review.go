@@ -6,9 +6,10 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"math"
+	"sort"
 	"strconv"
 )
 
@@ -255,4 +256,41 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	}
 
 	return nil
+}
+
+func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*models.Notification, error) {
+	feed := make([]*models.Notification, 0)
+
+	subs := make([]string, len(users))
+	for _, u := range users {
+		subs = append(subs, u.Username)
+	}
+
+	sqlStatement := `
+        SELECT user_login, title, content, creation_date
+        FROM mdb.users_review
+        WHERE user_login && $1 AND creation_date >= NOW() - INTERVAL '48 HOURS'
+        ORDER BY creation_date DESC
+    `
+
+	rows, err := storage.db.Query(context.Background(), sqlStatement, subs)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		notification := &models.Notification{}
+		err := rows.Scan(&notification.User, &notification.Title, &notification.Text, &notification.Date)
+		if err != nil {
+			return nil, err
+		}
+		feed = append(feed, notification)
+	}
+
+	sort.SliceStable(feed, func(i, j int) bool {
+		return feed[i].Date.Before(feed[j].Date)
+	})
+
+	return feed[:_const.FeedItemsLimit], nil
+
 }

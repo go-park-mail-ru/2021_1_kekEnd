@@ -27,6 +27,4 @@ type UserRepository interface {
 	GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error)
 
 	GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error)
-
-	GetFeed(username string) ([]*models.Notification, error)
 }
