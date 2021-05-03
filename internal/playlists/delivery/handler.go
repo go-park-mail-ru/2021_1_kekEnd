@@ -160,7 +160,7 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistData.ID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "EditPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -196,7 +196,7 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -239,7 +239,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -247,7 +247,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 
 	movieID, err := strconv.Atoi(playlistMovieData.MovieID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast movieID value to number")
 		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -290,7 +290,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -298,7 +298,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 
 	movieID, err := strconv.Atoi(playlistMovieData.MovieID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast movieID value to number")
 		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -341,7 +341,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -384,7 +384,7 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 
 	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
 		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return

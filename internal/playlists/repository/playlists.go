@@ -105,11 +105,6 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 	return playlistsInfo, nil
 }
 
-type MovieReference2 struct {
-	ID    int    `json:"f1"`
-	Title string `json:"f2"`
-}
-
 func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Playlist, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, json_object_agg(coalesce(m.id, -1), coalesce(m.title, '')) as kek
@@ -273,7 +268,7 @@ func (storage *PlaylistsRepository) AddMovieToPlaylist(username string, playlist
 		Exec(context.Background(), sqlStatement, playlistID, movieID, username)
 
 	if err != nil {
-		return errors.New("create review error")
+		return errors.New("add movie to playlist error")
 	}
 
 	return nil
@@ -289,7 +284,26 @@ func (storage *PlaylistsRepository) DeleteMovieFromPlaylist(username string, pla
 		Exec(context.Background(), sqlStatement, playlistID, movieID)
 
 	if err != nil {
-		return errors.New("delete review error")
+		return errors.New("delete movie from playlist error")
+	}
+
+	return nil
+}
+
+func (storage *PlaylistsRepository) CanUserUpdateUsersInPlaylist(username string, playlistID int) error {
+	sqlStatement := `
+	    SELECT ownerName
+		FROM mdb.playlists
+	    WHERE playlist_id = $1 AND ownerName = $2;
+	`
+
+	var newOwnerName string
+
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, playlistID, username).Scan(&newOwnerName)
+
+	if err != nil {
+		return errors.New("user can't edit users in playlist")
 	}
 
 	return nil
@@ -305,7 +319,7 @@ func (storage *PlaylistsRepository) AddUserToPlaylist(username string, playlistI
 		Exec(context.Background(), sqlStatement, usernameToAdd, playlistID)
 
 	if err != nil {
-		return errors.New("create review error")
+		return errors.New("add user to playlist error")
 	}
 
 	return nil
@@ -321,7 +335,7 @@ func (storage *PlaylistsRepository) DeleteUserFromPlaylist(username string, play
 		Exec(context.Background(), sqlStatement, usernameToDelete, playlistID)
 
 	if err != nil {
-		return errors.New("delete review error")
+		return errors.New("delete user from playlist error")
 	}
 
 	return nil
