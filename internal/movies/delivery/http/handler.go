@@ -201,3 +201,37 @@ func (h *Handler) MarkWatched(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK)
 }
+
+func (h *Handler) MarkUnwatched(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "movies", "MarkUnwatched", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s","Failed to cast user to model")
+		h.Log.LogError(ctx, "movies", "MarkUnwatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	id := ctx.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "MarkUnwatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	err = h.useCase.MarkUnwatched(userModel.Username, idInt)
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "MarkUnwatched", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}

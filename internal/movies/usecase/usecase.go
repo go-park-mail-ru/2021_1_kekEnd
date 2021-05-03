@@ -46,3 +46,7 @@ func (moviesUC *MoviesUseCase) GetMoviesByGenres(genres []string, page int, user
 func (moviesUC *MoviesUseCase) MarkWatched(username string, id int) error {
 	return moviesUC.movieRepository.MarkWatched(username, id)
 }
+
+func (moviesUC *MoviesUseCase) MarkUnwatched(username string, id int) error {
+	return moviesUC.movieRepository.MarkUnwatched(username, id)
+}

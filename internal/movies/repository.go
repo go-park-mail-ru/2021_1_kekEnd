@@ -15,4 +15,6 @@ type MovieRepository interface {
 	GetMoviesByGenres(genres []string, startIndex int, username string) (int, []*models.Movie, error)
 
 	MarkWatched(username string, id int) error
+
+	MarkUnwatched(username string, id int) error
 }

@@ -316,3 +316,16 @@ func (movieStorage *MovieRepository) MarkWatched(username string, id int) error 
 	}
 	return nil
 }
+
+func (movieStorage *MovieRepository) MarkUnwatched(username string, id int) error {
+	sqlStatement := `
+		DELETE FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2 
+	`
+
+	_, err := movieStorage.db.Exec(context.Background(), sqlStatement, username, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
