@@ -9,6 +9,7 @@ import (
 	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
 	"math"
+	"sort"
 	"strconv"
 
 	// "fmt"
@@ -334,27 +335,58 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 func (storage *UserRepository) GetFeed(username string) ([]*models.Notification, error) {
 	feed := make([]*models.Notification, 0)
 
+	subs := make([]string, 0)
+
 	sqlStatement := `
-        SELECT user_creator, title, content, creation_date
-        FROM mdb.notifications
-		WHERE user_target = $1
-		ORDER BY creation_date DESC
+        SELECT user_2
+        FROM mdb.subscriptions
+		WHERE user_1 = $1
     `
 
 	rows, err := storage.db.Query(context.Background(), sqlStatement, username)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		notification := &models.Notification{}
-		err = rows.Scan(&notification.User, &notification.Title, &notification.Text, &notification.Date)
+		var sub string
+		err = rows.Scan(&sub)
 		if err != nil {
-			return feed, err
+			return nil, err
 		}
 
-		feed = append(feed)
+		subs = append(subs, sub)
 	}
 
-	return feed, nil
+
+	sqlStatement = `
+        SELECT user_login, title, content, creation_date
+        FROM mdb.users_review
+        WHERE user_login=$1
+        ORDER BY creation_date DESC
+    `
+
+	for _, s := range subs {
+		rows, err := storage.db.Query(context.Background(), sqlStatement, s)
+		if err != nil {
+			return nil, err
+		}
+
+		for rows.Next() {
+			notification := &models.Notification{}
+			err := rows.Scan(&notification.User, &notification.Title, &notification.Text, &notification.Date)
+			if err != nil {
+				return nil, err
+			}
+			feed = append(feed, notification)
+		}
+
+	}
+
+	sort.SliceStable(feed, func(i, j int) bool {
+		return feed[i].Date.Before(feed[j].Date)
+	})
+
+	return feed[:_const.FeedItemsLimit], nil
 }
