@@ -13,14 +13,14 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	handler := NewHandler(usersUC, sessions, Log)
 
 	router.POST("/users", handler.CreateUser)
-	router.POST("/users/avatar", authMiddleware.CheckAuth(), handler.UploadAvatar)
-	router.GET("/users", authMiddleware.CheckAuth(), handler.GetUser)
-	router.PUT("/users", authMiddleware.CheckAuth(), handler.UpdateUser)
-	router.DELETE("/sessions", authMiddleware.CheckAuth(), handler.Logout)
+	router.POST("/users/avatar", authMiddleware.RequireAuth(), handler.UploadAvatar)
+	router.GET("/users", authMiddleware.RequireAuth(), handler.GetUser)
+	router.PUT("/users", authMiddleware.RequireAuth(), handler.UpdateUser)
+	router.DELETE("/sessions", authMiddleware.RequireAuth(), handler.Logout)
 	router.POST("/sessions", handler.Login)
 
 	router.GET("/subscriptions/:user_id", handler.GetSubscriptions)
-	router.POST("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Subscribe)
-	router.DELETE("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Unsubscribe)
+	router.POST("/subscriptions/:user_id", authMiddleware.RequireAuth(), handler.Subscribe)
+	router.DELETE("/subscriptions/:user_id", authMiddleware.RequireAuth(), handler.Unsubscribe)
 	router.GET("/subscribers/:user_id", handler.GetSubscribers)
 }

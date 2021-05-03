@@ -5,6 +5,7 @@ import "time"
 const (
 	UserKey           = "user"
 	ActorKey          = "actor"
+	AuthStatusKey     = "auth_status"
 	CookieExpires     = 240 * time.Hour
 	CsrfExpires       = 10 * time.Minute
 	Host              = "localhost"

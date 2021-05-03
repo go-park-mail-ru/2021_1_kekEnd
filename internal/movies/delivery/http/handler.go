@@ -51,14 +51,15 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMovie(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		user = ""
-	}
-	userModel, ok := user.(models.User)
+	auth, ok := ctx.Get(_const.AuthStatusKey)
+	authBool := auth.(bool)
 	username := ""
-	if ok {
-		username = userModel.Username
+	if ok && authBool {
+		user, ok := ctx.Get(_const.UserKey)
+		if ok {
+			userModel := user.(models.User)
+			username = userModel.Username
+		}
 	}
 
 	movie, err := h.useCase.GetMovie(ctx.Param("id"), username)
@@ -81,15 +82,17 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 }
 
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		user = ""
-	}
-	userModel, ok := user.(models.User)
+	auth, ok := ctx.Get(_const.AuthStatusKey)
+	authBool := auth.(bool)
 	username := ""
-	if ok {
-		username = userModel.Username
+	if ok && authBool {
+		user, ok := ctx.Get(_const.UserKey)
+		if ok {
+			userModel := user.(models.User)
+			username = userModel.Username
+		}
 	}
+
 
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil || page < 1 {
@@ -127,14 +130,15 @@ func (h *Handler) GetGenres(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		user = ""
-	}
-	userModel, ok := user.(models.User)
+	auth, ok := ctx.Get(_const.AuthStatusKey)
+	authBool := auth.(bool)
 	username := ""
-	if ok {
-		username = userModel.Username
+	if ok && authBool {
+		user, ok := ctx.Get(_const.UserKey)
+		if ok {
+			userModel := user.(models.User)
+			username = userModel.Username
+		}
 	}
 
 	genresQuery := ctx.Query("filter")

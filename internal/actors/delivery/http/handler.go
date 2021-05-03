@@ -57,25 +57,20 @@ func (h *Handler) CreateActor(ctx *gin.Context) {
 }
 
 func (h *Handler) GetActor(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "actors", "GetActor", err.Error())
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
-
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
-		h.Log.LogError(ctx, "actors", "GetActor", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
+	auth, ok := ctx.Get(_const.AuthStatusKey)
+	authBool := auth.(bool)
+	username := ""
+	if ok && authBool {
+		user, ok := ctx.Get(_const.UserKey)
+		if ok {
+			userModel := user.(models.User)
+			username = userModel.Username
+		}
 	}
 
 	id := ctx.Param("actor_id")
 
-	actor, err := h.useCase.GetActor(id, userModel.Username)
+	actor, err := h.useCase.GetActor(id, username)
 	if err != nil {
 		h.Log.LogWarning(ctx, "actors", "GetActor", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400

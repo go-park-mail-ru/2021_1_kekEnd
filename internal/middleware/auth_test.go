@@ -45,7 +45,7 @@ package middleware
 //
 //		userUseCase.EXPECT().GetUser(username).Return(&userModel, nil)
 //
-//		handler := mdw.CheckAuth()
+//		handler := mdw.RequireAuth()
 //		handler(ctx)
 //
 //		userFromMiddleware, _ := ctx.Get(userKey)
@@ -65,7 +65,7 @@ package middleware
 //		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 //		ctx.Request, _ = http.NewRequest("POST", "/", nil)
 //
-//		handler := mdw.CheckAuth()
+//		handler := mdw.RequireAuth()
 //		handler(ctx)
 //
 //		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401
@@ -99,7 +99,7 @@ package middleware
 //
 //		userUseCase.EXPECT().GetUser(username).Return(&userModel, testErr)
 //
-//		handler := mdw.CheckAuth()
+//		handler := mdw.RequireAuth()
 //		handler(ctx)
 //
 //		assert.Equal(t, http.StatusInternalServerError, ctx.Writer.Status()) // 500
@@ -127,7 +127,7 @@ package middleware
 //			GetUser(Cookie.Value).
 //			Return("", testErr)
 //
-//		handler := mdw.CheckAuth()
+//		handler := mdw.RequireAuth()
 //		handler(ctx)
 //
 //		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401

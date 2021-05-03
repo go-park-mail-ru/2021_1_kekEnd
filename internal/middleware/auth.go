@@ -14,6 +14,7 @@ func respondWithError(ctx *gin.Context, code int, message interface{}) {
 }
 
 type Auth interface {
+	RequireAuth() gin.HandlerFunc
 	CheckAuth() gin.HandlerFunc
 }
 
@@ -29,7 +30,7 @@ func NewAuthMiddleware(useCase users.UseCase, sessions sessions.Delivery) *AuthM
 	}
 }
 
-func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
+func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		sessionID, err := ctx.Cookie("session_id")
 		if err != nil {
@@ -52,6 +53,32 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 		}
 
 		ctx.Set(_const.UserKey, *user)
+		ctx.Next()
+	}
+}
+
+func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		sessionID, err := ctx.Cookie("session_id")
+		if err != nil {
+			ctx.Set(_const.AuthStatusKey, false)
+			return
+		}
+
+		username, err := m.sessions.GetUser(sessionID)
+		if err != nil {
+			ctx.Set(_const.AuthStatusKey, false)
+			return
+		}
+
+		user, err := m.useCase.GetUser(username)
+		if err != nil {
+			ctx.Set(_const.AuthStatusKey, false)
+			return
+		}
+
+		ctx.Set(_const.UserKey, *user)
+		ctx.Set(_const.AuthStatusKey, true)
 		ctx.Next()
 	}
 }
