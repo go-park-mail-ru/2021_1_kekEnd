@@ -44,24 +44,22 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(playlistData)
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogWarning(ctx, "playlists", "CreatePlaylist", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
 
-	// user, ok := ctx.Get(_const.UserKey)
-	// if !ok {
-	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
-	// 	h.Log.LogWarning(ctx, "playlists", "CreatePlaylist", err.Error())
-	// 	ctx.AbortWithStatus(http.StatusBadRequest) // 400
-	// 	return
-	// }
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "playlists", "CreatePlaylist", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	}
 
-	// userModel, ok := user.(models.User)
-	// if !ok {
-	// 	err := fmt.Errorf("%s", "Failed to cast user to model")
-	// 	h.Log.LogError(ctx, "playlists", "CreatePlaylist", err)
-	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	// }
-
-	err = h.useCase.CreatePlaylist("user1", playlistData.Name, playlistData.IsShared)
+	err = h.useCase.CreatePlaylist(userModel.Username, playlistData.Name, playlistData.IsShared)
 	if err != nil {
 		h.Log.LogError(ctx, "playlists", "CreatePlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -73,33 +71,33 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 
 func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 	movieIDStr := ctx.Param("movie_id")
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
+	// user, ok := ctx.Get(_const.UserKey)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
+	// 	h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
+	// 	ctx.AbortWithStatus(http.StatusBadRequest) // 400
+	// 	return
+	// }
 
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "GetRating", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
+	// userModel, ok := user.(models.User)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to cast user to model")
+	// 	h.Log.LogError(ctx, "playlists", "GetPlaylistsInfo", err)
+	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	// 	return
+	// }
 
 	movieID, err := strconv.Atoi(movieIDStr)
 	if err != nil {
-		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		err := fmt.Errorf("%s", "Failed to cast movieID value to number")
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
-	playlistInfo, err := h.useCase.GetPlaylistsInfo(userModel.Username, movieID)
+	playlistInfo, err := h.useCase.GetPlaylistsInfo("user1", movieID)
 	if err != nil {
-		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
@@ -111,7 +109,7 @@ func (h *Handler) GetPlaylists(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylists", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -119,14 +117,14 @@ func (h *Handler) GetPlaylists(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "GetRating", err)
+		h.Log.LogError(ctx, "playlists", "GetPlaylists", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
 	playlists, err := h.useCase.GetPlaylists(userModel.Username)
 	if err != nil {
-		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylists", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
@@ -139,7 +137,7 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	err := ctx.BindJSON(playlistData)
 	if err != nil {
 		msg := "Failed to bind request data" + err.Error()
-		h.Log.LogWarning(ctx, "ratings", "UpdateRating", msg)
+		h.Log.LogWarning(ctx, "playlists", "EditPlaylist", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -147,7 +145,7 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "UpdateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "EditPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -155,7 +153,7 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "UpdateRating", err)
+		h.Log.LogError(ctx, "playlists", "EditPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -163,14 +161,14 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	playlistID, err := strconv.Atoi(playlistData.ID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "EditPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	playlist, err := h.useCase.UpdatePlaylist(userModel.Username, playlistID, playlistData.Name, playlistData.IsShared)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "UpdateRating", err)
+		h.Log.LogError(ctx, "playlists", "EditPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -183,7 +181,7 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "DeleteRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -191,7 +189,7 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "DeleteRating", err)
+		h.Log.LogError(ctx, "playlists", "DeletePlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -199,14 +197,14 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	err = h.useCase.DeletePlaylist(userModel.Username, playlistID)
 	if err != nil {
-		h.Log.LogWarning(ctx, "ratings", "DeleteRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -219,7 +217,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	err := ctx.BindJSON(playlistMovieData)
 	if err != nil {
 		msg := "Failed to bind request data" + err.Error()
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", msg)
+		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -227,7 +225,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -235,14 +233,14 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "AddMovieToPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
 	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -250,14 +248,14 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	movieID, err := strconv.Atoi(playlistMovieData.MovieID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	err = h.useCase.AddMovieToPlaylist(userModel.Username, playlistID, movieID)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "AddMovieToPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -270,7 +268,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	err := ctx.BindJSON(playlistMovieData)
 	if err != nil {
 		msg := "Failed to bind request data" + err.Error()
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", msg)
+		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -278,7 +276,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -286,14 +284,14 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "DeleteMovieFromPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
 	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -301,14 +299,14 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	movieID, err := strconv.Atoi(playlistMovieData.MovieID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	err = h.useCase.DeleteMovieFromPlaylist(userModel.Username, playlistID, movieID)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "DeleteMovieFromPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -321,7 +319,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 	err := ctx.BindJSON(playlistUserData)
 	if err != nil {
 		msg := "Failed to bind request data" + err.Error()
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", msg)
+		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -329,7 +327,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -337,21 +335,21 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "AddUserToPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
 	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	err = h.useCase.AddUserToPlaylist(userModel.Username, playlistID, playlistUserData.Username)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "AddUserToPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
@@ -364,7 +362,7 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 	err := ctx.BindJSON(playlistUserData)
 	if err != nil {
 		msg := "Failed to bind request data" + err.Error()
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", msg)
+		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -372,7 +370,7 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -380,21 +378,21 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 	userModel, ok := user.(models.User)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "DeleteUserFromPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
 	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast rating value to number")
-		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
 	err = h.useCase.DeleteUserFromPlaylist(userModel.Username, playlistID, playlistUserData.Username)
 	if err != nil {
-		h.Log.LogError(ctx, "ratings", "CreateRating", err)
+		h.Log.LogError(ctx, "playlists", "DeleteUserFromPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}

@@ -10,8 +10,8 @@ import (
 func RegisterHttpEndpoints(router *gin.Engine, playlistsUC playlists.UseCase, authMiddleware middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(playlistsUC, Log)
 
-	router.POST("/playlists", handler.CreatePlaylist)
-	router.GET("/playlists/:movie_id", authMiddleware.CheckAuth(), handler.GetPlaylistsInfo)
+	router.POST("/playlists", authMiddleware.CheckAuth(), handler.CreatePlaylist)
+	router.GET("/playlists/:movie_id", handler.GetPlaylistsInfo)
 	router.GET("/playlists", authMiddleware.CheckAuth(), handler.GetPlaylists)
 	router.PUT("/playlists", authMiddleware.CheckAuth(), handler.EditPlaylist)
 	router.DELETE("/playlists/:playlist_id", authMiddleware.CheckAuth(), handler.DeletePlaylist)

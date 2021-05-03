@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
@@ -37,8 +36,6 @@ func (storage *PlaylistsRepository) CreatePlaylist(username string, playlistName
         RETURNING "id";
     `
 
-	fmt.Println("WQEQWEQWE", playlistName, username, isShared)
-
 	var newID int
 	err := storage.db.
 		QueryRow(context.Background(), sqlStatement,
@@ -66,7 +63,7 @@ func (storage *PlaylistsRepository) CreatePlaylist(username string, playlistName
 
 func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
 	sqlStatement := `
-        SELECT pl.id, pl.name, plm.movie_id
+        SELECT pl.id, pl.name, coalesce(plm.movie_id, -1) as movie_id
         FROM mdb.playlistsWhoCanAdd plwca
 		LEFT JOIN mdb.playlistsMovies plm ON plwca.playlist_id = plm.playlist_id AND plm.movie_id = $1
 		JOIN mdb.playlists pl ON plwca.playlist_id = pl.id
@@ -74,7 +71,7 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
     `
 
 	rows, err := storage.db.
-		Query(context.Background(), sqlStatement, username, movieID)
+		Query(context.Background(), sqlStatement, movieID, username)
 	if err != nil {
 		return nil, err
 	}
@@ -84,17 +81,24 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 
 	for rows.Next() {
 		playlist := &models.PlaylistsInfo{}
+
 		var newID int
 		var playlistName string
-		var newMovieID *int
-		err = rows.Scan(&newID, &playlistName, newMovieID)
+		var newMovieID int
+
+		err = rows.Scan(&newID, &playlistName, &newMovieID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
 		}
 
 		playlist.ID = strconv.Itoa(newID)
 		playlist.Name = username
-		// playlist.IsAdded = *newMovieID
+
+		if newMovieID == -1 {
+			playlist.IsAdded = false
+		} else {
+			playlist.IsAdded = true
+		}
 
 		playlistsInfo = append(playlistsInfo, playlist)
 	}
