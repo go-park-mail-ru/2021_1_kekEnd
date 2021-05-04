@@ -428,3 +428,29 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, subsResponse)
 }
+func (h *Handler) GetFeed(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	feed, err := h.useCase.GetFeed(userModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, feed)
+}
