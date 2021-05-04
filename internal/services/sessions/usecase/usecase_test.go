@@ -2,8 +2,7 @@ package sessions
 
 import (
 	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -18,41 +17,35 @@ func TestCreate(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		UUID := uuid.NewV4().String()
 
-		mUC.
+		rdb.
 			EXPECT().
-			Create(username, time.Duration(10)).
-			Return(UUID, nil)
+			Create(gomock.Any(), username, time.Duration(10)).
+			Return(nil)
 
-		sessionID, err := delivery.Create(username, time.Duration(10))
+		_, err := useCase.Create(username, time.Duration(10))
 		assert.NoError(t, err)
-		assert.Equal(t, UUID, sessionID)
 	})
 
 	t.Run("Create-Error", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
-
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		UUID := uuid.NewV4().String()
 
-		mUC.
+		rdb.
 			EXPECT().
-			Create(username, time.Duration(10)).
-			Return(UUID, testErr)
+			Create(gomock.Any(), username, time.Duration(10)).
+			Return(testErr)
 
-		_, err := delivery.Create(username, time.Duration(10))
+		_, err := useCase.Create(username, time.Duration(10))
 		assert.Error(t, err)
 	})
 }
@@ -64,20 +57,20 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
-
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := uuid.NewV4().String()
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 
-		mUC.
+		rdb.
 			EXPECT().
-			Check(sessionID).
+			Get(sessionID).
 			Return(username, nil)
 
-		userFromSession, err := delivery.GetUser(sessionID)
+		userFromSession, err := useCase.GetUser(ID)
+
 		assert.NoError(t, err)
 		assert.Equal(t, username, userFromSession)
 	})
@@ -86,20 +79,19 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
-
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
-		sessionID := uuid.NewV4().String()
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
 
-		mUC.
+		rdb.
 			EXPECT().
-			Check(sessionID).
+			Get(sessionID).
 			Return(username, testErr)
 
-		_, err := delivery.GetUser(sessionID)
+		_, err := useCase.GetUser(ID)
 		assert.Error(t, err)
 	})
 }
@@ -111,19 +103,18 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
-
-		sessionID := uuid.NewV4().String()
-
-		mUC.
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
+		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(nil)
 
-		err := delivery.Delete(sessionID)
+		err := useCase.Delete(ID)
+
 		assert.NoError(t, err)
 	})
 
@@ -131,18 +122,17 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mUC := sessions.NewMockUseCase(ctrl)
-		lg := logger.NewAccessLogger()
-		delivery := NewDelivery(mUC, lg)
+		rdb := mocks.NewMockRepository(ctrl)
+		useCase := NewUseCase(rdb)
 
-		sessionID := uuid.NewV4().String()
-
-		mUC.
+		ID := uuid.NewV4().String()
+		sessionID := addPrefix(ID)
+		rdb.
 			EXPECT().
 			Delete(sessionID).
 			Return(testErr)
 
-		err := delivery.Delete(sessionID)
+		err := useCase.Delete(ID)
 		assert.Error(t, err)
 	})
 }
