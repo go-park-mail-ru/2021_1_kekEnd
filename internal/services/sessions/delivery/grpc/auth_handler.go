@@ -21,8 +21,7 @@ func NewAuthHandlerServer(uc sessions.UseCase) *AuthHandlerServer {
 }
 
 func (d *AuthHandlerServer) Create(ctx context.Context, session *proto.CreateSession) (*proto.SessionValue, error) {
-	expires := time.Duration(session.Expires.AsTime().UnixNano())
-	sessionID, err := d.UseCase.Create(session.UserID, expires)
+	sessionID, err := d.UseCase.Create(session.UserID, time.Duration(session.Expires))
 	if err != nil {
 		return nil, status.Error(500, "error in CreateSession")
 	}

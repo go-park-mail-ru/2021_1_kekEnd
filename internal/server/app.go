@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -10,7 +11,6 @@ import (
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
-	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
@@ -23,6 +23,7 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
+	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
@@ -30,6 +31,7 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"os"
@@ -47,6 +49,8 @@ type App struct {
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
+	sessionsUC     *sessionsUseCase.AuthClient
+	sessionsConn   *grpc.ClientConn
 }
 
 func init() {
@@ -67,6 +71,12 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "%s:%s", _const.Host, _const.AuthPort), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
+	}
+	sessionsUC := sessionsUseCase.NewAuthClient(sessionsGrpcConn)
+
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
 
@@ -82,7 +92,7 @@ func NewApp() *App {
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
-	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
+	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsUC)
 	csrfMiddleware := middleware.NewCsrfMiddleware(accessLogger)
 
 	return &App{
@@ -94,6 +104,8 @@ func NewApp() *App {
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
+		sessionsUC:     sessionsUC,
+		sessionsConn:   sessionsGrpcConn,
 	}
 }
 
@@ -109,7 +121,7 @@ func (app *App) Run(port string) error {
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware, app.logger)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsUC, app.authMiddleware, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
@@ -140,5 +152,6 @@ func (app *App) Run(port string) error {
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()
 
+	_ = app.sessionsConn.Close()
 	return app.server.Shutdown(ctx)
 }

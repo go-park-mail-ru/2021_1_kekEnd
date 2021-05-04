@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
@@ -20,10 +20,10 @@ type Auth interface {
 
 type AuthMiddleware struct {
 	useCase  users.UseCase
-	sessions sessions.Delivery
+	sessions *usecase.AuthClient
 }
 
-func NewAuthMiddleware(useCase users.UseCase, sessions sessions.Delivery) *AuthMiddleware {
+func NewAuthMiddleware(useCase users.UseCase, sessions *usecase.AuthClient) *AuthMiddleware {
 	return &AuthMiddleware{
 		useCase:  useCase,
 		sessions: sessions,
@@ -39,7 +39,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		username, err := m.sessions.GetUser(sessionID)
+		username, err := m.sessions.Check(sessionID)
 		if err != nil {
 			fmt.Println("no sessions for this user", err)
 			respondWithError(ctx, http.StatusUnauthorized, "no sessions for this user") //401
@@ -65,7 +65,7 @@ func (m *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			return
 		}
 
-		username, err := m.sessions.GetUser(sessionID)
+		username, err := m.sessions.Check(sessionID)
 		if err != nil {
 			ctx.Set(_const.AuthStatusKey, false)
 			return

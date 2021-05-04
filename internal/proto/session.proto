@@ -5,11 +5,10 @@ option go_package = "github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto";
 package auth;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 message CreateSession {
   string UserID = 1;
-  google.protobuf.Timestamp Expires = 2;
+  int64 Expires = 2;
 }
 
 message SessionValue {
