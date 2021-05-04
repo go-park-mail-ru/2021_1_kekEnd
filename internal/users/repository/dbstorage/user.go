@@ -99,16 +99,10 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 		return nil, errors.New("User not found")
 	}
 
-	actors, err := storage.getFavoriteActors(user.Username)
-	if err != nil {
-		return nil, err
-	}
-	user.FavoriteActors = actors
-
 	return &user, nil
 }
 
-func (storage *UserRepository) getFavoriteActors(username string) ([]models.Actor, error) {
+func (storage *UserRepository) GetFavoriteActors(username string) ([]models.Actor, error) {
 	sqlStatement := `
 		SELECT id, name, avatar
 		FROM mdb.favorite_actors favac

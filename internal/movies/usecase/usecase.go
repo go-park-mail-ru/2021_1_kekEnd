@@ -46,28 +46,28 @@ func (moviesUC *MoviesUseCase) GetMoviesByGenres(genres []string, page int, user
 	return moviesUC.movieRepository.GetMoviesByGenres(genres, startIndex, username)
 }
 
-func (moviesUC *MoviesUseCase) MarkWatched(user *models.User, id int) error {
+func (moviesUC *MoviesUseCase) MarkWatched(user models.User, id int) error {
 	err := moviesUC.movieRepository.MarkWatched(user.Username, id)
 	if err != nil {
 		return err
 	}
 	// successful mark watched, must increment movies_watched for user
 	newMoviesWatchNumber := *user.MoviesWatched + 1
-	_, err = moviesUC.userRepository.UpdateUser(user, models.User{
+	_, err = moviesUC.userRepository.UpdateUser(&user, models.User{
 		Username:      user.Username,
 		MoviesWatched: &newMoviesWatchNumber,
 	})
 	return err
 }
 
-func (moviesUC *MoviesUseCase) MarkUnwatched(user *models.User, id int) error {
+func (moviesUC *MoviesUseCase) MarkUnwatched(user models.User, id int) error {
 	err := moviesUC.movieRepository.MarkUnwatched(user.Username, id)
 	if err != nil {
 		return err
 	}
 	// successful mark unwatched, must decrement movies_watched for user
 	newMoviesWatchNumber := *user.MoviesWatched - 1
-	_, err = moviesUC.userRepository.UpdateUser(user, models.User{
+	_, err = moviesUC.userRepository.UpdateUser(&user, models.User{
 		Username:      user.Username,
 		MoviesWatched: &newMoviesWatchNumber,
 	})

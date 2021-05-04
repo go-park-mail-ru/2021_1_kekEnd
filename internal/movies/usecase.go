@@ -14,7 +14,7 @@ type UseCase interface {
 
 	GetMoviesByGenres(genres []string, page int, username string) (int, []*models.Movie, error)
 
-	MarkWatched(user *models.User, id int) error
+	MarkWatched(user models.User, id int) error
 
-	MarkUnwatched(user *models.User, id int) error
+	MarkUnwatched(user models.User, id int) error
 }

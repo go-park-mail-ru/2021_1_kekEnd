@@ -39,7 +39,16 @@ func (usersUC *UsersUseCase) Login(login, password string) bool {
 }
 
 func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
-	return usersUC.userRepository.GetUserByUsername(username)
+	user, err := usersUC.userRepository.GetUserByUsername(username)
+	if err != nil {
+		return &models.User{}, err
+	}
+	actors, err := usersUC.userRepository.GetFavoriteActors(user.Username)
+	if err != nil {
+		return &models.User{}, err
+	}
+	user.FavoriteActors = actors
+	return user, nil
 }
 
 func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (*models.User, error) {

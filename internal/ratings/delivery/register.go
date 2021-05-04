@@ -11,8 +11,8 @@ func RegisterHttpEndpoints(router *gin.Engine, ratingsUC ratings.UseCase, authMi
 	Log *logger.Logger) {
 	handler := NewHandler(ratingsUC, Log)
 
-	router.POST("/ratings", authMiddleware.RequireAuth(), handler.CreateRating)
-	router.GET("/ratings/:movie_id", authMiddleware.RequireAuth(), handler.GetRating)
-	router.PUT("/ratings", authMiddleware.RequireAuth(), handler.UpdateRating)
-	router.DELETE("/ratings/:movie_id", authMiddleware.RequireAuth(), handler.DeleteRating)
+	router.POST("/ratings", authMiddleware.CheckAuth(true), handler.CreateRating)
+	router.GET("/ratings/:movie_id", authMiddleware.CheckAuth(true), handler.GetRating)
+	router.PUT("/ratings", authMiddleware.CheckAuth(true), handler.UpdateRating)
+	router.DELETE("/ratings/:movie_id", authMiddleware.CheckAuth(true), handler.DeleteRating)
 }
