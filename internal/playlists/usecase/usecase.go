@@ -37,7 +37,19 @@ func (playlistUC *PlaylistUseCase) UpdatePlaylist(username string, playlistID in
 		return err
 	}
 
-	return playlistUC.playlistRepository.UpdatePlaylist(username, playlistID, playlistName, isShared)
+	err = playlistUC.playlistRepository.UpdatePlaylist(username, playlistID, playlistName, isShared)
+	if err != nil {
+		return err
+	}
+
+	if !isShared {
+		err = playlistUC.playlistRepository.DeleteAllUserFromPlaylist(username, playlistID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (playlistUC *PlaylistUseCase) DeletePlaylist(username string, playlistID int) error {

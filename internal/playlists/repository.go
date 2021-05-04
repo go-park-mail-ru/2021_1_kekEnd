@@ -22,4 +22,5 @@ type PlaylistsRepository interface {
 	CanUserUpdateUsersInPlaylist(username string, playlistID int) error
 	AddUserToPlaylist(username string, playlistID int, usernameToAdd string) error
 	DeleteUserFromPlaylist(username string, playlistID int, usernameToDelete string) error
+	DeleteAllUserFromPlaylist(username string, playlistID int) error
 }

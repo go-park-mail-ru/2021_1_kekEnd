@@ -200,7 +200,7 @@ func (storage *PlaylistsRepository) CanUserUpdatePlaylist(username string, playl
 		Query(context.Background(), sqlStatement, playlistID, username)
 
 	if err != nil {
-		return errors.New("user can't update playlist")
+		return err
 	}
 
 	return nil
@@ -230,7 +230,7 @@ func (storage *PlaylistsRepository) DeleteAllUserFromPlaylist(username string, p
 		Query(context.Background(), sqlStatement, playlistID, username)
 
 	if err != nil {
-		return errors.New("can't delete user movie from playlist")
+		return err
 	}
 
 	return nil
@@ -250,11 +250,7 @@ func (storage *PlaylistsRepository) UpdatePlaylist(username string, playlistID i
 		QueryRow(context.Background(), sqlStatement, playlistID, playlistName, isShared).Scan(&NewIsShared)
 
 	if err != nil {
-		return errors.New("update playlist error")
-	}
-
-	if !NewIsShared {
-		storage.DeleteAllUserFromPlaylist(username, playlistID)
+		return err
 	}
 
 	return nil
@@ -270,7 +266,7 @@ func (storage *PlaylistsRepository) DeletePlaylist(playlistID int) error {
 		Exec(context.Background(), sqlStatement, playlistID)
 
 	if err != nil {
-		return errors.New("delete playlist error")
+		return err
 	}
 
 	return nil

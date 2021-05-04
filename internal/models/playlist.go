@@ -3,7 +3,7 @@ package models
 type Playlist struct {
 	ID       string            `json:"id"`
 	Name     string            `json:"name"`
-	IsShared bool              `json:"isShared,omitempty"`
+	IsShared bool              `json:"isShared"`
 	Movies   []MovieInPlaylist `json:"movies,omitempty"`
 }
 
