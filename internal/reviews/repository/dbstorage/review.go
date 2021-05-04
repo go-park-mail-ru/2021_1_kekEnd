@@ -291,5 +291,4 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 	})
 
 	return feed[:_const.FeedItemsLimit], nil
-
 }
