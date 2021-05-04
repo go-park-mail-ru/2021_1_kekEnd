@@ -102,35 +102,6 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 	return &user, nil
 }
 
-func (storage *UserRepository) GetFavoriteActors(username string) ([]models.Actor, error) {
-	sqlStatement := `
-		SELECT id, name, avatar
-		FROM mdb.favorite_actors favac
-		JOIN actors ac ON favac.actor_id = ac.id AND favac.user_login = $1
-		ORDER BY name
-	`
-
-	var actors []models.Actor
-	rows, err := storage.db.Query(context.Background(), sqlStatement, username)
-	if err != nil {
-		return actors, nil
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		actor := models.Actor{}
-		var id int
-		err = rows.Scan(&id, &actor.Name, &actor.Avatar)
-		if err != nil {
-			return []models.Actor{}, err
-		}
-		actor.ID = strconv.Itoa(id)
-		actors = append(actors, actor)
-	}
-
-	return actors, nil
-}
-
 func (storage *UserRepository) CheckPassword(password string, user *models.User) (bool, error) {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }

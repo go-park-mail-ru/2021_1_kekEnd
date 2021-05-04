@@ -94,7 +94,7 @@ func NewApp() *App {
 	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo)
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo, actorsRepo)
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo, usersRepo)
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)

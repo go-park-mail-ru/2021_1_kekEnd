@@ -10,8 +10,6 @@ type UserRepository interface {
 
 	GetUserByUsername(username string) (*models.User, error)
 
-	GetFavoriteActors(username string) ([]models.Actor, error)
-
 	CheckPassword(password string, user *models.User) (bool, error)
 
 	UpdateUser(user *models.User, change models.User) (*models.User, error)
