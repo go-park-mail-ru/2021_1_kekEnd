@@ -10,7 +10,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
@@ -27,7 +28,7 @@ func TestHandlers(t *testing.T) {
 
 	actorsUC := actorsMock.NewMockUseCase(ctrl)
 	usersUC := usersMock.NewMockUseCase(ctrl)
-	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
+	sessionsUC := mocks.NewMockUseCase(ctrl)
 	delivery := sessions.NewDelivery(sessionsUC, lg)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)

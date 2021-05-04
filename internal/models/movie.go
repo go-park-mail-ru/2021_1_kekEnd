@@ -25,6 +25,8 @@ type Movie struct {
 
 	Rating      float64 `json:"rating"`
 	RatingCount uint    `json:"rating_count"`
+
+	IsWatched bool `json:"is_watched"`
 }
 
 type ActorData struct {

@@ -2,12 +2,7 @@ package server
 
 import (
 	"context"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
-
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -21,6 +16,9 @@ import (
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
+	playlistsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/delivery"
+	playlistsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/repository"
+	playlistsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
 	ratingsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/dbstorage"
@@ -29,22 +27,20 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
-	sessionsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/repository"
-	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
-
-	playlistsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/delivery"
-	playlistsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/repository"
-	playlistsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/usecase"
+	"google.golang.org/grpc"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 )
 
 type App struct {
@@ -55,10 +51,11 @@ type App struct {
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
 	playlistsUC    playlists.UseCase
-	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
+	sessionsDL     *sessionsDelivery.AuthClient
+	sessionsConn   *grpc.ClientConn
 }
 
 func init() {
@@ -68,45 +65,33 @@ func init() {
 }
 
 func NewApp() *App {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-
-	p, err := rdb.Ping(context.Background()).Result()
-	if err != nil {
-		log.Fatal("Failed to create redis client", p, err)
-	}
-
 	accessLogger := logger.NewAccessLogger()
-
-	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
-	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
-	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
-		log.Fatal("Failed to read DB connection data", err)
+		log.Fatal("Failed to read DB connection data")
 	}
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "%s:%s", _const.Host, _const.AuthPort), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
+	}
+	sessionsDL := sessionsDelivery.NewAuthClient(sessionsGrpcConn)
+
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
-
-	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
-
-	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
-	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
-
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
-	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
-
+	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
+	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
+
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo, actorsRepo)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo, usersRepo)
+	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
+	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
 	playlistsRepo := playlistsRepository.NewPlaylistsRepository(dbpool)
@@ -120,12 +105,13 @@ func NewApp() *App {
 		actorsUC:       actorsUC,
 		moviesUC:       moviesUC,
 		ratingsUC:      ratingsUC,
-		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		playlistsUC:    playlistsUC,
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
+		sessionsDL:     sessionsDL,
+		sessionsConn:   sessionsGrpcConn,
 	}
 }
 
@@ -141,8 +127,8 @@ func (app *App) Run(port string) error {
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware, app.logger)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.logger)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.logger)
+	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
@@ -173,5 +159,6 @@ func (app *App) Run(port string) error {
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()
 
+	_ = app.sessionsConn.Close()
 	return app.server.Shutdown(ctx)
 }

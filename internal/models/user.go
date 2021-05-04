@@ -8,6 +8,8 @@ type User struct {
 
 	MoviesWatched *uint `json:"movies_watched"`
 	ReviewsNumber *uint `json:"reviews_number"`
+
+	FavoriteActors []Actor `json:"favorite_actors"`
 }
 
 type UserNoPassword struct {
@@ -17,6 +19,8 @@ type UserNoPassword struct {
 
 	MoviesWatched *uint `json:"movies_watched"`
 	ReviewsNumber *uint `json:"reviews_number"`
+
+	FavoriteActors []Actor `json:"favorite_actors"`
 }
 
 func FromUser(user User) UserNoPassword {
@@ -26,5 +30,6 @@ func FromUser(user User) UserNoPassword {
 		Avatar:        user.Avatar,
 		MoviesWatched: user.MoviesWatched,
 		ReviewsNumber: user.ReviewsNumber,
+		FavoriteActors: user.FavoriteActors,
 	}
 }

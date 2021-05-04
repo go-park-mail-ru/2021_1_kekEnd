@@ -17,8 +17,8 @@ func NewActorsUseCase(repository actors.Repository) *ActorUseCase {
 	}
 }
 
-func (u ActorUseCase) GetActor(id string) (models.Actor, error) {
-	return u.repository.GetActorByID(id)
+func (u ActorUseCase) GetActor(id string, username string) (models.Actor, error) {
+	return u.repository.GetActorByID(id, username)
 }
 
 func (u ActorUseCase) CreateActor(user models.User, actor models.Actor) error {
@@ -49,4 +49,12 @@ func (u ActorUseCase) EditActor(user models.User, change models.Actor) (models.A
 	}
 
 	return u.repository.EditActor(change)
+}
+
+func (u ActorUseCase) LikeActor(username string, actorID int) error {
+	return u.repository.LikeActor(username, actorID)
+}
+
+func (u ActorUseCase) UnlikeActor(username string, actorID int) error {
+	return u.repository.UnlikeActor(username, actorID)
 }

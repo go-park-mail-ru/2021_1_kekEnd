@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto";
+
+package auth;
+
+import "google/protobuf/empty.proto";
+
+message CreateSession {
+  string UserID = 1;
+  int64 Expires = 2;
+}
+
+message SessionValue {
+  string SessionID = 1;
+}
+
+message UserValue {
+  string UserID = 1;
+}
+
+service AuthHandler {
+  rpc Create(CreateSession) returns (SessionValue) {}
+  rpc GetUser(SessionValue) returns (UserValue) {}
+  rpc Delete(SessionValue) returns (google.protobuf.Empty) {}
+}
