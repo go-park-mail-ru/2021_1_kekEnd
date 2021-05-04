@@ -10,6 +10,10 @@ import (
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
+	sessions2 "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/repository"
+	sessions3 "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/usecase"
+
 	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
@@ -23,10 +27,7 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
 	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
-	sessionsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/repository"
-	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
@@ -75,8 +76,8 @@ func NewApp() *App {
 
 	accessLogger := logger.NewAccessLogger()
 
-	sessionsRepo := sessionsRepository.NewRedisRepository(rdb)
-	sessionsUC := sessionsUseCase.NewUseCase(sessionsRepo)
+	sessionsRepo := sessions2.NewRedisRepository(rdb)
+	sessionsUC := sessions3.NewUseCase(sessionsRepo)
 	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")

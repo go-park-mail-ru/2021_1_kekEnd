@@ -2,7 +2,7 @@
 // Source: repository.go
 
 // Package mock_sessions is a generated GoMock package.
-package sessions
+package mocks
 
 import (
 	reflect "reflect"

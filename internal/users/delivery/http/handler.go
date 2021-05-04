@@ -6,7 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"

@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"

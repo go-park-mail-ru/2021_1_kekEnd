@@ -2,7 +2,7 @@ package sessions
 
 import (
 	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestCreate(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
@@ -35,7 +35,7 @@ func TestCreate(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
@@ -57,7 +57,7 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
@@ -79,7 +79,7 @@ func TestGetUser(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		username := "whaevaforeva"
@@ -103,7 +103,7 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		ID := uuid.NewV4().String()
@@ -122,7 +122,7 @@ func TestDelete(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		rdb := sessions.NewMockRepository(ctrl)
+		rdb := mocks.NewMockRepository(ctrl)
 		useCase := NewUseCase(rdb)
 
 		ID := uuid.NewV4().String()
