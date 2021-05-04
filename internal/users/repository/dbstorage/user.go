@@ -10,8 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"math"
 	"strconv"
-
-	// "fmt"
 )
 
 type PgxPoolIface interface {
@@ -134,6 +132,10 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 		user.ReviewsNumber = change.ReviewsNumber
 	}
 
+	if change.MoviesWatched != nil {
+		user.MoviesWatched = change.MoviesWatched
+	}
+
 	sqlStatement := `
         UPDATE mdb.users
         SET (login, password, email, img_src, movies_watched, reviews_count) =
@@ -209,6 +211,7 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*mo
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		user := &models.UserNoPassword{}

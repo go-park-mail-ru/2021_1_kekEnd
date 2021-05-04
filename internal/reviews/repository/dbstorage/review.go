@@ -54,7 +54,6 @@ func convertReviewTypeFromStrToInt(reviewType models.ReviewType) int {
 		return -1
 	default:
 		return -100
-
 	}
 }
 
@@ -292,5 +291,4 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 	})
 
 	return feed[:_const.FeedItemsLimit], nil
-
 }

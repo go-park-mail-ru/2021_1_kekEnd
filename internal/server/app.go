@@ -94,8 +94,8 @@ func NewApp() *App {
 	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo)
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo, actorsRepo)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo, usersRepo)
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
@@ -129,7 +129,7 @@ func (app *App) Run(port string) error {
 	router.Use(gin.Recovery())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessions, app.authMiddleware, app.logger)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.logger)
+	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)

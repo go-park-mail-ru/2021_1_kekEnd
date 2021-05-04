@@ -13,15 +13,15 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	handler := NewHandler(usersUC, sessions, Log)
 
 	router.POST("/users", handler.CreateUser)
-	router.POST("/users/avatar", authMiddleware.CheckAuth(), handler.UploadAvatar)
-	router.GET("/users", authMiddleware.CheckAuth(), handler.GetUser)
-	router.PUT("/users", authMiddleware.CheckAuth(), handler.UpdateUser)
-	router.DELETE("/sessions", authMiddleware.CheckAuth(), handler.Logout)
+	router.POST("/users/avatar", authMiddleware.CheckAuth(true), handler.UploadAvatar)
+	router.GET("/users", authMiddleware.CheckAuth(true), handler.GetUser)
+	router.PUT("/users", authMiddleware.CheckAuth(true), handler.UpdateUser)
+	router.DELETE("/sessions", authMiddleware.CheckAuth(true), handler.Logout)
 	router.POST("/sessions", handler.Login)
 
 	router.GET("/subscriptions/:user_id", handler.GetSubscriptions)
-	router.POST("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Subscribe)
-	router.DELETE("/subscriptions/:user_id", authMiddleware.CheckAuth(), handler.Unsubscribe)
+	router.POST("/subscriptions/:user_id", authMiddleware.CheckAuth(true), handler.Subscribe)
+	router.DELETE("/subscriptions/:user_id", authMiddleware.CheckAuth(true), handler.Unsubscribe)
 	router.GET("/subscribers/:user_id", handler.GetSubscribers)
-	router.GET("/feed", authMiddleware.CheckAuth(), handler.GetFeed)
+	router.GET("/feed", authMiddleware.CheckAuth(true), handler.GetFeed)
 }

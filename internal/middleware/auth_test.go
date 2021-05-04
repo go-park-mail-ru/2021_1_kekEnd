@@ -45,7 +45,7 @@ func TestCheckAuth(t *testing.T) {
 
 		userUseCase.EXPECT().GetUser(username).Return(&userModel, nil)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		userFromMiddleware, _ := ctx.Get(userKey)
@@ -65,7 +65,7 @@ func TestCheckAuth(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request, _ = http.NewRequest("POST", "/", nil)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401
@@ -99,7 +99,7 @@ func TestCheckAuth(t *testing.T) {
 
 		userUseCase.EXPECT().GetUser(username).Return(&userModel, testErr)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusInternalServerError, ctx.Writer.Status()) // 500
@@ -127,7 +127,7 @@ func TestCheckAuth(t *testing.T) {
 			GetUser(Cookie.Value).
 			Return("", testErr)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401

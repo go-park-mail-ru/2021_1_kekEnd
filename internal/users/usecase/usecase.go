@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
@@ -10,14 +11,16 @@ import (
 )
 
 type UsersUseCase struct {
-	userRepository users.UserRepository
+	userRepository    users.UserRepository
 	reviewsRepository reviews.ReviewRepository
+	actorsRepository  actors.Repository
 }
 
-func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository) *UsersUseCase {
+func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository, actors actors.Repository) *UsersUseCase {
 	return &UsersUseCase{
-		userRepository: repo,
+		userRepository:    repo,
 		reviewsRepository: reviews,
+		actorsRepository:  actors,
 	}
 }
 
@@ -42,7 +45,16 @@ func (usersUC *UsersUseCase) Login(login, password string) bool {
 }
 
 func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
-	return usersUC.userRepository.GetUserByUsername(username)
+	user, err := usersUC.userRepository.GetUserByUsername(username)
+	if err != nil {
+		return &models.User{}, err
+	}
+	favActors, err := usersUC.actorsRepository.GetFavoriteActors(user.Username)
+	if err != nil {
+		return &models.User{}, err
+	}
+	user.FavoriteActors = favActors
+	return user, nil
 }
 
 func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (*models.User, error) {

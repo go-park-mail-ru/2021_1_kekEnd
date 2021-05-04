@@ -11,6 +11,27 @@ CREATE SCHEMA mdb;
 GRANT usage ON SCHEMA mdb TO mdb;
 
 
+CREATE TABLE mdb.users
+(
+    login               VARCHAR(100) PRIMARY KEY,
+    password            VARCHAR(256) NOT NULL,
+    img_src             text DEFAULT 'http://89.208.198.186:8080/avatars/default.jpeg',
+
+    firstname           VARCHAR(100),
+    lastname            VARCHAR(100),
+    sex                 INTEGER CONSTRAINT sex_t CHECK (sex = 1 OR sex = 0),
+    email               VARCHAR(100) NOT NULL UNIQUE,
+    registration_date   timestamp NOT NULL DEFAULT NOW(),
+
+    description         VARCHAR(600),
+    movies_watched      INTEGER DEFAULT 0,
+    reviews_count       INTEGER DEFAULT 0,
+    friends_count       INTEGER DEFAULT 0,
+    user_rating         INTEGER DEFAULT 0
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users TO mdb;
+COMMENT ON TABLE mdb.users IS 'Пользователи';
+
 
 CREATE TABLE mdb.movie
 (
@@ -72,7 +93,15 @@ CREATE TABLE mdb.actors
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.actors TO mdb;
 COMMENT ON TABLE mdb.actors IS 'Актеры';
 
-INSERT INTO mdb.movie_actors (movie_id, actor_id) VALUES (1,1);
+CREATE TABLE mdb.favorite_actors
+(
+    user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
+    actor_id INTEGER REFERENCES mdb.actors (id) ON DELETE CASCADE
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.favorite_actors TO mdb;
+COMMENT ON TABLE mdb.favorite_actors IS 'Любимые актеры';
+
+-- INSERT INTO mdb.movie_actors (movie_id, actor_id) VALUES (1,1);
 CREATE TABLE mdb.movie_actors
 (
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
@@ -80,29 +109,6 @@ CREATE TABLE mdb.movie_actors
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_actors TO mdb;
 COMMENT ON TABLE mdb.movie_actors IS 'Связочная таблица movie-actors';
-
-
-CREATE TABLE mdb.users
-(
-    login               VARCHAR(100) PRIMARY KEY,
-    password            VARCHAR(256) NOT NULL,
-    img_src             text DEFAULT 'http://89.208.198.186:8080/avatars/default.jpeg',
-
-    firstname           VARCHAR(100),
-    lastname            VARCHAR(100),
-    sex                 INTEGER CONSTRAINT sex_t CHECK (sex = 1 OR sex = 0),
-    email               VARCHAR(100) NOT NULL UNIQUE,
-    registration_date   timestamp NOT NULL DEFAULT NOW(),
-
-    description         VARCHAR(600),
-    movies_watched      INTEGER DEFAULT 0,
-    reviews_count       INTEGER DEFAULT 0,
-    friends_count       INTEGER DEFAULT 0,
-    user_rating         INTEGER DEFAULT 0
-);
-GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.users TO mdb;
-COMMENT ON TABLE mdb.users IS 'Пользователи';
-
 
 CREATE TABLE mdb.meta
 (
@@ -165,7 +171,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_movie_rating
-AFTER INSERT OR UPDATE OR DELETE ON mdb.movie_rating FOR EACH ROW EXECUTE PROCEDURE rating_recalc();
+    AFTER INSERT OR UPDATE OR DELETE ON mdb.movie_rating FOR EACH ROW EXECUTE PROCEDURE rating_recalc();
 
 
 CREATE TABLE mdb.watched_movies
