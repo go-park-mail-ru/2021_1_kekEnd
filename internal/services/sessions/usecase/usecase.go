@@ -28,7 +28,7 @@ func (uc *UseCase) Create(userID string, expires time.Duration) (string, error) 
 	return sessionID, err
 }
 
-func (uc *UseCase) Check(sessionID string) (string, error) {
+func (uc *UseCase) GetUser(sessionID string) (string, error) {
 	sID := addPrefix(sessionID)
 	return uc.Repository.Get(sID)
 }

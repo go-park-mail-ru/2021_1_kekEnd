@@ -17,7 +17,7 @@ func TestCheckAuth(t *testing.T) {
 	testErr := errors.New("error no cookie")
 	const userKey = "user"
 
-	t.Run("Check-OK", func(t *testing.T) {
+	t.Run("GetUser-OK", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -54,7 +54,7 @@ func TestCheckAuth(t *testing.T) {
 		assert.Equal(t, userModel, userModelFromMiddleware) // 500
 	})
 
-	t.Run("Check-No-cookie", func(t *testing.T) {
+	t.Run("GetUser-No-cookie", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -71,7 +71,7 @@ func TestCheckAuth(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401
 	})
 
-	t.Run("Check-No-User", func(t *testing.T) {
+	t.Run("GetUser-No-User", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -105,7 +105,7 @@ func TestCheckAuth(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, ctx.Writer.Status()) // 500
 	})
 
-	t.Run("Check-No-Session", func(t *testing.T) {
+	t.Run("GetUser-No-Session", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 

@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
@@ -19,10 +19,10 @@ type Auth interface {
 
 type AuthMiddleware struct {
 	useCase  users.UseCase
-	sessions *usecase.AuthClient
+	sessions *delivery.AuthClient
 }
 
-func NewAuthMiddleware(useCase users.UseCase, sessions *usecase.AuthClient) *AuthMiddleware {
+func NewAuthMiddleware(useCase users.UseCase, sessions *delivery.AuthClient) *AuthMiddleware {
 	return &AuthMiddleware{
 		useCase:  useCase,
 		sessions: sessions,
@@ -43,7 +43,7 @@ func (m *AuthMiddleware) CheckAuth(isRequired bool) gin.HandlerFunc {
 			return
 		}
 
-		username, err := m.sessions.Check(sessionID)
+		username, err := m.sessions.GetUser(sessionID)
 		if err != nil {
 			if isRequired {
 				fmt.Println("no sessions for this user", err)

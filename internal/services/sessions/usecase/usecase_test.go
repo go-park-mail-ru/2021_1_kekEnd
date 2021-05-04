@@ -69,7 +69,7 @@ func TestGetUser(t *testing.T) {
 			Get(sessionID).
 			Return(username, nil)
 
-		userFromSession, err := useCase.Check(ID)
+		userFromSession, err := useCase.GetUser(ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, username, userFromSession)
@@ -91,7 +91,7 @@ func TestGetUser(t *testing.T) {
 			Get(sessionID).
 			Return(username, testErr)
 
-		_, err := useCase.Check(ID)
+		_, err := useCase.GetUser(ID)
 		assert.Error(t, err)
 	})
 }

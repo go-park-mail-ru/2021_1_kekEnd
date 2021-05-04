@@ -1,4 +1,4 @@
-package usecase
+package delivery
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func (ac *AuthClient) Create(userID string, expires time.Duration) (string, erro
 	return value.SessionID, nil
 }
 
-func (ac *AuthClient) Check(sessionID string) (string, error) {
+func (ac *AuthClient) GetUser(sessionID string) (string, error) {
 	sessionValue := &proto.SessionValue{SessionID: sessionID}
 	userID, err := ac.client.GetUser(context.Background(), sessionValue)
 	if err != nil {

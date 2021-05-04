@@ -23,7 +23,7 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
-	sessionsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
+	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
@@ -49,7 +49,7 @@ type App struct {
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
-	sessionsUC     *sessionsUseCase.AuthClient
+	sessionsDL     *sessionsDelivery.AuthClient
 	sessionsConn   *grpc.ClientConn
 }
 
@@ -75,7 +75,7 @@ func NewApp() *App {
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
 	}
-	sessionsUC := sessionsUseCase.NewAuthClient(sessionsGrpcConn)
+	sessionsDL := sessionsDelivery.NewAuthClient(sessionsGrpcConn)
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
@@ -89,7 +89,7 @@ func NewApp() *App {
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
-	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsUC)
+	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 	csrfMiddleware := middleware.NewCsrfMiddleware(accessLogger)
 
 	return &App{
@@ -101,7 +101,7 @@ func NewApp() *App {
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
-		sessionsUC:     sessionsUC,
+		sessionsDL:     sessionsDL,
 		sessionsConn:   sessionsGrpcConn,
 	}
 }
@@ -118,7 +118,7 @@ func (app *App) Run(port string) error {
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsUC, app.authMiddleware, app.logger)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)

@@ -30,7 +30,7 @@ func (d *AuthHandlerServer) Create(ctx context.Context, session *proto.CreateSes
 }
 
 func (d *AuthHandlerServer) GetUser(ctx context.Context, sessionID *proto.SessionValue) (*proto.UserValue, error) {
-	userID, err := d.UseCase.Check(sessionID.SessionID)
+	userID, err := d.UseCase.GetUser(sessionID.SessionID)
 	if err != nil {
 		return nil, status.Error(500, "error in GetUser")
 	}

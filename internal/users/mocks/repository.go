@@ -92,21 +92,6 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), arg0)
 }
 
-// GetFavoriteActors mocks base method.
-func (m *MockUserRepository) GetFavoriteActors(arg0 string) ([]models.Actor, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFavoriteActors", arg0)
-	ret0, _ := ret[0].([]models.Actor)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetFavoriteActors indicates an expected call of GetFavoriteActors.
-func (mr *MockUserRepositoryMockRecorder) GetFavoriteActors(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoriteActors", reflect.TypeOf((*MockUserRepository)(nil).GetFavoriteActors), arg0)
-}
-
 // GetModels mocks base method.
 func (m *MockUserRepository) GetModels(arg0 []string, arg1, arg2 int) ([]*models.UserNoPassword, error) {
 	m.ctrl.T.Helper()

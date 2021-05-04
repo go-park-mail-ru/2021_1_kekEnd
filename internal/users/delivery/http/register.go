@@ -4,11 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions *usecase.AuthClient,
+func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions *delivery.AuthClient,
 	authMiddleware middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(usersUC, sessions, Log)
 
