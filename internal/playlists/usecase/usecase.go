@@ -19,12 +19,16 @@ func (playlistUC *PlaylistUseCase) CreatePlaylist(username string, playlistName 
 	return playlistUC.playlistRepository.CreatePlaylist(username, playlistName, isShared)
 }
 
-func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
-	return playlistUC.playlistRepository.GetPlaylistsInfo(username, movieID)
+func (playlistUC *PlaylistUseCase) GetPlaylist(playlistID int) (*models.Playlist, error) {
+	return playlistUC.playlistRepository.GetPlaylist(playlistID)
 }
 
 func (playlistUC *PlaylistUseCase) GetPlaylists(username string) ([]*models.Playlist, error) {
 	return playlistUC.playlistRepository.GetPlaylists(username)
+}
+
+func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
+	return playlistUC.playlistRepository.GetPlaylistsInfo(username, movieID)
 }
 
 func (playlistUC *PlaylistUseCase) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error {

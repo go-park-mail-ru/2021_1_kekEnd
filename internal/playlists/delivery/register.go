@@ -11,14 +11,15 @@ func RegisterHttpEndpoints(router *gin.Engine, playlistsUC playlists.UseCase, au
 	handler := NewHandler(playlistsUC, Log)
 
 	router.POST("/playlists", authMiddleware.CheckAuth(), handler.CreatePlaylist)
+	router.GET("/playlist/:playlist_id", handler.GetPlaylist)
 	router.GET("/playlists/:movie_id", authMiddleware.CheckAuth(), handler.GetPlaylistsInfo)
 	router.GET("/playlists", authMiddleware.CheckAuth(), handler.GetPlaylists)
 	router.PUT("/playlists", authMiddleware.CheckAuth(), handler.EditPlaylist)
 	router.DELETE("/playlists/:playlist_id", authMiddleware.CheckAuth(), handler.DeletePlaylist)
 
-	router.POST("/playlists1/movie", authMiddleware.CheckAuth(), handler.AddMovieToPlaylist)
-	router.DELETE("/playlists1/movie", authMiddleware.CheckAuth(), handler.DeleteMovieFromPlaylist)
+	router.POST("/playlists/:playlist_id/movie", handler.AddMovieToPlaylist)
+	router.DELETE("/playlists/:playlist_id/movie", authMiddleware.CheckAuth(), handler.DeleteMovieFromPlaylist)
 
-	router.POST("/playlists1/user", authMiddleware.CheckAuth(), handler.AddUserToPlaylist)
-	router.DELETE("/playlists1/user", authMiddleware.CheckAuth(), handler.DeleteUserFromPlaylist)
+	router.POST("/playlists/:playlist_id/user", authMiddleware.CheckAuth(), handler.AddUserToPlaylist)
+	router.DELETE("/playlists/:playlist_id/user", authMiddleware.CheckAuth(), handler.DeleteUserFromPlaylist)
 }

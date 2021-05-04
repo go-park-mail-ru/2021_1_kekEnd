@@ -18,13 +18,11 @@ type Handler struct {
 }
 
 type PlaylistMovie struct {
-	PlaylistID string `json:"playlistID"`
-	MovieID    string `json:"movieID"`
+	MovieID string `json:"movieID"`
 }
 
 type PlaylistUser struct {
-	PlaylistID string `json:"playlistID"`
-	Username   string `json:"username"`
+	Username string `json:"username"`
 }
 
 func NewHandler(useCase playlists.UseCase, Log *logger.Logger) *Handler {
@@ -67,6 +65,27 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusCreated)
+}
+
+func (h *Handler) GetPlaylist(ctx *gin.Context) {
+	playlistIDStr := ctx.Param("playlist_id")
+
+	playlistID, err := strconv.Atoi(playlistIDStr)
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylist", err.Error())
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	playlist, err := h.useCase.GetPlaylist(playlistID)
+	if err != nil {
+		h.Log.LogWarning(ctx, "playlists", "GetPlaylist", err.Error())
+		ctx.AbortWithStatus(http.StatusNotFound) // 404
+		return
+	}
+
+	ctx.JSON(http.StatusOK, playlist)
 }
 
 func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
@@ -213,6 +232,7 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 }
 
 func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
+	playlistIDStr := ctx.Param("playlist_id")
 	playlistMovieData := new(PlaylistMovie)
 	err := ctx.BindJSON(playlistMovieData)
 	if err != nil {
@@ -222,25 +242,25 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
+	// user, ok := ctx.Get(_const.UserKey)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
+	// 	h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
+	// 	ctx.AbortWithStatus(http.StatusBadRequest) // 400
+	// 	return
+	// }
 
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "playlists", "AddMovieToPlaylist", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	}
+	// userModel, ok := user.(models.User)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to cast user to model")
+	// 	h.Log.LogError(ctx, "playlists", "AddMovieToPlaylist", err)
+	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	// }
 
-	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
+	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
-		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -253,7 +273,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	err = h.useCase.AddMovieToPlaylist(userModel.Username, playlistID, movieID)
+	err = h.useCase.AddMovieToPlaylist("user1", playlistID, movieID)
 	if err != nil {
 		h.Log.LogError(ctx, "playlists", "AddMovieToPlaylist", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -264,6 +284,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
+	playlistIDStr := ctx.Param("playlist_id")
 	playlistMovieData := new(PlaylistMovie)
 	err := ctx.BindJSON(playlistMovieData)
 	if err != nil {
@@ -288,10 +309,10 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	playlistID, err := strconv.Atoi(playlistMovieData.PlaylistID)
+	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
-		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -315,6 +336,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 }
 
 func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
+	playlistIDStr := ctx.Param("playlist_id")
 	playlistUserData := new(PlaylistUser)
 	err := ctx.BindJSON(playlistUserData)
 	if err != nil {
@@ -339,10 +361,10 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
+	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
-		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
@@ -358,6 +380,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
+	playlistIDStr := ctx.Param("playlist_id")
 	playlistUserData := new(PlaylistUser)
 	err := ctx.BindJSON(playlistUserData)
 	if err != nil {
@@ -382,10 +405,10 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 	}
 
-	playlistID, err := strconv.Atoi(playlistUserData.PlaylistID)
+	playlistID, err := strconv.Atoi(playlistIDStr)
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to cast playlistID value to number")
-		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", err.Error())
+		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
