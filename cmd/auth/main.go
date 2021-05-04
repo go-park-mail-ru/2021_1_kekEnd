@@ -16,7 +16,7 @@ import (
 
 func main() {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     fmt.Sprintf("localhost:%s", _const.RedisPort),
 		Password: "",
 		DB:       0,
 	})

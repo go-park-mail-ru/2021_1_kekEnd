@@ -11,6 +11,7 @@ const (
 	Host              = "localhost"
 	Port              = "8080"
 	AuthPort          = "8081"
+	RedisPort         = "6379"
 	AvatarsPath       = "http://" + Host + ":" + Port + "/avatars/"
 	DefaultAvatarPath = "http://" + Host + ":" + Port + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
