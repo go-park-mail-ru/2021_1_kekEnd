@@ -1,26 +1,26 @@
 package grpc
 
 import (
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
-	proto "github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
+	"context"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
 )
 
-type Delivery struct {
+type AuthHandlerServer struct {
 	UseCase sessions.UseCase
-	Log     *logger.Logger
 }
 
-func NewDelivery(uc sessions.UseCase, Log *logger.Logger) *Delivery {
-	return &Delivery{
+func NewAuthHandlerServer(uc sessions.UseCase) *AuthHandlerServer {
+	return &AuthHandlerServer{
 		UseCase: uc,
-		Log:     Log,
 	}
 }
 
-func (d *Delivery) Create(session *proto.CreateSession) (*proto.SessionValue, error) {
+func (d *AuthHandlerServer) Create(ctx context.Context, session *proto.CreateSession) (*proto.SessionValue, error) {
 	expires := time.Duration(session.Expires.AsTime().UnixNano())
 	sessionID, err := d.UseCase.Create(session.UserID, expires)
 	if err != nil {
@@ -30,7 +30,7 @@ func (d *Delivery) Create(session *proto.CreateSession) (*proto.SessionValue, er
 	return protoSessionValue, nil
 }
 
-func (d *Delivery) GetUser(sessionID *proto.SessionValue) (*proto.UserValue, error) {
+func (d *AuthHandlerServer) GetUser(ctx context.Context, sessionID *proto.SessionValue) (*proto.UserValue, error) {
 	userID, err := d.UseCase.Check(sessionID.SessionID)
 	if err != nil {
 		return nil, status.Error(500, "error in GetUser")
@@ -39,10 +39,10 @@ func (d *Delivery) GetUser(sessionID *proto.SessionValue) (*proto.UserValue, err
 	return protoUserValue, nil
 }
 
-func (d *Delivery) Delete(sessionID *proto.SessionValue) error {
+func (d *AuthHandlerServer) Delete(ctx context.Context, sessionID *proto.SessionValue) (*empty.Empty, error) {
 	err := d.UseCase.Delete(sessionID.SessionID)
 	if err != nil {
-		return status.Error(500, "error in Delete")
+		return &emptypb.Empty{}, status.Error(500, "error in Delete")
 	}
-	return nil
+	return &emptypb.Empty{}, nil
 }

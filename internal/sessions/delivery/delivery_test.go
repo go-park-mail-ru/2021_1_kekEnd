@@ -1,4 +1,4 @@
-//package sessions
+package sessions
 //
 //import (
 //	"errors"

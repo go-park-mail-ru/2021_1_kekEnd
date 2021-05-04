@@ -10,10 +10,6 @@ import (
 	actorsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
-	sessions2 "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/repository"
-	sessions3 "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/usecase"
-
 	//"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
@@ -27,13 +23,11 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
-	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"log"
@@ -50,7 +44,6 @@ type App struct {
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
-	sessions       sessions.Delivery
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
@@ -63,26 +56,11 @@ func init() {
 }
 
 func NewApp() *App {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-
-	p, err := rdb.Ping(context.Background()).Result()
-	if err != nil {
-		log.Fatal("Failed to create redis client", p, err)
-	}
-
 	accessLogger := logger.NewAccessLogger()
-
-	sessionsRepo := sessions2.NewRedisRepository(rdb)
-	sessionsUC := sessions3.NewUseCase(sessionsRepo)
-	sessionsDL := sessionsDelivery.NewDelivery(sessionsUC, accessLogger)
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
-		log.Fatal("Failed to read DB connection data", err)
+		log.Fatal("Failed to read DB connection data")
 	}
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
@@ -112,7 +90,6 @@ func NewApp() *App {
 		actorsUC:       actorsUC,
 		moviesUC:       moviesUC,
 		ratingsUC:      ratingsUC,
-		sessions:       sessionsDL,
 		reviewsUC:      reviewsUC,
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
