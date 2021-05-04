@@ -98,7 +98,7 @@ func (storage *PlaylistsRepository) GetPlaylist(playlistID int) (*models.Playlis
 	return playlist, nil
 }
 
-func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Playlist, error) {
+func (storage *PlaylistsRepository) GetPlaylists(username string) ([]models.Playlist, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, json_object_agg(coalesce(m.id, -1), coalesce(m.title, '')) as movies
         FROM mdb.playlistsWhoCanAdd plwca
@@ -116,7 +116,7 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
 	}
 	defer rows.Close()
 
-	var playlistsInfo []*models.Playlist
+	var playlistsInfo []models.Playlist
 
 	for rows.Next() {
 		var newID int
@@ -128,7 +128,7 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
 			return nil, err
 		}
 
-		playlist := &models.Playlist{}
+		playlist := models.Playlist{}
 		playlist.ID = strconv.Itoa(newID)
 		playlist.Name = playlistName
 
@@ -145,7 +145,7 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]*models.Pla
 	return playlistsInfo, nil
 }
 
-func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
+func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID int) ([]models.PlaylistsInfo, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, coalesce(plm.movie_id, -1) as movie_id
         FROM mdb.playlistsWhoCanAdd plwca
@@ -161,7 +161,7 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 	}
 	defer rows.Close()
 
-	var playlistsInfo []*models.PlaylistsInfo
+	var playlistsInfo []models.PlaylistsInfo
 
 	for rows.Next() {
 		var newID int
@@ -173,7 +173,7 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 			return nil, err
 		}
 
-		playlist := &models.PlaylistsInfo{}
+		playlist := models.PlaylistsInfo{}
 		playlist.ID = strconv.Itoa(newID)
 		playlist.Name = username
 

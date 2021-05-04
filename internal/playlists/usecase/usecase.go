@@ -23,11 +23,11 @@ func (playlistUC *PlaylistUseCase) GetPlaylist(playlistID int) (*models.Playlist
 	return playlistUC.playlistRepository.GetPlaylist(playlistID)
 }
 
-func (playlistUC *PlaylistUseCase) GetPlaylists(username string) ([]*models.Playlist, error) {
+func (playlistUC *PlaylistUseCase) GetPlaylists(username string) ([]models.Playlist, error) {
 	return playlistUC.playlistRepository.GetPlaylists(username)
 }
 
-func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error) {
+func (playlistUC *PlaylistUseCase) GetPlaylistsInfo(username string, movieID int) ([]models.PlaylistsInfo, error) {
 	return playlistUC.playlistRepository.GetPlaylistsInfo(username, movieID)
 }
 

@@ -7,8 +7,8 @@ type PlaylistsRepository interface {
 	CreatePlaylist(username string, playlistName string, isShared bool) error
 
 	GetPlaylist(playlistID int) (*models.Playlist, error)
-	GetPlaylists(username string) ([]*models.Playlist, error)
-	GetPlaylistsInfo(username string, movieID int) ([]*models.PlaylistsInfo, error)
+	GetPlaylists(username string) ([]models.Playlist, error)
+	GetPlaylistsInfo(username string, movieID int) ([]models.PlaylistsInfo, error)
 
 	CanUserUpdatePlaylist(username string, playlistID int) error
 	UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error
