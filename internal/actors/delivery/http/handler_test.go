@@ -1,6 +1,10 @@
 package http
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	actorsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
@@ -12,9 +16,6 @@ import (
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestHandlers(t *testing.T) {

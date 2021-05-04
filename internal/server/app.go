@@ -15,6 +15,10 @@ import (
 	moviesHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/delivery/http"
 	moviesDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/repository/dbstorage"
 	moviesUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
+	playlistsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/delivery"
+	playlistsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/repository"
+	playlistsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/usecase"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
 	ratingsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/dbstorage"
@@ -46,6 +50,7 @@ type App struct {
 	moviesUC       movies.UseCase
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
+	playlistsUC    playlists.UseCase
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
@@ -89,6 +94,9 @@ func NewApp() *App {
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
+	playlistsRepo := playlistsRepository.NewPlaylistsRepository(dbpool)
+	playlistsUC := playlistsUseCase.NewPlaylistsUseCase(playlistsRepo)
+
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)
 	csrfMiddleware := middleware.NewCsrfMiddleware(accessLogger)
 
@@ -98,6 +106,7 @@ func NewApp() *App {
 		moviesUC:       moviesUC,
 		ratingsUC:      ratingsUC,
 		reviewsUC:      reviewsUC,
+		playlistsUC:    playlistsUC,
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
@@ -123,6 +132,7 @@ func (app *App) Run(port string) error {
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,
