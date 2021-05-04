@@ -22,6 +22,7 @@ const (
 	MoviesPageSize          = 15
 	MoviesTop100Size        = 100
 	MoviesNumberOnActorPage = 10
+	FeedItemsLimit          = 20
 	PageDefault             = "1"
 )
 

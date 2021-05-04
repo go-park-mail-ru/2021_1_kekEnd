@@ -1,11 +1,10 @@
 package models
 
-const (
-	NewReview = iota
-	NewRating
-)
+import "time"
 
 type Notification struct {
-	Type    int
-	Message string
+	Title string    `json:"title"`
+	User  string    `json:"user"`
+	Text  string    `json:"text"`
+	Date  time.Time `json:"date"`
 }

@@ -10,9 +10,9 @@ import (
 func RegisterHttpEndpoints(router *gin.Engine, actorsUC actors.UseCase, auth middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(actorsUC, Log)
 
-	router.POST("/actors", auth.RequireAuth(), handler.CreateActor)
-	router.GET("/actors/:actor_id", auth.CheckAuth(), handler.GetActor)
-	router.PUT("/actors/:actor_id", auth.RequireAuth(), handler.EditActor)
-	router.POST("/actors/:actor_id/like", auth.RequireAuth(), handler.LikeActor)
-	router.DELETE("/actors/:actor_id/like", auth.RequireAuth(), handler.UnlikeActor)
+	router.POST("/actors", auth.CheckAuth(true), handler.CreateActor)
+	router.GET("/actors/:actor_id", auth.CheckAuth(false), handler.GetActor)
+	router.PUT("/actors/:actor_id", auth.CheckAuth(true), handler.EditActor)
+	router.POST("/actors/:actor_id/like", auth.CheckAuth(true), handler.LikeActor)
+	router.DELETE("/actors/:actor_id/like", auth.CheckAuth(true), handler.UnlikeActor)
 }

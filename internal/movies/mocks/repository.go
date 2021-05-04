@@ -64,9 +64,9 @@ func (mr *MockMovieRepositoryMockRecorder) GetAllGenres() *gomock.Call {
 }
 
 // GetBestMovies mocks base method.
-func (m *MockMovieRepository) GetBestMovies(arg0 int) (int, []*models.Movie, error) {
+func (m *MockMovieRepository) GetBestMovies(arg0 int, arg1 string) (int, []*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBestMovies", arg0)
+	ret := m.ctrl.Call(m, "GetBestMovies", arg0, arg1)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].([]*models.Movie)
 	ret2, _ := ret[2].(error)
@@ -74,30 +74,30 @@ func (m *MockMovieRepository) GetBestMovies(arg0 int) (int, []*models.Movie, err
 }
 
 // GetBestMovies indicates an expected call of GetBestMovies.
-func (mr *MockMovieRepositoryMockRecorder) GetBestMovies(arg0 interface{}) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetBestMovies(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBestMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetBestMovies), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBestMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetBestMovies), arg0, arg1)
 }
 
 // GetMovieByID mocks base method.
-func (m *MockMovieRepository) GetMovieByID(arg0 string) (*models.Movie, error) {
+func (m *MockMovieRepository) GetMovieByID(arg0, arg1 string) (*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMovieByID", arg0)
+	ret := m.ctrl.Call(m, "GetMovieByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMovieByID indicates an expected call of GetMovieByID.
-func (mr *MockMovieRepositoryMockRecorder) GetMovieByID(arg0 interface{}) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetMovieByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieByID", reflect.TypeOf((*MockMovieRepository)(nil).GetMovieByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieByID", reflect.TypeOf((*MockMovieRepository)(nil).GetMovieByID), arg0, arg1)
 }
 
 // GetMoviesByGenres mocks base method.
-func (m *MockMovieRepository) GetMoviesByGenres(arg0 []string, arg1 int) (int, []*models.Movie, error) {
+func (m *MockMovieRepository) GetMoviesByGenres(arg0 []string, arg1 int, arg2 string) (int, []*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMoviesByGenres", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetMoviesByGenres", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].([]*models.Movie)
 	ret2, _ := ret[2].(error)
@@ -105,7 +105,35 @@ func (m *MockMovieRepository) GetMoviesByGenres(arg0 []string, arg1 int) (int, [
 }
 
 // GetMoviesByGenres indicates an expected call of GetMoviesByGenres.
-func (mr *MockMovieRepositoryMockRecorder) GetMoviesByGenres(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetMoviesByGenres(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesByGenres", reflect.TypeOf((*MockMovieRepository)(nil).GetMoviesByGenres), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesByGenres", reflect.TypeOf((*MockMovieRepository)(nil).GetMoviesByGenres), arg0, arg1, arg2)
+}
+
+// MarkUnwatched mocks base method.
+func (m *MockMovieRepository) MarkUnwatched(arg0 string, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkUnwatched", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkUnwatched indicates an expected call of MarkUnwatched.
+func (mr *MockMovieRepositoryMockRecorder) MarkUnwatched(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkUnwatched", reflect.TypeOf((*MockMovieRepository)(nil).MarkUnwatched), arg0, arg1)
+}
+
+// MarkWatched mocks base method.
+func (m *MockMovieRepository) MarkWatched(arg0 string, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkWatched", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkWatched indicates an expected call of MarkWatched.
+func (mr *MockMovieRepositoryMockRecorder) MarkWatched(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkWatched", reflect.TypeOf((*MockMovieRepository)(nil).MarkWatched), arg0, arg1)
 }

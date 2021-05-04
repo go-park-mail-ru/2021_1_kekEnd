@@ -73,20 +73,22 @@ func (movieStorage *MovieRepository) GetMovieByID(id string, username string) (*
 		return nil, err
 	}
 
-	sqlStatementWatched := `
+	isWatched := false
+	if username != "" {
+		sqlStatementWatched := `
 			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
 		`
-	var rowsCount int
-	err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
-	isWatched := true
-	if err != nil {
-		return nil, err
+		var rowsCount int
+		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+		if err != nil {
+			return nil, err
+		}
+		if rowsCount > 0 {
+			isWatched = true
+		}
 	}
-	if rowsCount == 0 {
-		isWatched = false
-	}
-	movie.IsWatched = isWatched
 
+	movie.IsWatched = isWatched
 	movie.ID = strconv.Itoa(idFilm)
 
 	return &movie, nil
@@ -154,18 +156,21 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username stri
 			return 0, nil, err
 		}
 
-		sqlStatementWatched := `
+		isWatched := false
+		if username != "" {
+			sqlStatementWatched := `
 			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
 		`
-		var rowsCount int
-		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
-		isWatched := true
-		if err != nil {
-			return 0, nil, err
+			var rowsCount int
+			err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+			if err != nil {
+				return 0, nil, err
+			}
+			if rowsCount > 0 {
+				isWatched = true
+			}
 		}
-		if rowsCount == 0 {
-			isWatched = false
-		}
+
 		movie.IsWatched = isWatched
 
 		bestMovies = append(bestMovies, movie)
@@ -262,18 +267,21 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 			return 0, nil, err
 		}
 
-		sqlStatementWatched := `
+		isWatched := false
+		if username != "" {
+			sqlStatementWatched := `
 			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
 		`
-		var rowsCount int
-		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
-		isWatched := true
-		if err != nil {
-			return 0, nil, err
+			var rowsCount int
+			err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
+			if err != nil {
+				return 0, nil, err
+			}
+			if rowsCount > 0 {
+				isWatched = true
+			}
 		}
-		if rowsCount == 0 {
-			isWatched = false
-		}
+
 		movie.IsWatched = isWatched
 
 		movies = append(movies, movie)

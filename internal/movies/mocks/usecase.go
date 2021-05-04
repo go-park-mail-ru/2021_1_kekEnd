@@ -64,9 +64,9 @@ func (mr *MockUseCaseMockRecorder) GetAllGenres() *gomock.Call {
 }
 
 // GetBestMovies mocks base method.
-func (m *MockUseCase) GetBestMovies(arg0 int) (int, []*models.Movie, error) {
+func (m *MockUseCase) GetBestMovies(arg0 int, arg1 string) (int, []*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBestMovies", arg0)
+	ret := m.ctrl.Call(m, "GetBestMovies", arg0, arg1)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].([]*models.Movie)
 	ret2, _ := ret[2].(error)
@@ -74,30 +74,30 @@ func (m *MockUseCase) GetBestMovies(arg0 int) (int, []*models.Movie, error) {
 }
 
 // GetBestMovies indicates an expected call of GetBestMovies.
-func (mr *MockUseCaseMockRecorder) GetBestMovies(arg0 interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) GetBestMovies(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBestMovies", reflect.TypeOf((*MockUseCase)(nil).GetBestMovies), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBestMovies", reflect.TypeOf((*MockUseCase)(nil).GetBestMovies), arg0, arg1)
 }
 
 // GetMovie mocks base method.
-func (m *MockUseCase) GetMovie(arg0 string) (*models.Movie, error) {
+func (m *MockUseCase) GetMovie(arg0, arg1 string) (*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMovie", arg0)
+	ret := m.ctrl.Call(m, "GetMovie", arg0, arg1)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMovie indicates an expected call of GetMovie.
-func (mr *MockUseCaseMockRecorder) GetMovie(arg0 interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) GetMovie(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockUseCase)(nil).GetMovie), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockUseCase)(nil).GetMovie), arg0, arg1)
 }
 
 // GetMoviesByGenres mocks base method.
-func (m *MockUseCase) GetMoviesByGenres(arg0 []string, arg1 int) (int, []*models.Movie, error) {
+func (m *MockUseCase) GetMoviesByGenres(arg0 []string, arg1 int, arg2 string) (int, []*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMoviesByGenres", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetMoviesByGenres", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].([]*models.Movie)
 	ret2, _ := ret[2].(error)
@@ -105,7 +105,35 @@ func (m *MockUseCase) GetMoviesByGenres(arg0 []string, arg1 int) (int, []*models
 }
 
 // GetMoviesByGenres indicates an expected call of GetMoviesByGenres.
-func (mr *MockUseCaseMockRecorder) GetMoviesByGenres(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) GetMoviesByGenres(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesByGenres", reflect.TypeOf((*MockUseCase)(nil).GetMoviesByGenres), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesByGenres", reflect.TypeOf((*MockUseCase)(nil).GetMoviesByGenres), arg0, arg1, arg2)
+}
+
+// MarkUnwatched mocks base method.
+func (m *MockUseCase) MarkUnwatched(arg0 models.User, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkUnwatched", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkUnwatched indicates an expected call of MarkUnwatched.
+func (mr *MockUseCaseMockRecorder) MarkUnwatched(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkUnwatched", reflect.TypeOf((*MockUseCase)(nil).MarkUnwatched), arg0, arg1)
+}
+
+// MarkWatched mocks base method.
+func (m *MockUseCase) MarkWatched(arg0 models.User, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkWatched", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkWatched indicates an expected call of MarkWatched.
+func (mr *MockUseCaseMockRecorder) MarkWatched(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkWatched", reflect.TypeOf((*MockUseCase)(nil).MarkWatched), arg0, arg1)
 }

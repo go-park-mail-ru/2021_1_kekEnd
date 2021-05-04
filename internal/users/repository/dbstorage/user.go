@@ -99,42 +99,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 		return nil, errors.New("User not found")
 	}
 
-	actors, err := storage.getFavoriteActors(user.Username)
-	if err != nil {
-		return nil, err
-	}
-	user.FavoriteActors = actors
-
 	return &user, nil
-}
-
-func (storage *UserRepository) getFavoriteActors(username string) ([]models.Actor, error) {
-	sqlStatement := `
-		SELECT id, name, avatar
-		FROM mdb.favorite_actors favac
-		JOIN actors ac ON favac.actor_id = ac.id AND favac.user_login = $1
-		ORDER BY name
-	`
-
-	var actors []models.Actor
-	rows, err := storage.db.Query(context.Background(), sqlStatement, username)
-	if err != nil {
-		return actors, nil
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		actor := models.Actor{}
-		var id int
-		err = rows.Scan(&id, &actor.Name, &actor.Avatar)
-		if err != nil {
-			return []models.Actor{}, err
-		}
-		actor.ID = strconv.Itoa(id)
-		actors = append(actors, actor)
-	}
-
-	return actors, nil
 }
 
 func (storage *UserRepository) CheckPassword(password string, user *models.User) (bool, error) {
@@ -232,7 +197,7 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
-func (storage *UserRepository) GetModels(subs []string, startIndex int) ([]*models.UserNoPassword, error) {
+func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*models.UserNoPassword, error) {
 	users := make([]*models.UserNoPassword, 0)
 
 	sqlStatement := `
@@ -242,7 +207,7 @@ func (storage *UserRepository) GetModels(subs []string, startIndex int) ([]*mode
 		ORDER BY login
 		LIMIT $2 OFFSET $3
     `
-	rows, err := storage.db.Query(context.Background(), sqlStatement, subs, _const.SubsPageSize, startIndex)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, ids, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +275,7 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 		return 0, nil, err
 	}
 
-	users, err := storage.GetModels(subs, startIndex)
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
 
 	if err != nil {
 		return 0, nil, err
@@ -359,7 +324,7 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 		return 0, nil, err
 	}
 
-	users, err := storage.GetModels(subs, startIndex)
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}

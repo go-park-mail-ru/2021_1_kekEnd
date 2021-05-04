@@ -12,10 +12,10 @@ func RegisterHttpEndpoints(router *gin.Engine, reviewsUC reviews.UseCase, usersU
 	authMiddleware middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(reviewsUC, usersUC, Log)
 
-	router.POST("/users/reviews", authMiddleware.RequireAuth(), handler.CreateReview)
+	router.POST("/users/reviews", authMiddleware.CheckAuth(true), handler.CreateReview)
 	router.GET("/movies/:id/reviews", handler.GetMovieReviews)
-	router.GET("/users/reviews", authMiddleware.RequireAuth(), handler.GetUserReviews)
-	router.GET("/users/movies/:id/reviews", authMiddleware.RequireAuth(), handler.GetUserReviewForMovie)
-	router.PUT("/users/movies/:id/reviews", authMiddleware.RequireAuth(), handler.EditUserReviewForMovie)
-	router.DELETE("/users/movies/:id/reviews", authMiddleware.RequireAuth(), handler.DeleteUserReviewForMovie)
+	router.GET("/users/reviews", authMiddleware.CheckAuth(true), handler.GetUserReviews)
+	router.GET("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.GetUserReviewForMovie)
+	router.PUT("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.EditUserReviewForMovie)
+	router.DELETE("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.DeleteUserReviewForMovie)
 }
