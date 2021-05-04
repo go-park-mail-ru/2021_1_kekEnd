@@ -3,6 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -36,11 +42,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
 )
 
 type App struct {
@@ -76,7 +77,7 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "%s:%s", _const.Host, _const.AuthPort), grpc.WithInsecure())
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf("%s:%s", _const.Host, _const.AuthPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
 	}
