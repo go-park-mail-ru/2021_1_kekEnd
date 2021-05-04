@@ -16,6 +16,7 @@ const (
 	RequestID = "RequestID"
 
 	ReviewsPageSize         = 3
+	SubsPageSize            = 20
 	MoviesPageSize          = 15
 	MoviesTop100Size        = 100
 	MoviesNumberOnActorPage = 10

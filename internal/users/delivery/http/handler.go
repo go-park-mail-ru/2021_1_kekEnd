@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type Handler struct {
@@ -32,6 +33,13 @@ type signupData struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type subsResponse struct {
+	CurrentPage int                      `json:"current_page"`
+	PagesNumber int                      `json:"pages_number"`
+	MaxItems    int                      `json:"max_items"`
+	Subs        []*models.UserNoPassword `json:"subs"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
@@ -267,4 +275,182 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 
 	userNoPassword := models.FromUser(*newUser)
 	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) Subscribe(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	target := ctx.Param("user_id")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.Subscribe(userModel.Username, targetModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Subscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}
+
+func (h *Handler) Unsubscribe(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	target := ctx.Param("user_id")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.Unsubscribe(userModel.Username, targetModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}
+
+func (h *Handler) GetSubscribers(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil || page < 1 {
+		var msg string
+		if err != nil {
+			msg = err.Error()
+		} else {
+			msg = "Invalid page number"
+		}
+
+		h.Log.LogWarning(ctx, "users", "GetSubscribers", msg)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	username := ctx.Param("user_id")
+	user, err := h.useCase.GetUser(username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	numPages, subs, err := h.useCase.GetSubscribers(page, user.Username)
+
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	subsResponse := subsResponse{
+		CurrentPage: page,
+		PagesNumber: numPages,
+		MaxItems:    _const.SubsPageSize,
+		Subs:        subs,
+	}
+
+	ctx.JSON(http.StatusOK, subsResponse)
+}
+
+func (h *Handler) GetSubscriptions(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	if err != nil || page < 1 {
+		var msg string
+		if err != nil {
+			msg = err.Error()
+		} else {
+			msg = "Invalid page number"
+		}
+
+		h.Log.LogWarning(ctx, "users", "GetSubscriptions", msg)
+		ctx.AbortWithStatus(http.StatusBadRequest) // 400
+		return
+	}
+
+	username := ctx.Param("user_id")
+	user, err := h.useCase.GetUser(username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	numPages, subs, err := h.useCase.GetSubscriptions(page, user.Username)
+
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetSubscriptions", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	subsResponse := subsResponse{
+		CurrentPage: page,
+		PagesNumber: numPages,
+		MaxItems:    _const.SubsPageSize,
+		Subs:        subs,
+	}
+
+	ctx.JSON(http.StatusOK, subsResponse)
+}
+func (h *Handler) GetFeed(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	feed, err := h.useCase.GetFeed(userModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetFeed", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, feed)
 }

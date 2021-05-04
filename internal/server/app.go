@@ -89,18 +89,15 @@ func NewApp() *App {
 	}
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo)
-
-	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
-	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
-
-	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
-	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
-
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
-	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
-
+	moviesRepo := moviesDBStorage.NewMovieRepository(dbpool)
+	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
+
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo)
+	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo)
+	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
+	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, sessionsDL)

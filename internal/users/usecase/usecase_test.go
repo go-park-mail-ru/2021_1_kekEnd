@@ -53,6 +53,49 @@ func TestUsersUseCase(t *testing.T) {
 		_, err := uc.UpdateUser(user, updatedUser)
 		assert.NoError(t, err)
 	})
+
+	t.Run("Subscribe", func(t *testing.T) {
+		sub := "whaeva"
+		user := "let_robots_reign"
+
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, true)
+		repo.EXPECT().Subscribe(sub, user).Return(nil)
+
+		err := uc.Subscribe(sub, user)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Unsubscribe", func(t *testing.T) {
+		sub := "whaeva"
+		user := "let_robots_reign"
+
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, false)
+		repo.EXPECT().Unsubscribe(sub, user).Return(nil)
+
+		err := uc.Unsubscribe(sub, user)
+		assert.NoError(t, err)
+	})
+
+	t.Run("GetSubscribers", func(t *testing.T) {
+		user := "let_robots_reign"
+
+		repo.EXPECT().GetSubscribers(0, user).Return(0, []*models.UserNoPassword{}, nil)
+
+		_, subs, err := uc.GetSubscribers(1, user)
+		assert.NoError(t, err)
+		assert.Equal(t, subs, []*models.UserNoPassword{})
+	})
+
+	t.Run("GetSubscriptions", func(t *testing.T) {
+		user := "let_robots_reign"
+
+		repo.EXPECT().GetSubscriptions(0, user).Return(0, []*models.UserNoPassword{}, nil)
+
+		_, subs, err := uc.GetSubscriptions(1, user)
+		assert.NoError(t, err)
+		assert.Equal(t, subs, []*models.UserNoPassword{})
+	})
+
 }
 
 func TestUsersUseCaseErrors(t *testing.T) {
@@ -128,5 +171,25 @@ func TestUsersUseCaseErrors(t *testing.T) {
 		_, err := uc.UpdateUser(user, update)
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())
+	})
+
+	t.Run("SubscribeTwice", func(t *testing.T) {
+		sub := "whaeva"
+		user := "let_robots_reign"
+
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, false)
+
+		err := uc.Subscribe(sub, user)
+		assert.Error(t, err)
+	})
+
+	t.Run("UnsubscribeTwice", func(t *testing.T) {
+		sub := "whaeva"
+		user := "let_robots_reign"
+
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, true)
+
+		err := uc.Unsubscribe(sub, user)
+		assert.Error(t, err)
 	})
 }

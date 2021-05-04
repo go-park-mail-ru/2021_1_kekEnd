@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	pgx "github.com/jackc/pgx/v4"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
+	"math"
+	"strconv"
+
 	// "fmt"
 )
 
@@ -148,4 +152,181 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 	}
 
 	return user, nil
+}
+
+func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string) (error, bool) {
+	sqlStatement := `
+        SELECT COUNT(*) as count 
+		FROM mdb.subscriptions
+		WHERE user_1 = $1 AND user_2 = $2
+    `
+
+	var count int
+	err := storage.db.
+		QueryRow(context.Background(), sqlStatement, subscriber, user).
+		Scan(&count)
+
+	if err != nil || count != 0 {
+		return err, false
+	}
+
+	return nil, true
+}
+
+func (storage *UserRepository) Subscribe(subscriber string, user string) error {
+	sqlStatement := `
+        INSERT INTO mdb.subscriptions(user_1, user_2)
+		VALUES ($1, $2)
+    `
+	_, err := storage.db.
+		Exec(context.Background(), sqlStatement, subscriber, user)
+
+	return err
+}
+
+func (storage *UserRepository) Unsubscribe(subscriber string, user string) error {
+	sqlStatement := `
+        DELETE FROM mdb.subscriptions(user_1, user_2)
+		WHERE user_1 = $1 AND user_2 = $2
+    `
+	_, err := storage.db.
+		Exec(context.Background(), sqlStatement, subscriber, user)
+
+	return err
+}
+
+func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*models.UserNoPassword, error) {
+	users := make([]*models.UserNoPassword, 0)
+
+	sqlStatement := `
+        SELECT login, email, img_src, movies_watched, reviews_count
+        FROM mdb.users
+        WHERE login && $1 
+		ORDER BY login
+		LIMIT $2 OFFSET $3
+    `
+	rows, err := storage.db.Query(context.Background(), sqlStatement, ids, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		user := &models.UserNoPassword{}
+		var moviesWatched string
+		var reviewsNumber string
+		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+
+		u, err := strconv.ParseUint(moviesWatched, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		*user.MoviesWatched = uint(u)
+
+		u, err = strconv.ParseUint(reviewsNumber, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		*user.ReviewsNumber = uint(u)
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error) {
+	subs := make([]string, 0)
+
+	sqlStatement := `
+        SELECT user_1
+        FROM mdb.subscriptions
+		WHERE user_2 = $1
+		ORDER BY user_1
+		LIMIT $2 OFFSET $3
+    `
+
+	rows, err := storage.db.Query(context.Background(), sqlStatement, user, _const.SubsPageSize, startIndex)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sub string
+		err = rows.Scan(&sub)
+		if err != nil {
+			return 0, nil, err
+		}
+
+		subs = append(subs, sub)
+	}
+
+	var rowsCount int
+	sqlStatement = `
+        SELECT COUNT(*)
+        FROM mdb.users
+        WHERE login && $1
+    `
+	err = storage.db.QueryRow(context.Background(), sqlStatement, subs).Scan(&rowsCount)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
+
+	return pagesNumber, users, nil
+}
+
+func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error) {
+	subs := make([]string, 0)
+
+	sqlStatement := `
+        SELECT user_2
+        FROM mdb.subscriptions
+		WHERE user_1 = $1
+		ORDER BY user_2
+		LIMIT $2 OFFSET $3
+    `
+
+	rows, err := storage.db.Query(context.Background(), sqlStatement, user, _const.SubsPageSize, startIndex)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sub string
+		err = rows.Scan(&sub)
+		if err != nil {
+			return 0, nil, err
+		}
+
+		subs = append(subs, sub)
+	}
+
+	var rowsCount int
+	sqlStatement = `
+        SELECT COUNT(*)
+        FROM mdb.users
+        WHERE login && $1
+    `
+	err = storage.db.QueryRow(context.Background(), sqlStatement, subs).Scan(&rowsCount)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
+
+	return pagesNumber, users, nil
 }
