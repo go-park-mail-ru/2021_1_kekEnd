@@ -4,17 +4,20 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
 type UsersUseCase struct {
 	userRepository users.UserRepository
+	reviewsRepository reviews.ReviewRepository
 }
 
-func NewUsersUseCase(repo users.UserRepository) *UsersUseCase {
+func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository) *UsersUseCase {
 	return &UsersUseCase{
 		userRepository: repo,
+		reviewsRepository: reviews,
 	}
 }
 
@@ -96,4 +99,14 @@ func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*mode
 func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
+}
+
+func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.Notification, error) {
+	_, subs, err := usersUC.userRepository.GetSubscriptions(0, username)
+	if err != nil {
+		return nil, err
+	}
+
+	return usersUC.reviewsRepository.GetFeed(subs)
+
 }

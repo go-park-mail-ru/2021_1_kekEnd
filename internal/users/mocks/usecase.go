@@ -48,6 +48,21 @@ func (mr *MockUseCaseMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUseCase)(nil).CreateUser), arg0)
 }
 
+// GetFeed mocks base method.
+func (m *MockUseCase) GetFeed(arg0 string) ([]*models.Notification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFeed", arg0)
+	ret0, _ := ret[0].([]*models.Notification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFeed indicates an expected call of GetFeed.
+func (mr *MockUseCaseMockRecorder) GetFeed(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFeed", reflect.TypeOf((*MockUseCase)(nil).GetFeed), arg0)
+}
+
 // GetSubscribers mocks base method.
 func (m *MockUseCase) GetSubscribers(arg0 int, arg1 string) (int, []*models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
