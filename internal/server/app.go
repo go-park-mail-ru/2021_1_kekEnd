@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/metrics"
+	//"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/metrics"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
