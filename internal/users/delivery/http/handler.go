@@ -67,6 +67,8 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Avatar:        _const.DefaultAvatarPath,
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
+		Subscribers:   new(uint),
+		Subscriptions: new(uint),
 	}
 
 	err = h.useCase.CreateUser(user)
