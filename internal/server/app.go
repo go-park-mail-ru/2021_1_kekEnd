@@ -9,8 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	//"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/metrics"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -43,6 +41,7 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -129,8 +128,7 @@ func (app *App) Run(port string) error {
 	router.Static("/avatars", _const.AvatarsFileDir)
 
 	router.Use(gin.Recovery())
-
-	metricsProm := metrics.NewMetrics(router)
+	router.Handle("/metrics", promhttp.Handler())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
