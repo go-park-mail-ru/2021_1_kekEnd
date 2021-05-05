@@ -132,7 +132,7 @@ func (app *App) Run(port string) error {
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
-	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

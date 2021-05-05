@@ -163,7 +163,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
-func (h *Handler) GetUser(ctx *gin.Context) {
+func (h *Handler) GetCurrentUser(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
@@ -181,6 +181,18 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	}
 
 	userNoPassword := models.FromUser(userModel)
+	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) GetUser(ctx *gin.Context) {
+	userModel, err := h.useCase.GetUser(ctx.Param("user_id"))
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to get user")
+		h.Log.LogError(ctx, "users", "GetUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	userNoPassword := models.FromUser(*userModel)
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 

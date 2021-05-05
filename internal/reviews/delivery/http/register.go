@@ -14,7 +14,7 @@ func RegisterHttpEndpoints(router *gin.Engine, reviewsUC reviews.UseCase, usersU
 
 	router.POST("/users/reviews", authMiddleware.CheckAuth(true), handler.CreateReview)
 	router.GET("/movies/:id/reviews", handler.GetMovieReviews)
-	router.GET("/users/reviews", authMiddleware.CheckAuth(true), handler.GetUserReviews)
+	router.GET("/user/:user_id/reviews", handler.GetUserReviews)
 	router.GET("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.GetUserReviewForMovie)
 	router.PUT("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.EditUserReviewForMovie)
 	router.DELETE("/users/movies/:id/reviews", authMiddleware.CheckAuth(true), handler.DeleteUserReviewForMovie)
