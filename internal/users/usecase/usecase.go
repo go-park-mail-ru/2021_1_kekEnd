@@ -67,7 +67,7 @@ func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (
 }
 
 func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
-	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+	unsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
 
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
 }
 
 func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
-	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+	unsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
 
 	if err != nil {
 		return err
@@ -97,6 +97,11 @@ func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
 func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscribers(startIndex, user)
+}
+
+func (usersUC *UsersUseCase) IsSubscribed(subscriber string, user string) (bool, error) {
+	isUnsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+	return !isUnsubscribed, err
 }
 
 func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error) {

@@ -20,6 +20,8 @@ type UseCase interface {
 
 	GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error)
 
+	IsSubscribed(subscriber string, user string) (bool, error)
+
 	GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error)
 
 	GetFeed(username string) ([]*models.Notification, error)
