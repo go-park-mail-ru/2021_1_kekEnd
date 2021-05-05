@@ -69,7 +69,7 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUserReviews(ctx *gin.Context) {
-	userModel, err := h.usersUC.GetUser(ctx.Param("user_id"))
+	userModel, err := h.usersUC.GetUser(ctx.Param("username"))
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to get user")
 		h.Log.LogError(ctx, "reviews", "GetUserReviews", err)

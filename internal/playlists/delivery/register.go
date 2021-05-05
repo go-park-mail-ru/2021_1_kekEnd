@@ -15,7 +15,7 @@ func RegisterHttpEndpoints(router *gin.Engine, playlistsUC playlists.UseCase, us
 	router.POST("/playlists", authMiddleware.CheckAuth(true), handler.CreatePlaylist)
 	router.GET("/playlist/:playlist_id", handler.GetPlaylist)
 	router.GET("/playlists/movies/:movie_id", authMiddleware.CheckAuth(true), handler.GetPlaylistsInfo)
-	router.GET("/playlists/users/:user_id", handler.GetPlaylists)
+	router.GET("/playlists/users/:username", handler.GetPlaylists)
 	router.PUT("/playlists", authMiddleware.CheckAuth(true), handler.EditPlaylist)
 	router.DELETE("/playlists/:playlist_id", authMiddleware.CheckAuth(true), handler.DeletePlaylist)
 

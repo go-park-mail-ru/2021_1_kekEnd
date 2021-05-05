@@ -185,7 +185,7 @@ func (h *Handler) GetCurrentUser(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUser(ctx *gin.Context) {
-	userModel, err := h.useCase.GetUser(ctx.Param("user_id"))
+	userModel, err := h.useCase.GetUser(ctx.Param("username"))
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to get user")
 		h.Log.LogError(ctx, "users", "GetUser", err)
@@ -306,7 +306,7 @@ func (h *Handler) Subscribe(ctx *gin.Context) {
 		return
 	}
 
-	target := ctx.Param("user_id")
+	target := ctx.Param("username")
 	targetModel, err := h.useCase.GetUser(target)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Subscribe", err)
@@ -341,7 +341,7 @@ func (h *Handler) Unsubscribe(ctx *gin.Context) {
 		return
 	}
 
-	target := ctx.Param("user_id")
+	target := ctx.Param("username")
 	targetModel, err := h.useCase.GetUser(target)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -374,7 +374,7 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 		return
 	}
 
-	username := ctx.Param("user_id")
+	username := ctx.Param("username")
 	user, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -417,7 +417,7 @@ func (h *Handler) IsSubscribed(ctx *gin.Context) {
 		return
 	}
 
-	username := ctx.Param("user_id")
+	username := ctx.Param("username")
 	user, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -451,7 +451,7 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 		return
 	}
 
-	username := ctx.Param("user_id")
+	username := ctx.Param("username")
 	user, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)

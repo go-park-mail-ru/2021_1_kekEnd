@@ -78,7 +78,35 @@ func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
 	}
 
 	if unsubscribed {
-		return usersUC.userRepository.Subscribe(subscriber, user)
+		err = usersUC.userRepository.Subscribe(subscriber, user)
+		if err != nil {
+			return err
+		}
+		subscriberModel, err := usersUC.GetUser(subscriber)
+		if err != nil {
+			return err
+		}
+		newSubscriptionsNumber := *subscriberModel.Subscriptions + 1
+		_, err = usersUC.UpdateUser(subscriberModel, models.User{
+			Username: subscriber,
+			Subscriptions: &newSubscriptionsNumber,
+		})
+		if err != nil {
+			return err
+		}
+		userModel, err := usersUC.GetUser(user)
+		if err != nil {
+			return err
+		}
+		newSubscribersNumber := *userModel.Subscribers + 1
+		_, err = usersUC.UpdateUser(userModel, models.User{
+			Username: user,
+			Subscribers: &newSubscribersNumber,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	return fmt.Errorf("%s is already subscribed to %s", subscriber, user)
@@ -92,7 +120,36 @@ func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
 	}
 
 	if !unsubscribed {
-		return usersUC.userRepository.Unsubscribe(subscriber, user)
+		err = usersUC.userRepository.Unsubscribe(subscriber, user)
+		if err != nil {
+			return err
+		}
+		subscriberModel, err := usersUC.GetUser(subscriber)
+		if err != nil {
+			return err
+		}
+		newSubscriptionsNumber := *subscriberModel.Subscriptions - 1
+		_, err = usersUC.UpdateUser(subscriberModel, models.User{
+			Username: subscriber,
+			Subscriptions: &newSubscriptionsNumber,
+		})
+		if err != nil {
+			return err
+		}
+
+		userModel, err := usersUC.GetUser(user)
+		if err != nil {
+			return err
+		}
+		newSubscribersNumber := *userModel.Subscribers - 1
+		_, err = usersUC.UpdateUser(userModel, models.User{
+			Username: user,
+			Subscribers: &newSubscribersNumber,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	return fmt.Errorf("%s is not subscribed to %s", subscriber, user)

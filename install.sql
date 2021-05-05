@@ -26,6 +26,8 @@ CREATE TABLE mdb.users
     description         VARCHAR(600),
     movies_watched      INTEGER DEFAULT 0,
     reviews_count       INTEGER DEFAULT 0,
+    subscribers_count   INTEGER DEFAULT 0,
+    subscriptions_count INTEGER DEFAULT 0,
     friends_count       INTEGER DEFAULT 0,
     user_rating         INTEGER DEFAULT 0
 );

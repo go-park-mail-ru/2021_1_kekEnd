@@ -83,7 +83,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 	var user models.User
 
 	sqlStatement := `
-        SELECT login, password, email, img_src, movies_watched, reviews_count
+        SELECT login, password, email, img_src, movies_watched, reviews_count, subscribers_count, subscriptions_count
         FROM mdb.users
         WHERE login=$1
     `
@@ -92,7 +92,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 		QueryRow(context.Background(), sqlStatement, username).
 		Scan(&user.Username, &user.Password,
 			&user.Email, &user.Avatar,
-			&user.MoviesWatched, &user.ReviewsNumber)
+			&user.MoviesWatched, &user.ReviewsNumber, &user.Subscribers, &user.Subscriptions)
 
 	if err != nil {
 		return nil, errors.New("Username not found")
@@ -135,10 +135,18 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 		user.MoviesWatched = change.MoviesWatched
 	}
 
+	if change.Subscribers != nil {
+		user.Subscribers = change.Subscribers
+	}
+
+	if change.Subscriptions != nil {
+		user.Subscriptions = change.Subscriptions
+	}
+
 	sqlStatement := `
         UPDATE mdb.users
-        SET (login, password, email, img_src, movies_watched, reviews_count) =
-            ($2, $3, $4, $5, $6, $7)
+        SET (login, password, email, img_src, movies_watched, reviews_count, subscribers_count, subscriptions_count) =
+            ($2, $3, $4, $5, $6, $7, $8, $9)
         WHERE login=$1
     `
 
@@ -146,7 +154,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 		Exec(context.Background(), sqlStatement, user.Username,
 			user.Username, user.Password,
 			user.Email, user.Avatar,
-			user.MoviesWatched, user.ReviewsNumber)
+			user.MoviesWatched, user.ReviewsNumber, user.Subscribers, user.Subscriptions)
 
 	if err != nil {
 		return nil, errors.New("Updating user error")

@@ -127,7 +127,7 @@ func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 }
 
 func (h *Handler) GetPlaylists(ctx *gin.Context) {
-	userModel, err := h.usersUseCase.GetUser(ctx.Param("user_id"))
+	userModel, err := h.usersUseCase.GetUser(ctx.Param("username"))
 	if err != nil {
 		err := fmt.Errorf("%s", "Failed to get user")
 		h.Log.LogError(ctx, "playlists", "GetPlaylists", err)
