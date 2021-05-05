@@ -119,8 +119,8 @@ func (storage *RatingsRepository) UpdateRating(username string, movieID string, 
 	return nil
 }
 
-func (storage *RatingsRepository) GetFeed(users []*models.UserNoPassword) ([]*models.RatingFeedItem, error) {
-	feed := make([]*models.RatingFeedItem, 0)
+func (storage *RatingsRepository) GetFeed(users []models.UserNoPassword) ([]models.RatingFeedItem, error) {
+	feed := make([]models.RatingFeedItem, 0)
 
 	subs := make([]string, len(users))
 	for _, u := range users {
@@ -142,7 +142,7 @@ func (storage *RatingsRepository) GetFeed(users []*models.UserNoPassword) ([]*mo
 	}
 
 	for rows.Next() {
-		feedItem := &models.RatingFeedItem{
+		feedItem := models.RatingFeedItem{
 			ItemType: "rating",
 		}
 		rating := models.Rating{}

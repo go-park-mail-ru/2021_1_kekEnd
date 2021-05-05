@@ -256,8 +256,8 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	return nil
 }
 
-func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*models.ReviewFeedItem, error) {
-	feed := make([]*models.ReviewFeedItem, 0)
+func (storage *ReviewRepository) GetFeed(users []models.UserNoPassword) ([]models.ReviewFeedItem, error) {
+	feed := make([]models.ReviewFeedItem, 0)
 
 	subs := make([]string, len(users))
 	for _, u := range users {
@@ -278,7 +278,7 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 	}
 
 	for rows.Next() {
-		feedItem := &models.ReviewFeedItem{
+		feedItem := models.ReviewFeedItem{
 			ItemType: "review",
 		}
 		review := models.Review{}

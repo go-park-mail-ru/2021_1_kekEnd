@@ -8,5 +8,5 @@ type Repository interface {
 	GetRating(username string, movieID string) (models.Rating, error)
 	UpdateRating(username string, movieID string, score int) error
 	DeleteRating(username string, movieID string) error
-	GetFeed([]*models.UserNoPassword) ([]*models.RatingFeedItem, error)
+	GetFeed([]models.UserNoPassword) ([]models.RatingFeedItem, error)
 }

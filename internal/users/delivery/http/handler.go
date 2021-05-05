@@ -36,10 +36,10 @@ type signupData struct {
 }
 
 type subsResponse struct {
-	CurrentPage int                      `json:"current_page"`
-	PagesNumber int                      `json:"pages_number"`
-	MaxItems    int                      `json:"max_items"`
-	Subs        []*models.UserNoPassword `json:"subs"`
+	CurrentPage int                     `json:"current_page"`
+	PagesNumber int                     `json:"pages_number"`
+	MaxItems    int                     `json:"max_items"`
+	Subs        []models.UserNoPassword `json:"subs"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {

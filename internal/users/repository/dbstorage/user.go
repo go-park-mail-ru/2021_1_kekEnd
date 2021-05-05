@@ -204,8 +204,8 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
-func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*models.UserNoPassword, error) {
-	users := make([]*models.UserNoPassword, 0)
+func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]models.UserNoPassword, error) {
+	users := make([]models.UserNoPassword, 0)
 
 	sqlStatement := `
         SELECT login, email, img_src, movies_watched, reviews_count
@@ -221,7 +221,7 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*mo
 	defer rows.Close()
 
 	for rows.Next() {
-		user := &models.UserNoPassword{}
+		user := models.UserNoPassword{}
 		var moviesWatched uint
 		var reviewsNumber uint
 		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
@@ -233,7 +233,7 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]*mo
 	return users, nil
 }
 
-func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error) {
+func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []models.UserNoPassword, error) {
 	subs := make([]string, 0)
 
 	sqlStatement := `
@@ -282,7 +282,7 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 	return pagesNumber, users, nil
 }
 
-func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error) {
+func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []models.UserNoPassword, error) {
 	subs := make([]string, 0)
 
 	sqlStatement := `

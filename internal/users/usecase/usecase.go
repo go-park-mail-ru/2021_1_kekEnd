@@ -155,7 +155,7 @@ func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
 	return fmt.Errorf("%s is not subscribed to %s", subscriber, user)
 }
 
-func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error) {
+func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscribers(startIndex, user)
 }
@@ -165,7 +165,7 @@ func (usersUC *UsersUseCase) IsSubscribed(subscriber string, user string) (bool,
 	return !isUnsubscribed, err
 }
 
-func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error) {
+func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
