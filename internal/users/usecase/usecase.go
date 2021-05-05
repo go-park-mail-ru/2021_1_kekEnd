@@ -109,12 +109,11 @@ func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*mo
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.Notification, error) {
+func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.ReviewFeedItem, error) {
 	_, subs, err := usersUC.userRepository.GetSubscriptions(0, username)
 	if err != nil {
 		return nil, err
 	}
 
 	return usersUC.reviewsRepository.GetFeed(subs)
-
 }

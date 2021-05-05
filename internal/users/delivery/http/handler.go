@@ -136,7 +136,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	loginStatus := h.useCase.Login(loginData.Username, loginData.Password)
 	if !loginStatus {
-		err := fmt.Errorf("%s", "User is already logged in")
+		err := fmt.Errorf("%s", "Username is already logged in")
 		h.Log.LogWarning(ctx, "users", "Login", err.Error())
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 		return

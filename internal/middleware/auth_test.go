@@ -71,7 +71,7 @@ func TestCheckAuth(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401
 	})
 
-	t.Run("GetUser-No-User", func(t *testing.T) {
+	t.Run("GetUser-No-Username", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
