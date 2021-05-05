@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"math"
-	"sort"
 	"strconv"
 )
 
@@ -292,10 +291,6 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 		feedItem.Review = review
 		feed = append(feed, feedItem)
 	}
-
-	sort.SliceStable(feed, func(i, j int) bool {
-		return feed[i].Date.Before(feed[j].Date)
-	})
 
 	return feed, nil
 }

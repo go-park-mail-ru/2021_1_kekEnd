@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -13,13 +14,16 @@ import (
 type UsersUseCase struct {
 	userRepository    users.UserRepository
 	reviewsRepository reviews.ReviewRepository
+	ratingsRepository ratings.Repository
 	actorsRepository  actors.Repository
 }
 
-func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository, actors actors.Repository) *UsersUseCase {
+func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository, ratings ratings.Repository,
+	actors actors.Repository) *UsersUseCase {
 	return &UsersUseCase{
 		userRepository:    repo,
 		reviewsRepository: reviews,
+		ratingsRepository: ratings,
 		actorsRepository:  actors,
 	}
 }
@@ -109,11 +113,26 @@ func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*mo
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.ReviewFeedItem, error) {
+func (usersUC *UsersUseCase) GetFeed(username string) ([]interface{}, error) {
 	_, subs, err := usersUC.userRepository.GetSubscriptions(0, username)
 	if err != nil {
 		return nil, err
 	}
 
-	return usersUC.reviewsRepository.GetFeed(subs)
+
+	reviewsFeed, err := usersUC.reviewsRepository.GetFeed(subs)
+	if err != nil {
+		return nil, err
+	}
+
+	ratingsFeed, err := usersUC.ratingsRepository.GetFeed(subs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(reviewsFeed) + len(ratingsFeed) == 0 {
+		return []interface{}{}, nil
+	}
+
+	return []interface{}{reviewsFeed, ratingsFeed}, nil
 }

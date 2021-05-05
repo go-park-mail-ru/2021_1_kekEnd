@@ -11,9 +11,10 @@ type ReviewFeedItem struct {
 }
 
 type RatingFeedItem struct {
-	Username string    `json:"username"`
-	Avatar   string    `json:"avatar"`
-	ItemType string    `json:"item_type"`
-	Rating   Rating    `json:"rating"`
-	Date     time.Time `json:"date"`
+	Username   string    `json:"username"`
+	Avatar     string    `json:"avatar"`
+	ItemType   string    `json:"item_type"`
+	MovieTitle string    `json:"movie_title"`
+	Rating     Rating    `json:"rating"`
+	Date       time.Time `json:"date"`
 }
