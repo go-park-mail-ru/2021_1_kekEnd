@@ -26,6 +26,8 @@ CREATE TABLE mdb.users
     description         VARCHAR(600),
     movies_watched      INTEGER DEFAULT 0,
     reviews_count       INTEGER DEFAULT 0,
+    subscribers_count   INTEGER DEFAULT 0,
+    subscriptions_count INTEGER DEFAULT 0,
     friends_count       INTEGER DEFAULT 0,
     user_rating         INTEGER DEFAULT 0
 );
@@ -144,6 +146,7 @@ CREATE TABLE mdb.movie_rating
     user_login VARCHAR(100) REFERENCES mdb.users (login) ON DELETE CASCADE,
     movie_id INTEGER REFERENCES mdb.movie (id) ON DELETE CASCADE,
     rating INTEGER CONSTRAINT from_one_to_ten_rating CHECK (rating >= 1 AND rating <= 10) NOT NULL,
+    creation_date timestamp NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_login, movie_id)
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON mdb.movie_rating TO mdb;

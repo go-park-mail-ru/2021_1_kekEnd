@@ -88,7 +88,7 @@ func NewApp() *App {
 	actorsRepo := actorsDBStorage.NewActorRepository(dbpool)
 	ratingsRepo := ratingsDBStorage.NewRatingsRepository(dbpool)
 
-	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo, actorsRepo)
+	usersUC := usersUseCase.NewUsersUseCase(usersRepo, reviewsRepo, ratingsRepo, actorsRepo)
 	moviesUC := moviesUseCase.NewMoviesUseCase(moviesRepo, usersRepo)
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
@@ -132,7 +132,7 @@ func (app *App) Run(port string) error {
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
-	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

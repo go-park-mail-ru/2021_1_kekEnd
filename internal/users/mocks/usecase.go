@@ -49,10 +49,10 @@ func (mr *MockUseCaseMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 }
 
 // GetFeed mocks base method.
-func (m *MockUseCase) GetFeed(arg0 string) ([]*models.Notification, error) {
+func (m *MockUseCase) GetFeed(arg0 string) ([]*models.ReviewFeedItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFeed", arg0)
-	ret0, _ := ret[0].([]*models.Notification)
+	ret0, _ := ret[0].([]*models.ReviewFeedItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

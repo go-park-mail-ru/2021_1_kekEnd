@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -13,13 +14,16 @@ import (
 type UsersUseCase struct {
 	userRepository    users.UserRepository
 	reviewsRepository reviews.ReviewRepository
+	ratingsRepository ratings.Repository
 	actorsRepository  actors.Repository
 }
 
-func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository, actors actors.Repository) *UsersUseCase {
+func NewUsersUseCase(repo users.UserRepository, reviews reviews.ReviewRepository, ratings ratings.Repository,
+	actors actors.Repository) *UsersUseCase {
 	return &UsersUseCase{
 		userRepository:    repo,
 		reviewsRepository: reviews,
+		ratingsRepository: ratings,
 		actorsRepository:  actors,
 	}
 }
@@ -66,50 +70,114 @@ func (usersUC *UsersUseCase) UpdateUser(user *models.User, change models.User) (
 	return usersUC.userRepository.UpdateUser(user, change)
 }
 
-func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
-	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
-
+func (usersUC *UsersUseCase) toggleSubscribe(subscriber string, user string, isSubscribing bool) error {
+	var err error
+	if isSubscribing {
+		err = usersUC.userRepository.Subscribe(subscriber, user)
+	} else {
+		err = usersUC.userRepository.Unsubscribe(subscriber, user)
+	}
 	if err != nil {
 		return err
 	}
 
-	if unsubscribed {
-		return usersUC.userRepository.Subscribe(subscriber, user)
+	subscriberModel, err := usersUC.GetUser(subscriber)
+	if err != nil {
+		return err
+	}
+	var newSubscriptionsNum uint
+	if isSubscribing {
+		newSubscriptionsNum = *subscriberModel.Subscriptions + 1
+	} else {
+		newSubscriptionsNum = *subscriberModel.Subscriptions - 1
+	}
+	_, err = usersUC.UpdateUser(subscriberModel, models.User{
+		Username: subscriber,
+		Subscriptions: &newSubscriptionsNum,
+	})
+	if err != nil {
+		return err
 	}
 
+	userModel, err := usersUC.GetUser(user)
+	if err != nil {
+		return err
+	}
+	var newSubscribersNum uint
+	if isSubscribing {
+		newSubscribersNum = *userModel.Subscribers + 1
+	} else {
+		newSubscribersNum = *userModel.Subscribers - 1
+	}
+
+	_, err = usersUC.UpdateUser(userModel, models.User{
+		Username: user,
+		Subscribers: &newSubscribersNum,
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usersUC *UsersUseCase) Subscribe(subscriber string, user string) error {
+	unsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+	if err != nil {
+		return err
+	}
+	if unsubscribed {
+		return usersUC.toggleSubscribe(subscriber, user, true)
+	}
 	return fmt.Errorf("%s is already subscribed to %s", subscriber, user)
 }
 
 func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
-	err, unsubscribed := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
-
+	unsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
 	if err != nil {
 		return err
 	}
-
 	if !unsubscribed {
-		return usersUC.userRepository.Unsubscribe(subscriber, user)
+		return usersUC.toggleSubscribe(subscriber, user, false)
 	}
-
 	return fmt.Errorf("%s is not subscribed to %s", subscriber, user)
 }
 
-func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error) {
+func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscribers(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error) {
+func (usersUC *UsersUseCase) IsSubscribed(subscriber string, user string) (bool, error) {
+	isUnsubscribed, err := usersUC.userRepository.CheckUnsubscribed(subscriber, user)
+	return !isUnsubscribed, err
+}
+
+func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []models.UserNoPassword, error) {
 	startIndex := (page - 1) * _const.SubsPageSize
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetFeed(username string) ([]*models.Notification, error) {
+func (usersUC *UsersUseCase) GetFeed(username string) (models.Feed, error) {
 	_, subs, err := usersUC.userRepository.GetSubscriptions(0, username)
 	if err != nil {
-		return nil, err
+		return models.Feed{}, err
 	}
 
-	return usersUC.reviewsRepository.GetFeed(subs)
+	reviewsFeed, err := usersUC.reviewsRepository.GetFeed(subs)
+	if err != nil {
+		return models.Feed{}, err
+	}
 
+	ratingsFeed, err := usersUC.ratingsRepository.GetFeed(subs)
+	if err != nil {
+		return models.Feed{}, err
+	}
+
+	feed := models.Feed{
+		Ratings: ratingsFeed,
+		Reviews: reviewsFeed,
+	}
+
+	return feed, nil
 }

@@ -2,33 +2,35 @@ package http
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"net/http"
+	"strconv"
 )
 
 type Handler struct {
-	useCase playlists.UseCase
-	Log     *logger.Logger
+	useCase      playlists.UseCase
+	usersUseCase users.UseCase
+	Log          *logger.Logger
 }
 
 type PlaylistMovie struct {
-	MovieID string `json:"movieID"`
+	MovieID string `json:"movie_id"`
 }
 
 type PlaylistUser struct {
 	Username string `json:"username"`
 }
 
-func NewHandler(useCase playlists.UseCase, Log *logger.Logger) *Handler {
+func NewHandler(useCase playlists.UseCase, usersUseCase users.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
-		useCase: useCase,
-		Log:     Log,
+		useCase:      useCase,
+		usersUseCase: usersUseCase,
+		Log:          Log,
 	}
 }
 
@@ -125,30 +127,22 @@ func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 }
 
 func (h *Handler) GetPlaylists(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogWarning(ctx, "playlists", "GetPlaylists", err.Error())
-		ctx.AbortWithStatus(http.StatusBadRequest) // 400
-		return
-	}
-
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
+	userModel, err := h.usersUseCase.GetUser(ctx.Param("username"))
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to get user")
 		h.Log.LogError(ctx, "playlists", "GetPlaylists", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
 
-	playlists, err := h.useCase.GetPlaylists(userModel.Username)
+	userPlaylists, err := h.useCase.GetPlaylists(userModel.Username)
 	if err != nil {
 		h.Log.LogWarning(ctx, "playlists", "GetPlaylists", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
 
-	ctx.JSON(http.StatusOK, playlists)
+	ctx.JSON(http.StatusOK, userPlaylists)
 }
 
 func (h *Handler) EditPlaylist(ctx *gin.Context) {

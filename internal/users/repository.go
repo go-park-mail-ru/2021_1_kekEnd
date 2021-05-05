@@ -16,15 +16,15 @@ type UserRepository interface {
 
 	CheckEmailUnique(newEmail string) error
 
-	CheckUnsubscribed(subscriber string, user string) (error, bool)
+	CheckUnsubscribed(subscriber string, user string) (bool, error)
 
 	Subscribe(subscriber string, user string) error
 
 	Unsubscribe(subscriber string, user string) error
 
-	GetModels(ids []string, limit, offset int) ([]*models.UserNoPassword, error)
+	GetModels(ids []string, limit, offset int) ([]models.UserNoPassword, error)
 
-	GetSubscribers(startIndex int, user string) (int, []*models.UserNoPassword, error)
+	GetSubscribers(startIndex int, user string) (int, []models.UserNoPassword, error)
 
-	GetSubscriptions(startIndex int, user string) (int, []*models.UserNoPassword, error)
+	GetSubscriptions(startIndex int, user string) (int, []models.UserNoPassword, error)
 }

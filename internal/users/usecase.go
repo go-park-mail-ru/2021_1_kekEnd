@@ -18,9 +18,11 @@ type UseCase interface {
 
 	Unsubscribe(subscriber string, user string) error
 
-	GetSubscribers(page int, user string) (int, []*models.UserNoPassword, error)
+	GetSubscribers(page int, user string) (int, []models.UserNoPassword, error)
 
-	GetSubscriptions(page int, user string) (int, []*models.UserNoPassword, error)
+	IsSubscribed(subscriber string, user string) (bool, error)
 
-	GetFeed(username string) ([]*models.Notification, error)
+	GetSubscriptions(page int, user string) (int, []models.UserNoPassword, error)
+
+	GetFeed(username string) (models.Feed, error)
 }
