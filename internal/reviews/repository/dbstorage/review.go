@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"math"
-	"sort"
 	"strconv"
 )
 
@@ -257,8 +256,8 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	return nil
 }
 
-func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*models.Notification, error) {
-	feed := make([]*models.Notification, 0)
+func (storage *ReviewRepository) GetFeed(users []models.UserNoPassword) ([]models.ReviewFeedItem, error) {
+	feed := make([]models.ReviewFeedItem, 0)
 
 	subs := make([]string, len(users))
 	for _, u := range users {
@@ -266,10 +265,11 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 	}
 
 	sqlStatement := `
-        SELECT user_login, title, content, creation_date
-        FROM mdb.users_review
-        WHERE user_login && $1 AND creation_date >= NOW() - INTERVAL '48 HOURS'
-        ORDER BY creation_date DESC
+        SELECT rws.user_login, us.img_src, rws.title, rws.content, rws.review_type, rws.creation_date
+        FROM mdb.users_review rws
+		JOIN mdb.users us ON rws.user_login=us.login
+        WHERE rws.user_login=ANY($1) AND rws.creation_date >= NOW() - INTERVAL '48 HOURS'
+        ORDER BY rws.creation_date DESC
     `
 
 	rows, err := storage.db.Query(context.Background(), sqlStatement, subs)
@@ -278,17 +278,19 @@ func (storage *ReviewRepository) GetFeed(users []*models.UserNoPassword) ([]*mod
 	}
 
 	for rows.Next() {
-		notification := &models.Notification{}
-		err := rows.Scan(&notification.User, &notification.Title, &notification.Text, &notification.Date)
+		feedItem := models.ReviewFeedItem{
+			ItemType: "review",
+		}
+		review := models.Review{}
+		var reviewTypeInt int
+		err := rows.Scan(&feedItem.Username, &feedItem.Avatar, &review.Title, &review.Content, &reviewTypeInt, &feedItem.Date)
 		if err != nil {
 			return nil, err
 		}
-		feed = append(feed, notification)
+		review.ReviewType = convertReviewTypeFromIntToStr(reviewTypeInt)
+		feedItem.Review = review
+		feed = append(feed, feedItem)
 	}
 
-	sort.SliceStable(feed, func(i, j int) bool {
-		return feed[i].Date.Before(feed[j].Date)
-	})
-
-	return feed[:_const.FeedItemsLimit], nil
+	return feed, nil
 }

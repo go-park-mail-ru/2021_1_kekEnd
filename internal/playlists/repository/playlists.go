@@ -91,7 +91,7 @@ func (storage *PlaylistsRepository) GetPlaylist(playlistID int) (*models.Playlis
 	for id, title := range movies {
 		if id != -1 {
 			newID := strconv.Itoa(id)
-			playlist.Movies = append(playlist.Movies, models.MovieInPlaylist{newID, title, ""})
+			playlist.Movies = append(playlist.Movies, models.MovieInPlaylist{ID: newID, Title: title})
 		}
 	}
 
@@ -175,7 +175,7 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 
 		playlist := models.PlaylistsInfo{}
 		playlist.ID = strconv.Itoa(newID)
-		playlist.Name = username
+		playlist.Name = playlistName
 
 		if newMovieID == -1 {
 			playlist.IsAdded = false

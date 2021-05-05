@@ -37,10 +37,10 @@ type signupData struct {
 }
 
 type subsResponse struct {
-	CurrentPage int                      `json:"current_page"`
-	PagesNumber int                      `json:"pages_number"`
-	MaxItems    int                      `json:"max_items"`
-	Subs        []*models.UserNoPassword `json:"subs"`
+	CurrentPage int                     `json:"current_page"`
+	PagesNumber int                     `json:"pages_number"`
+	MaxItems    int                     `json:"max_items"`
+	Subs        []models.UserNoPassword `json:"subs"`
 }
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
@@ -137,7 +137,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	loginStatus := h.useCase.Login(loginData.Username, loginData.Password)
 	if !loginStatus {
-		err := fmt.Errorf("%s", "User is already logged in")
+		err := fmt.Errorf("%s", "Username is already logged in")
 		h.Log.LogWarning(ctx, "users", "Login", err.Error())
 		ctx.AbortWithStatus(http.StatusUnauthorized) // 401
 		return
@@ -164,7 +164,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
-func (h *Handler) GetUser(ctx *gin.Context) {
+func (h *Handler) GetCurrentUser(ctx *gin.Context) {
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
@@ -182,6 +182,18 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	}
 
 	userNoPassword := models.FromUser(userModel)
+	ctx.JSON(http.StatusOK, userNoPassword)
+}
+
+func (h *Handler) GetUser(ctx *gin.Context) {
+	userModel, err := h.useCase.GetUser(ctx.Param("username"))
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to get user")
+		h.Log.LogError(ctx, "users", "GetUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	userNoPassword := models.FromUser(*userModel)
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
@@ -295,7 +307,7 @@ func (h *Handler) Subscribe(ctx *gin.Context) {
 		return
 	}
 
-	target := ctx.Param("user_id")
+	target := ctx.Param("username")
 	targetModel, err := h.useCase.GetUser(target)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Subscribe", err)
@@ -330,7 +342,7 @@ func (h *Handler) Unsubscribe(ctx *gin.Context) {
 		return
 	}
 
-	target := ctx.Param("user_id")
+	target := ctx.Param("username")
 	targetModel, err := h.useCase.GetUser(target)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -363,7 +375,7 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 		return
 	}
 
-	username := ctx.Param("user_id")
+	username := ctx.Param("username")
 	user, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -389,6 +401,42 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, subsResponse)
 }
 
+func (h *Handler) IsSubscribed(ctx *gin.Context) {
+	user, ok := ctx.Get(_const.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	username := ctx.Param("username")
+	user, err := h.useCase.GetUser(username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Unsubscribe", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	isSubscribed, err := h.useCase.IsSubscribed(userModel.Username, username)
+
+	if err != nil {
+		h.Log.LogError(ctx, "users", "GetSubscribers", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, isSubscribed)
+}
+
 func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil || page < 1 {
@@ -404,7 +452,7 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 		return
 	}
 
-	username := ctx.Param("user_id")
+	username := ctx.Param("username")
 	user, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
