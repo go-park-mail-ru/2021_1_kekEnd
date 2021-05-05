@@ -158,26 +158,26 @@ func (usersUC *UsersUseCase) GetSubscriptions(page int, user string) (int, []mod
 	return usersUC.userRepository.GetSubscriptions(startIndex, user)
 }
 
-func (usersUC *UsersUseCase) GetFeed(username string) ([]interface{}, error) {
+func (usersUC *UsersUseCase) GetFeed(username string) (models.Feed, error) {
 	_, subs, err := usersUC.userRepository.GetSubscriptions(0, username)
 	if err != nil {
-		return nil, err
+		return models.Feed{}, err
 	}
-
 
 	reviewsFeed, err := usersUC.reviewsRepository.GetFeed(subs)
 	if err != nil {
-		return nil, err
+		return models.Feed{}, err
 	}
 
 	ratingsFeed, err := usersUC.ratingsRepository.GetFeed(subs)
 	if err != nil {
-		return nil, err
+		return models.Feed{}, err
 	}
 
-	if len(reviewsFeed) + len(ratingsFeed) == 0 {
-		return []interface{}{}, nil
+	feed := models.Feed{
+		Ratings: ratingsFeed,
+		Reviews: reviewsFeed,
 	}
 
-	return []interface{}{reviewsFeed, ratingsFeed}, nil
+	return feed, nil
 }

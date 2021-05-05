@@ -18,3 +18,8 @@ type RatingFeedItem struct {
 	Rating     Rating    `json:"rating"`
 	Date       time.Time `json:"date"`
 }
+
+type Feed struct {
+	Ratings []RatingFeedItem `json:"recent_ratings"`
+	Reviews []ReviewFeedItem `json:"recent_reviews"`
+}
