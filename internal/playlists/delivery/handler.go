@@ -18,7 +18,7 @@ type Handler struct {
 }
 
 type PlaylistMovie struct {
-	MovieID string `json:"movieID"`
+	MovieID string `json:"movie_id"`
 }
 
 type PlaylistUser struct {
@@ -141,14 +141,14 @@ func (h *Handler) GetPlaylists(ctx *gin.Context) {
 		return
 	}
 
-	playlists, err := h.useCase.GetPlaylists(userModel.Username)
+	userPlaylists, err := h.useCase.GetPlaylists(userModel.Username)
 	if err != nil {
 		h.Log.LogWarning(ctx, "playlists", "GetPlaylists", err.Error())
 		ctx.AbortWithStatus(http.StatusNotFound) // 404
 		return
 	}
 
-	ctx.JSON(http.StatusOK, playlists)
+	ctx.JSON(http.StatusOK, userPlaylists)
 }
 
 func (h *Handler) EditPlaylist(ctx *gin.Context) {
