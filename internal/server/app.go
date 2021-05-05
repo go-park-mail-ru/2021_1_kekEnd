@@ -117,6 +117,14 @@ func NewApp() *App {
 	}
 }
 
+func prometheusHandler() gin.HandlerFunc {
+	h := promhttp.Handler()
+
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
@@ -128,7 +136,7 @@ func (app *App) Run(port string) error {
 	router.Static("/avatars", _const.AvatarsFileDir)
 
 	router.Use(gin.Recovery())
-	router.Handle("/metrics", promhttp.Handler())
+	router.GET("/metrics", prometheusHandler())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)

@@ -18,7 +18,7 @@ type AccessLog interface {
 var (
 	hits = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "hits",
-	}, []string{"status", "path", "method"})
+	}, []string{"status", "path"})
 
 	timings = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "method_timings",
