@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"errors"
+	actorsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	ratingMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/mocks"
+	reviewMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +16,10 @@ func TestUsersUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mocks.NewMockUserRepository(ctrl)
-	uc := NewUsersUseCase(repo)
+	reviewsRepo := reviewMock.NewMockReviewRepository(ctrl)
+	ratingsRepo := ratingMock.NewMockRepository(ctrl)
+	actorsRepo := actorsMock.NewMockRepository(ctrl)
+	uc := NewUsersUseCase(repo, reviewsRepo, ratingsRepo, actorsRepo)
 
 	user := &models.User{
 		Username: "let_robots_reign",
@@ -36,6 +42,7 @@ func TestUsersUseCase(t *testing.T) {
 	})
 
 	t.Run("GetUser", func(t *testing.T) {
+		actorsRepo.EXPECT().GetFavoriteActors(user.Username).Return([]models.Actor{}, nil)
 		repo.EXPECT().GetUserByUsername(user.Username).Return(user, nil)
 		gotUser, err := uc.GetUser(user.Username)
 		assert.NoError(t, err)
@@ -55,45 +62,101 @@ func TestUsersUseCase(t *testing.T) {
 	})
 
 	t.Run("Subscribe", func(t *testing.T) {
-		sub := "whaeva"
-		user := "let_robots_reign"
+		subModel := models.User{
+			Username: "whaeva",
+			Subscriptions: new(uint),
+		}
+		userModel := models.User{
+			Username: "let_robots_reign",
+			Subscribers: new(uint),
+		}
+		
+		var newSubscriptions uint = 1
+		var newSubscribers uint = 1
 
-		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, true)
-		repo.EXPECT().Subscribe(sub, user).Return(nil)
+		repo.EXPECT().CheckUnsubscribed(subModel.Username, userModel.Username).Return(true, nil)
+		repo.EXPECT().Subscribe(subModel.Username, userModel.Username).Return(nil)
 
-		err := uc.Subscribe(sub, user)
+		actorsRepo.EXPECT().GetFavoriteActors(subModel.Username).Return([]models.Actor{}, nil)
+		actorsRepo.EXPECT().GetFavoriteActors(userModel.Username).Return([]models.Actor{}, nil)
+
+		repo.EXPECT().GetUserByUsername(subModel.Username).Return(&subModel, nil)
+		repo.EXPECT().GetUserByUsername(userModel.Username).Return(&userModel, nil)
+
+		repo.EXPECT().CheckEmailUnique("").Return(nil)
+		repo.EXPECT().CheckEmailUnique("").Return(nil)
+
+		repo.EXPECT().UpdateUser(&subModel, models.User{
+			Username:      "whaeva",
+			Subscriptions: &newSubscriptions,
+		})
+		repo.EXPECT().UpdateUser(&userModel, models.User{
+			Username: "let_robots_reign",
+			Subscribers: &newSubscribers,
+		})
+
+		err := uc.Subscribe(subModel.Username, userModel.Username)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Unsubscribe", func(t *testing.T) {
-		sub := "whaeva"
-		user := "let_robots_reign"
+		var subscriptions uint = 1
+		var subscribers uint = 1
+		subModel := models.User{
+			Username: "whaeva",
+			Subscriptions: &subscriptions,
+		}
+		userModel := models.User{
+			Username: "let_robots_reign",
+			Subscribers: &subscribers,
+		}
 
-		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, false)
-		repo.EXPECT().Unsubscribe(sub, user).Return(nil)
+		var newSubscriptions uint = 0
+		var newSubscribers uint = 0
 
-		err := uc.Unsubscribe(sub, user)
+		repo.EXPECT().CheckUnsubscribed(subModel.Username, userModel.Username).Return(false, nil)
+		repo.EXPECT().Unsubscribe(subModel.Username, userModel.Username).Return(nil)
+
+		actorsRepo.EXPECT().GetFavoriteActors(subModel.Username).Return([]models.Actor{}, nil)
+		actorsRepo.EXPECT().GetFavoriteActors(userModel.Username).Return([]models.Actor{}, nil)
+
+		repo.EXPECT().GetUserByUsername(subModel.Username).Return(&subModel, nil)
+		repo.EXPECT().GetUserByUsername(userModel.Username).Return(&userModel, nil)
+
+		repo.EXPECT().CheckEmailUnique("").Return(nil)
+		repo.EXPECT().CheckEmailUnique("").Return(nil)
+
+		repo.EXPECT().UpdateUser(&subModel, models.User{
+			Username:      "whaeva",
+			Subscriptions: &newSubscriptions,
+		})
+		repo.EXPECT().UpdateUser(&userModel, models.User{
+			Username: "let_robots_reign",
+			Subscribers: &newSubscribers,
+		})
+
+		err := uc.Unsubscribe(subModel.Username, userModel.Username)
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetSubscribers", func(t *testing.T) {
 		user := "let_robots_reign"
 
-		repo.EXPECT().GetSubscribers(0, user).Return(0, []*models.UserNoPassword{}, nil)
+		repo.EXPECT().GetSubscribers(0, user).Return(0, []models.UserNoPassword{}, nil)
 
 		_, subs, err := uc.GetSubscribers(1, user)
 		assert.NoError(t, err)
-		assert.Equal(t, subs, []*models.UserNoPassword{})
+		assert.Equal(t, subs, []models.UserNoPassword{})
 	})
 
 	t.Run("GetSubscriptions", func(t *testing.T) {
 		user := "let_robots_reign"
 
-		repo.EXPECT().GetSubscriptions(0, user).Return(0, []*models.UserNoPassword{}, nil)
+		repo.EXPECT().GetSubscriptions(0, user).Return(0, []models.UserNoPassword{}, nil)
 
 		_, subs, err := uc.GetSubscriptions(1, user)
 		assert.NoError(t, err)
-		assert.Equal(t, subs, []*models.UserNoPassword{})
+		assert.Equal(t, subs, []models.UserNoPassword{})
 	})
 
 }
@@ -102,7 +165,10 @@ func TestUsersUseCaseErrors(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mocks.NewMockUserRepository(ctrl)
-	uc := NewUsersUseCase(repo)
+	reviewsRepo := reviewMock.NewMockReviewRepository(ctrl)
+	ratingsRepo := ratingMock.NewMockRepository(ctrl)
+	actorsRepo := actorsMock.NewMockRepository(ctrl)
+	uc := NewUsersUseCase(repo, reviewsRepo, ratingsRepo, actorsRepo)
 
 	user := &models.User{
 		Username: "let_robots_reign",
@@ -177,7 +243,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 		sub := "whaeva"
 		user := "let_robots_reign"
 
-		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, false)
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(false, nil)
 
 		err := uc.Subscribe(sub, user)
 		assert.Error(t, err)
@@ -187,7 +253,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 		sub := "whaeva"
 		user := "let_robots_reign"
 
-		repo.EXPECT().CheckUnsubscribed(sub, user).Return(nil, true)
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(true, nil)
 
 		err := uc.Unsubscribe(sub, user)
 		assert.Error(t, err)
