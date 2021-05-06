@@ -327,7 +327,7 @@ func (storage *PlaylistsRepository) CanUserUpdateUsersInPlaylist(username string
 	sqlStatement := `
 	    SELECT ownerName
 		FROM mdb.playlists
-	    WHERE id = 1 AND ownerName = 'user1';
+	    WHERE id = $1 AND ownerName = $2;
 	`
 
 	var newOwnerName string

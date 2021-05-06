@@ -41,7 +41,7 @@ func TestHandlers(t *testing.T) {
 	}
 
 	t.Run("GetActor", func(t *testing.T) {
-		actorsUC.EXPECT().GetActor(actor.ID).Return(actor, nil)
+		actorsUC.EXPECT().GetActor(actor.ID, actor.Name).Return(actor, nil)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/actors/1", nil)
