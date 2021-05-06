@@ -19,6 +19,7 @@ import (
 	playlistsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/delivery"
 	playlistsRepository "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/repository"
 	playlistsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 	ratingsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/delivery"
 	ratingsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/repository/dbstorage"
@@ -56,6 +57,7 @@ type App struct {
 	logger         *logger.Logger
 	sessionsDL     *sessionsDelivery.AuthClient
 	sessionsConn   *grpc.ClientConn
+	fileServer     proto.FileServerHandlerClient
 }
 
 func init() {
@@ -76,11 +78,17 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "localhost:%s", _const.AuthPort), grpc.WithInsecure())
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", _const.AuthPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
 	}
 	sessionsDL := sessionsDelivery.NewAuthClient(sessionsGrpcConn)
+
+	fileServerGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", _const.FileServerPort), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Unable to connect to grpc file server: %v\n", err)
+	}
+	fileServerService := proto.NewFileServerHandlerClient(fileServerGrpcConn)
 
 	usersRepo := usersDBStorage.NewUserRepository(dbpool)
 	reviewsRepo := reviewsDBStorage.NewReviewRepository(dbpool)
@@ -112,6 +120,7 @@ func NewApp() *App {
 		logger:         accessLogger,
 		sessionsDL:     sessionsDL,
 		sessionsConn:   sessionsGrpcConn,
+		fileServer:     fileServerService,
 	}
 }
 
@@ -127,7 +136,7 @@ func (app *App) Run(port string) error {
 
 	router.Use(gin.Recovery())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.logger)
+	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)

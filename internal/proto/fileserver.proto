@@ -3,3 +3,22 @@ syntax = "proto3";
 option go_package = "github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto";
 
 package fileserver;
+
+message Chunk {
+  bytes Content = 1;
+}
+
+enum StatusCode {
+  SUCCESS = 0;
+  ERROR = 1;
+  UNDEFINED = 2;
+}
+
+message UploadStatus {
+  StatusCode Code = 1;
+  string Message = 2;
+}
+
+service FileServerHandler {
+  rpc Upload(stream Chunk) returns (UploadStatus) {}
+}
