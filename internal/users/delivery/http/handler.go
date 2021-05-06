@@ -2,17 +2,18 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"path/filepath"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
-	"net/http"
-	"path/filepath"
-	"strconv"
 )
 
 type Handler struct {
