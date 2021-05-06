@@ -15,4 +15,6 @@ type ReviewRepository interface {
 	EditUserReviewForMovie(review *models.Review) error
 
 	DeleteUserReviewForMovie(username string, movieID string) error
+
+	GetFeed([]models.UserNoPassword) ([]models.ReviewFeedItem, error)
 }

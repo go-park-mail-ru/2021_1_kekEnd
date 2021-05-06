@@ -2,14 +2,19 @@ import psycopg2
 import requests
 import time
 
-# API_KEY = os.environ.get('API_KEY')
-API_KEY = '8860149e-c0b2-4350-b080-5fc17381f5e4'
+with open('keys.txt') as keys:
+    KINO_API_KEY = keys.readline().strip()
+    YOUTUBE_API_KEY = keys.readline().strip()
+
 MOVIE_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v2.1/films'
 MOVIE_API_APPEND = '?append_to_response=BUDGET&append_to_response=RATING'
 STAFF_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v1/staff'
+YOUTUBE_TRAILER_PATH = f'https://www.googleapis.com/youtube/v3/search' \
+                       f'?key={YOUTUBE_API_KEY}&part=snippet&type=video&maxResults=1&q='
+YOUTUBE_EMBED = 'https://www.youtube.com/embed/'
 
 START_MOVIE_INDEX = 300
-END_MOVIE_INDEX = 400
+END_MOVIE_INDEX = 302
 
 
 def format_array(arr):
@@ -22,7 +27,7 @@ def filter_by_profession(people, profession):
 
 def get_staff_info(movie_id):
     staff_array = requests.get(f'{STAFF_API_PATH}?filmId={movie_id}',
-                               headers={'X-API-KEY': API_KEY}).json()
+                               headers={'X-API-KEY': KINO_API_KEY}).json()
     return [
         filter_by_profession(staff_array, 'DIRECTOR')[0],
         filter_by_profession(staff_array, 'WRITER')[0],
@@ -37,32 +42,20 @@ def get_staff_info(movie_id):
 
 def get_frames_info(movie_id):
     frames_array = requests.get(f'{MOVIE_API_PATH}/{movie_id}/frames',
-                                headers={'X-API-KEY': API_KEY}).json()
+                                headers={'X-API-KEY': KINO_API_KEY}).json()
     frame = frames_array['frames'][0]['image']
     return frame
 
 
-def get_youtube_thumbnail(youtube_id):
-    return f'https://img.youtube.com/vi/{youtube_id}/0.jpg'
-
-
-def get_trailer_info(movie_id):
-    trailers_array = requests.get(f'{MOVIE_API_PATH}/{movie_id}/videos',
-                                  headers={'X-API-KEY': API_KEY}).json()
-    youtube_trailer_link = [trailer['url'] for trailer in trailers_array['trailers']
-                            if trailer['site'] in ['YOUTUBE', 'YouTube']][0]
-
-    if 'v/' in youtube_trailer_link:
-        youtube_id = youtube_trailer_link.split('/')[-1]
-    else:
-        youtube_id = youtube_trailer_link.split('?v=')[1]
-
-    return get_youtube_thumbnail(youtube_id)
+def get_trailer_info(title):
+    trailer_response = requests.get(f'{YOUTUBE_TRAILER_PATH}{title}+трейлер').json()
+    trailer_link = YOUTUBE_EMBED + trailer_response['items'][0]['id']['videoId']
+    return trailer_link
 
 
 def get_actor_info(actor_id):
     response = requests.get(f'{STAFF_API_PATH}/{actor_id}',
-                            headers={'X-API-KEY': API_KEY}).json()
+                            headers={'X-API-KEY': KINO_API_KEY}).json()
     return [
         response['nameRu'],
         "\n\n".join(response['facts']),
@@ -75,7 +68,7 @@ def get_actor_info(actor_id):
 
 def get_movie_info(movie_id):
     response = requests.get(f'{MOVIE_API_PATH}/{movie_id}{MOVIE_API_APPEND}',
-                            headers={'X-API-KEY': API_KEY}).json()
+                            headers={'X-API-KEY': KINO_API_KEY}).json()
 
     data = response['data']
     rating = response['rating']
@@ -83,7 +76,7 @@ def get_movie_info(movie_id):
 
     staff = get_staff_info(movie_id)
     frame = get_frames_info(movie_id)
-    # trailer_thumbnail = get_trailer_info(movie_id)
+    trailer_thumbnail = get_trailer_info(data['nameRu'])
 
     actors = staff[-1][:5]
 
@@ -92,56 +85,60 @@ def get_movie_info(movie_id):
         data['description'],
         data['year'],
         format_array([item['country'] for item in data['countries']]),
-        format_array([item['genre'] for item in data['genres']]),
         data['slogan'],
         *staff[:-1],
         budget['budget'],
         data['filmLength'],
-        [actor[1] for actor in actors],
         data['posterUrlPreview'],
         frame,
-        # trailer_thumbnail,
-        '',
+        trailer_thumbnail,
         rating['rating'],
         rating['ratingVoteCount']
     ], set([item['genre'] for item in data['genres']]), [actor[0] for actor in actors]
 
 
-def main():
-    conn = psycopg2.connect(
-        host='localhost',
-        user='mdb',
-        password='mdb',
-        database='mdb'
-    )
-    cursor = conn.cursor()
-
+def fill_db(conn, cursor):
     counter = 0
-    available_genres = set()
+    genres_current_id = 1
 
     for index in range(START_MOVIE_INDEX, END_MOVIE_INDEX):
         try:
-            info, genres, actors = get_movie_info(index)
+            info, genres, actors_ids = get_movie_info(index)
             info = [item if item is not None else 'нет данных' for item in info]
 
-            if available_genres:
-                available_genres |= genres
-            else:
-                available_genres = genres
+            cursor.execute(
+                'INSERT INTO movie (title, description, productionyear, country, slogan, '
+                'director, scriptwriter, producer, operator, composer, artist, montage, '
+                'budget, duration, poster, banner, trailerpreview, rating, rating_count) '
+                'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                info)
 
-            for actor in actors:
-                actor_info = get_actor_info(actor)
+            for genre in genres:
+                cursor.execute('SELECT id FROM genres WHERE name = %s', (genre,))
+                genre_id = cursor.fetchone()
+                if genre_id is None:
+                    # этот жанр еще не был добавлен
+                    genre_id = genres_current_id
+                    cursor.execute('INSERT INTO genres (id, name) VALUES(%s, %s)', (genre_id, genre))
+                    genres_current_id += 1
+
                 cursor.execute(
-                    'INSERT INTO actors (name, biography, birthdate, origin, profession, avatar) '
-                    'VALUES(%s, %s, %s, %s, %s, %s)', actor_info
+                    'INSERT INTO movie_genres (movie_id, genre_id) VALUES(%s, %s)', (counter + 1, genre_id)
                 )
 
-            cursor.execute(
-                'INSERT INTO movie (title, description, productionyear, country, genre, slogan, '
-                'director, scriptwriter, producer, operator, composer, artist, montage, '
-                'budget, duration, actors, poster, banner, trailerpreview, rating, rating_count) '
-                'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                info)
+            for actor_id in actors_ids:
+                cursor.execute('SELECT id FROM actors WHERE id = %s', (actor_id,))
+                if cursor.fetchone() is None:
+                    # этот актер еще не был добавлен
+                    actor_info = get_actor_info(actor_id)
+                    cursor.execute(
+                        'INSERT INTO actors (id, name, biography, birthdate, origin, profession, avatar) '
+                        'VALUES(%s, %s, %s, %s, %s, %s, %s)', (actor_id, *actor_info)
+                    )
+
+                cursor.execute(
+                    'INSERT INTO movie_actors (movie_id, actor_id) VALUES(%s, %s)', (counter + 1, actor_id)
+                )
         except Exception as e:
             print('id:', index, 'error:', e)
             print(e)
@@ -153,10 +150,20 @@ def main():
         time.sleep(0.2)
 
     cursor.execute(
-        'INSERT INTO meta (version, movies_count, users_count, available_genres)'
-        'VALUES(%s, %s, %s, %s)', (1, counter, 0, list(available_genres)))
+        'INSERT INTO meta (version, movies_count, users_count)'
+        'VALUES(%s, %s, %s)', (1, counter, 0))
     conn.commit()
 
+
+def main():
+    conn = psycopg2.connect(
+        host='localhost',
+        user='mdb',
+        password='mdb',
+        database='mdb'
+    )
+    cursor = conn.cursor()
+    fill_db(conn, cursor)
     cursor.close()
     conn.close()
 

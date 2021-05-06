@@ -6,9 +6,13 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies/mocks"
+	sessionMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
+	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -20,8 +24,20 @@ func TestMoviesHandlers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	moviesUC := mocks.NewMockUseCase(ctrl)
+	usersUC := usersMock.NewMockUseCase(ctrl)
+	delivery := sessionMock.NewMockDelivery(ctrl)
+	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 	lg := logger.NewAccessLogger()
-	RegisterHttpEndpoints(r, moviesUC, lg)
+	RegisterHttpEndpoints(r, moviesUC, authMiddleware, lg)
+
+	user := &models.User{
+		Username:      "let_robots_reign",
+		Email:         "sample@mail.ru",
+		Password:      "123",
+		Avatar:        "http://localhost:8080/avatars/default.jpeg",
+		MoviesWatched: new(uint),
+		ReviewsNumber: new(uint),
+	}
 
 	movie := &models.Movie{
 		ID:          "7",
@@ -30,6 +46,10 @@ func TestMoviesHandlers(t *testing.T) {
 		Rating:      8.5,
 		RatingCount: 1,
 	}
+
+	usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
+	UUID := uuid.NewV4().String()
+	delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 	body, err := json.Marshal(movie)
 	assert.NoError(t, err)
@@ -45,7 +65,7 @@ func TestMoviesHandlers(t *testing.T) {
 	})
 
 	t.Run("GetMovie", func(t *testing.T) {
-		moviesUC.EXPECT().GetMovie(movie.ID).Return(movie, nil)
+		moviesUC.EXPECT().GetMovie(movie.ID, "").Return(movie, nil)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/movies/"+movie.ID, bytes.NewBuffer(body))
@@ -56,7 +76,7 @@ func TestMoviesHandlers(t *testing.T) {
 
 	t.Run("GetMovieError", func(t *testing.T) {
 		wrongID := "42"
-		moviesUC.EXPECT().GetMovie(wrongID).Return(nil, errors.New("movie not found"))
+		moviesUC.EXPECT().GetMovie(wrongID, "").Return(nil, errors.New("movie not found"))
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/movies/"+wrongID, bytes.NewBuffer(body))
@@ -66,7 +86,7 @@ func TestMoviesHandlers(t *testing.T) {
 	})
 
 	t.Run("GetBestMovies", func(t *testing.T) {
-		moviesUC.EXPECT().GetBestMovies(1).Return(1, []*models.Movie{
+		moviesUC.EXPECT().GetBestMovies(1, "").Return(1, []*models.Movie{
 			movie,
 		}, nil)
 
@@ -88,7 +108,7 @@ func TestMoviesHandlers(t *testing.T) {
 	})
 
 	t.Run("GetMoviesByGenres", func(t *testing.T) {
-		moviesUC.EXPECT().GetMoviesByGenres([]string{"драма"}, 1).Return(1, []*models.Movie{
+		moviesUC.EXPECT().GetMoviesByGenres([]string{"драма"}, 1, "").Return(1, []*models.Movie{
 			movie,
 		}, nil)
 

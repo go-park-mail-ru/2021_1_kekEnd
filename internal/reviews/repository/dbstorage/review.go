@@ -6,8 +6,8 @@ import (
 	"errors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"math"
 	"strconv"
 )
@@ -53,7 +53,6 @@ func convertReviewTypeFromStrToInt(reviewType models.ReviewType) int {
 		return -1
 	default:
 		return -100
-
 	}
 }
 
@@ -255,4 +254,43 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	}
 
 	return nil
+}
+
+func (storage *ReviewRepository) GetFeed(users []models.UserNoPassword) ([]models.ReviewFeedItem, error) {
+	feed := make([]models.ReviewFeedItem, 0)
+
+	subs := make([]string, len(users))
+	for _, u := range users {
+		subs = append(subs, u.Username)
+	}
+
+	sqlStatement := `
+        SELECT rws.user_login, us.img_src, rws.title, rws.content, rws.review_type, rws.creation_date
+        FROM mdb.users_review rws
+		JOIN mdb.users us ON rws.user_login=us.login
+        WHERE rws.user_login=ANY($1) AND rws.creation_date >= NOW() - INTERVAL '48 HOURS'
+        ORDER BY rws.creation_date DESC
+    `
+
+	rows, err := storage.db.Query(context.Background(), sqlStatement, subs)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		feedItem := models.ReviewFeedItem{
+			ItemType: "review",
+		}
+		review := models.Review{}
+		var reviewTypeInt int
+		err := rows.Scan(&feedItem.Username, &feedItem.Avatar, &review.Title, &review.Content, &reviewTypeInt, &feedItem.Date)
+		if err != nil {
+			return nil, err
+		}
+		review.ReviewType = convertReviewTypeFromIntToStr(reviewTypeInt)
+		feedItem.Review = review
+		feed = append(feed, feedItem)
+	}
+
+	return feed, nil
 }

@@ -3,11 +3,12 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
-	pgx "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgconn"
+	"strconv"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"strconv"
+	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 )
 
 type PgxPoolIface interface {
@@ -28,7 +29,7 @@ func NewActorRepository(database PgxPoolIface) *ActorRepository {
 	}
 }
 
-func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, error) {
+func (actorStorage *ActorRepository) GetActorByID(id string, username string) (models.Actor, error) {
 	var actor models.Actor
 
 	sqlStatement := `
@@ -44,15 +45,31 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 
 	err = actorStorage.db.
 		QueryRow(context.Background(), sqlStatement, idActor).Scan(&idActor, &actor.Name, &actor.Biography,
-			&actor.BirthDate, &actor.Origin, &actor.Profession, &actor.Avatar)
+		&actor.BirthDate, &actor.Origin, &actor.Profession, &actor.Avatar)
 
 	if err != nil {
 		return actor, err
 	}
 
+	sqlStatementLiked := `
+		SELECT COUNT(*) as count
+		FROM mdb.favorite_actors
+		WHERE user_login=$1 AND actor_id=$2
+	`
+	var rowsCount int
+	err = actorStorage.db.QueryRow(context.Background(), sqlStatementLiked, username, idActor).Scan(&rowsCount)
+	isLiked := true
+	if err != nil {
+		return models.Actor{}, err
+	}
+	if rowsCount == 0 {
+		isLiked = false
+	}
+	actor.IsLiked = isLiked
+
 	actor.ID = strconv.Itoa(idActor)
 
-	moviesCount, actorMovies, err := actorStorage.getMoviesForActor(actor.Name)
+	moviesCount, actorMovies, err := actorStorage.getMoviesForActor(actor.ID)
 	if err != nil {
 		return models.Actor{}, err
 	}
@@ -62,17 +79,17 @@ func (actorStorage *ActorRepository) GetActorByID(id string) (models.Actor, erro
 	return actor, nil
 }
 
-func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []models.MovieReference, error) {
+func (actorStorage *ActorRepository) getMoviesForActor(id string) (int, []models.MovieReference, error) {
 	var movies []models.MovieReference
 
 	sqlStatement := `
-		SELECT COUNT(*) as cnt
-		FROM mdb.movie
-		WHERE $1=ANY(actors)
+		SELECT COUNT(*) as count
+		FROM mdb.movie_actors
+		WHERE actor_id=$1
 	`
 
 	var rowsCount int
-	err := actorStorage.db.QueryRow(context.Background(), sqlStatement, name).Scan(&rowsCount)
+	err := actorStorage.db.QueryRow(context.Background(), sqlStatement, id).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, movies, nil
 	}
@@ -82,13 +99,14 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 
 	sqlStatement = `
 		SELECT id, title, ROUND(CAST(rating AS numeric), 1) as rnd
-		FROM mdb.movie
-		WHERE $1=ANY(actors)
+		FROM mdb.movie mv
+		JOIN movie_actors mvac ON mv.id = mvac.movie_id AND mvac.actor_id=$1
+		GROUP BY mv.id
 		ORDER BY rating DESC
 		LIMIT $2
 	`
 
-	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, name, _const.MoviesNumberOnActorPage)
+	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, id, _const.MoviesNumberOnActorPage)
 	if err != nil {
 		return 0, movies, err
 	}
@@ -108,10 +126,63 @@ func (actorStorage *ActorRepository) getMoviesForActor(name string) (int, []mode
 	return rowsCount, movies, nil
 }
 
+func (actorStorage *ActorRepository) GetFavoriteActors(username string) ([]models.Actor, error) {
+	sqlStatement := `
+		SELECT id, name, avatar
+		FROM mdb.favorite_actors favac
+		JOIN actors ac ON favac.actor_id = ac.id AND favac.user_login = $1
+		ORDER BY name
+	`
+
+	var actors []models.Actor
+	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, username)
+	if err != nil {
+		return actors, nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		actor := models.Actor{}
+		var id int
+		err = rows.Scan(&id, &actor.Name, &actor.Avatar)
+		if err != nil {
+			return []models.Actor{}, err
+		}
+		actor.ID = strconv.Itoa(id)
+		actors = append(actors, actor)
+	}
+
+	return actors, nil
+}
+
 func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
 	return nil
 }
 
 func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
 	return models.Actor{}, nil
+}
+
+func (actorStorage *ActorRepository) LikeActor(username string, actorID int) error {
+	sqlStatement := `
+		INSERT INTO mdb.favorite_actors VALUES($1, $2)
+	`
+
+	_, err := actorStorage.db.Exec(context.Background(), sqlStatement, username, actorID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (actorStorage *ActorRepository) UnlikeActor(username string, actorID int) error {
+	sqlStatement := `
+		DELETE FROM mdb.favorite_actors WHERE user_login=$1 AND actor_id=$2
+	`
+
+	_, err := actorStorage.db.Exec(context.Background(), sqlStatement, username, actorID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

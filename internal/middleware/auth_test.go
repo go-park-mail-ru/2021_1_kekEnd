@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -17,11 +17,11 @@ func TestCheckAuth(t *testing.T) {
 	testErr := errors.New("error no cookie")
 	const userKey = "user"
 
-	t.Run("Check-OK", func(t *testing.T) {
+	t.Run("GetUser-OK", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -45,7 +45,7 @@ func TestCheckAuth(t *testing.T) {
 
 		userUseCase.EXPECT().GetUser(username).Return(&userModel, nil)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		userFromMiddleware, _ := ctx.Get(userKey)
@@ -54,28 +54,28 @@ func TestCheckAuth(t *testing.T) {
 		assert.Equal(t, userModel, userModelFromMiddleware) // 500
 	})
 
-	t.Run("Check-No-cookie", func(t *testing.T) {
+	t.Run("GetUser-No-cookie", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request, _ = http.NewRequest("POST", "/", nil)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401
 	})
 
-	t.Run("Check-No-User", func(t *testing.T) {
+	t.Run("GetUser-No-Username", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -99,17 +99,17 @@ func TestCheckAuth(t *testing.T) {
 
 		userUseCase.EXPECT().GetUser(username).Return(&userModel, testErr)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusInternalServerError, ctx.Writer.Status()) // 500
 	})
 
-	t.Run("Check-No-Session", func(t *testing.T) {
+	t.Run("GetUser-No-Session", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -127,7 +127,7 @@ func TestCheckAuth(t *testing.T) {
 			GetUser(Cookie.Value).
 			Return("", testErr)
 
-		handler := mdw.CheckAuth()
+		handler := mdw.CheckAuth(true)
 		handler(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, ctx.Writer.Status()) // 401

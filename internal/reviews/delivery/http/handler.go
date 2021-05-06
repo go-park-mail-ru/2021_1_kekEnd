@@ -69,17 +69,9 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUserReviews(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogError(ctx, "reviews", "GetUserReviews", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
-
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
+	userModel, err := h.usersUC.GetUser(ctx.Param("username"))
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to get user")
 		h.Log.LogError(ctx, "reviews", "GetUserReviews", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return

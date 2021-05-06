@@ -5,10 +5,14 @@ import "time"
 const (
 	UserKey           = "user"
 	ActorKey          = "actor"
+	AuthStatusKey     = "auth_status"
 	CookieExpires     = 240 * time.Hour
 	CsrfExpires       = 10 * time.Minute
 	Host              = "localhost"
 	Port              = "8080"
+	AuthPort          = "8081"
+	FileServerPort    = "8082"
+	RedisPort         = "6379"
 	AvatarsPath       = "http://" + Host + ":" + Port + "/avatars/"
 	DefaultAvatarPath = "http://" + Host + ":" + Port + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
@@ -16,9 +20,11 @@ const (
 	RequestID = "RequestID"
 
 	ReviewsPageSize         = 3
+	SubsPageSize            = 20
 	MoviesPageSize          = 15
 	MoviesTop100Size        = 100
 	MoviesNumberOnActorPage = 10
+	FeedItemsLimit          = 20
 	PageDefault             = "1"
 )
 

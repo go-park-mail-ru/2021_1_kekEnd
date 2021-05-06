@@ -3,13 +3,13 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	reviewsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/mocks"
-	sessionsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
-	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
@@ -29,8 +29,7 @@ func TestHandlers(t *testing.T) {
 
 	reviewsUC := reviewsMock.NewMockUseCase(ctrl)
 	usersUC := usersMock.NewMockUseCase(ctrl)
-	sessionsUC := sessionsMock.NewMockUseCase(ctrl)
-	delivery := sessions.NewDelivery(sessionsUC, lg)
+	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
@@ -66,10 +65,7 @@ func TestHandlers(t *testing.T) {
 
 		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		reviewsUC.EXPECT().CreateReview(user, review).Return(nil)
 
@@ -89,15 +85,12 @@ func TestHandlers(t *testing.T) {
 
 		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		reviewsUC.EXPECT().GetReviewsByUser(user.Username).Return([]*models.Review{review}, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/users/reviews", nil)
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/user/%s/reviews", user.Username), nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -122,10 +115,7 @@ func TestHandlers(t *testing.T) {
 
 		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		reviewsUC.EXPECT().GetUserReviewForMovie(user.Username, review.MovieID).Return(review, nil)
 
@@ -145,10 +135,7 @@ func TestHandlers(t *testing.T) {
 
 		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		newReview := &models.Review{
 			ID:         "1",
@@ -179,10 +166,7 @@ func TestHandlers(t *testing.T) {
 
 		usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		reviewsUC.EXPECT().DeleteUserReviewForMovie(user, review.MovieID).Return(nil)
 

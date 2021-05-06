@@ -11,6 +11,7 @@ type Actor struct {
 	MoviesRating int              `json:"movies_rating"`
 	Movies       []MovieReference `json:"movies"`
 	Avatar       string           `json:"avatar"`
+	IsLiked      bool             `json:"is_liked"`
 }
 
 type MovieReference struct {
