@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestCheckAuth(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -58,7 +58,7 @@ func TestCheckAuth(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -75,7 +75,7 @@ func TestCheckAuth(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 
@@ -109,7 +109,7 @@ func TestCheckAuth(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		sessionsDelivery := sessions.NewMockDelivery(ctrl)
+		sessionsDelivery := mocks.NewMockDelivery(ctrl)
 		userUseCase := usersMock.NewMockUseCase(ctrl)
 		mdw := NewAuthMiddleware(userUseCase, sessionsDelivery)
 

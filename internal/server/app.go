@@ -76,7 +76,7 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "%s:%s", _const.Host, _const.AuthPort), grpc.WithInsecure())
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf( "localhost:%s", _const.AuthPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
 	}

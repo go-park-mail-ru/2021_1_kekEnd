@@ -64,11 +64,11 @@ func (mr *MockUserRepositoryMockRecorder) CheckPassword(arg0, arg1 interface{}) 
 }
 
 // CheckUnsubscribed mocks base method.
-func (m *MockUserRepository) CheckUnsubscribed(arg0, arg1 string) (error, bool) {
+func (m *MockUserRepository) CheckUnsubscribed(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckUnsubscribed", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	ret1, _ := ret[1].(bool)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -93,10 +93,10 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(arg0 interface{}) *gomock.C
 }
 
 // GetModels mocks base method.
-func (m *MockUserRepository) GetModels(arg0 []string, arg1, arg2 int) ([]*models.UserNoPassword, error) {
+func (m *MockUserRepository) GetModels(arg0 []string, arg1, arg2 int) ([]models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetModels", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*models.UserNoPassword)
+	ret0, _ := ret[0].([]models.UserNoPassword)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -108,11 +108,11 @@ func (mr *MockUserRepositoryMockRecorder) GetModels(arg0, arg1, arg2 interface{}
 }
 
 // GetSubscribers mocks base method.
-func (m *MockUserRepository) GetSubscribers(arg0 int, arg1 string) (int, []*models.UserNoPassword, error) {
+func (m *MockUserRepository) GetSubscribers(arg0 int, arg1 string) (int, []models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscribers", arg0, arg1)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]*models.UserNoPassword)
+	ret1, _ := ret[1].([]models.UserNoPassword)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -124,11 +124,11 @@ func (mr *MockUserRepositoryMockRecorder) GetSubscribers(arg0, arg1 interface{})
 }
 
 // GetSubscriptions mocks base method.
-func (m *MockUserRepository) GetSubscriptions(arg0 int, arg1 string) (int, []*models.UserNoPassword, error) {
+func (m *MockUserRepository) GetSubscriptions(arg0 int, arg1 string) (int, []models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscriptions", arg0, arg1)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]*models.UserNoPassword)
+	ret1, _ := ret[1].([]models.UserNoPassword)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }

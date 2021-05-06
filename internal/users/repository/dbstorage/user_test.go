@@ -217,7 +217,6 @@ func TestGetModels(t *testing.T) {
 		AddRow("login", "email", "img_src", 1, 1)
 
 	mock.ExpectQuery("SELECT").WithArgs(subs, 1, 0).WillReturnRows(rows)
-
 	if _, err = usersRepo.GetModels(subs, 1, 0); err != nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}

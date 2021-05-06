@@ -6,7 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
@@ -17,11 +17,11 @@ import (
 
 type Handler struct {
 	useCase  users.UseCase
-	sessions *delivery.AuthClient
+	sessions sessions.Delivery
 	Log      *logger.Logger
 }
 
-func NewHandler(useCase users.UseCase, sessions *delivery.AuthClient, Log *logger.Logger) *Handler {
+func NewHandler(useCase users.UseCase, sessions sessions.Delivery, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase:  useCase,
 		sessions: sessions,
