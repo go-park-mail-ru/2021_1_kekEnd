@@ -158,7 +158,7 @@ func TestCheckUnsubscribed(t *testing.T) {
 	mock.ExpectCommit()
 
 	// now we execute our method
-	if err, _ = usersRepo.CheckUnsubscribed(user1, user2); err == nil {
+	if _, err = usersRepo.CheckUnsubscribed(user1, user2); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
@@ -239,7 +239,7 @@ func TestGetModels(t *testing.T) {
 	mock.ExpectCommit()
 
 	// now we execute our method
-	if _, err = usersRepo.GetModels(subs, 0); err == nil {
+	if _, err = usersRepo.GetModels(subs, 0, 0); err == nil {
 		t.Errorf("error was not expected while updating stats: %s", err)
 	}
 
