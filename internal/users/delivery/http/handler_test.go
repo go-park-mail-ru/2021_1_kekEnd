@@ -2,22 +2,36 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
+
+type MockFileServerClient struct {
+}
+
+func (mockFileServer *MockFileServerClient) Upload(ctx context.Context, opts ...grpc.CallOption) (proto.FileServerHandler_UploadClient, error) {
+	return nil, nil
+}
+
+func NewMockFileServerClient() MockFileServerClient {
+	return MockFileServerClient{}
+}
 
 func TestHandlers(t *testing.T) {
 	r := gin.Default()
@@ -33,7 +47,9 @@ func TestHandlers(t *testing.T) {
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, lg)
+	fileServerMock := NewMockFileServerClient()
+
+	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, &fileServerMock, lg)
 
 	createBody := &signupData{
 		Username: "let_robots_reign",
