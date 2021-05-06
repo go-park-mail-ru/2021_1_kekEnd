@@ -3,12 +3,13 @@ package localstorage
 import (
 	"context"
 	"database/sql"
+	"math"
+	"strconv"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
-	"math"
-	"strconv"
 )
 
 type PgxPoolIface interface {
@@ -76,7 +77,9 @@ func (movieStorage *MovieRepository) GetMovieByID(id string, username string) (*
 	isWatched := false
 	if username != "" {
 		sqlStatementWatched := `
-			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+			SELECT COUNT(*) as count
+			FROM mdb.watched_movies
+			WHERE user_login=$1 AND movie_id=$2
 		`
 		var rowsCount int
 		err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
@@ -159,7 +162,9 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username stri
 		isWatched := false
 		if username != "" {
 			sqlStatementWatched := `
-			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+			SELECT COUNT(*) as count
+			FROM mdb.watched_movies
+			WHERE user_login=$1 AND movie_id=$2
 		`
 			var rowsCount int
 			err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
@@ -210,7 +215,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 	var movies []*models.Movie
 
 	sqlStatement := `
-		SELECT COUNT(*)
+		SELECT COUNT(*) as count
         FROM mdb.movie mv
 		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
 		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
@@ -230,7 +235,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
         SELECT mv.id, title, description, productionYear, country,
                array_agg(distinct (gs.name)) as genre, slogan, director, scriptwriter, producer, operator, composer,
                artist, montage, budget, duration, array_agg(distinct (ac.name)) as actors, poster, banner, trailerPreview,
-               ROUND(CAST(rating AS numeric), 1), rating_count
+               ROUND(CAST(rating AS numeric), 1) as rating, rating_count
         FROM mdb.movie mv
 		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
 		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
@@ -270,7 +275,9 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 		isWatched := false
 		if username != "" {
 			sqlStatementWatched := `
-			SELECT COUNT(*) FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2
+			SELECT COUNT(*) as count
+			FROM mdb.watched_movies
+			WHERE user_login=$1 AND movie_id=$2
 		`
 			var rowsCount int
 			err = movieStorage.db.QueryRow(context.Background(), sqlStatementWatched, username, id).Scan(&rowsCount)
@@ -336,4 +343,3 @@ func (movieStorage *MovieRepository) MarkUnwatched(username string, id int) erro
 	}
 	return nil
 }
-

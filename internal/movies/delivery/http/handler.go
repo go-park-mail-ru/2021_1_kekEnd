@@ -2,19 +2,20 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type Handler struct {
 	useCase movies.UseCase
-	Log *logger.Logger
+	Log     *logger.Logger
 }
 
 type moviesPageResponse struct {
@@ -27,7 +28,7 @@ type moviesPageResponse struct {
 func NewHandler(useCase movies.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
-		Log: Log,
+		Log:     Log,
 	}
 }
 
@@ -92,7 +93,6 @@ func (h *Handler) GetBestMovies(ctx *gin.Context) {
 			username = userModel.Username
 		}
 	}
-
 
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
 	if err != nil || page < 1 {
@@ -183,7 +183,7 @@ func (h *Handler) MarkWatched(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "movies", "MarkWatched", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -217,7 +217,7 @@ func (h *Handler) MarkUnwatched(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "movies", "MarkUnwatched", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return

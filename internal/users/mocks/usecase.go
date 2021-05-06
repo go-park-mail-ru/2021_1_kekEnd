@@ -49,10 +49,10 @@ func (mr *MockUseCaseMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 }
 
 // GetFeed mocks base method.
-func (m *MockUseCase) GetFeed(arg0 string) ([]*models.ReviewFeedItem, error) {
+func (m *MockUseCase) GetFeed(arg0 string) (models.Feed, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFeed", arg0)
-	ret0, _ := ret[0].([]*models.ReviewFeedItem)
+	ret0, _ := ret[0].(models.Feed)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,11 +64,11 @@ func (mr *MockUseCaseMockRecorder) GetFeed(arg0 interface{}) *gomock.Call {
 }
 
 // GetSubscribers mocks base method.
-func (m *MockUseCase) GetSubscribers(arg0 int, arg1 string) (int, []*models.UserNoPassword, error) {
+func (m *MockUseCase) GetSubscribers(arg0 int, arg1 string) (int, []models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscribers", arg0, arg1)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]*models.UserNoPassword)
+	ret1, _ := ret[1].([]models.UserNoPassword)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -80,11 +80,11 @@ func (mr *MockUseCaseMockRecorder) GetSubscribers(arg0, arg1 interface{}) *gomoc
 }
 
 // GetSubscriptions mocks base method.
-func (m *MockUseCase) GetSubscriptions(arg0 int, arg1 string) (int, []*models.UserNoPassword, error) {
+func (m *MockUseCase) GetSubscriptions(arg0 int, arg1 string) (int, []models.UserNoPassword, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscriptions", arg0, arg1)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]*models.UserNoPassword)
+	ret1, _ := ret[1].([]models.UserNoPassword)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -108,6 +108,21 @@ func (m *MockUseCase) GetUser(arg0 string) (*models.User, error) {
 func (mr *MockUseCaseMockRecorder) GetUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUseCase)(nil).GetUser), arg0)
+}
+
+// IsSubscribed mocks base method.
+func (m *MockUseCase) IsSubscribed(arg0, arg1 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSubscribed", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsSubscribed indicates an expected call of IsSubscribed.
+func (mr *MockUseCaseMockRecorder) IsSubscribed(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscribed", reflect.TypeOf((*MockUseCase)(nil).IsSubscribed), arg0, arg1)
 }
 
 // Login mocks base method.

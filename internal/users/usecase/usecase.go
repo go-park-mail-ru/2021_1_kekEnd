@@ -51,11 +51,11 @@ func (usersUC *UsersUseCase) Login(login, password string) bool {
 func (usersUC *UsersUseCase) GetUser(username string) (*models.User, error) {
 	user, err := usersUC.userRepository.GetUserByUsername(username)
 	if err != nil {
-		return &models.User{}, err
+		return nil, err
 	}
 	favActors, err := usersUC.actorsRepository.GetFavoriteActors(user.Username)
 	if err != nil {
-		return &models.User{}, err
+		return nil, err
 	}
 	user.FavoriteActors = favActors
 	return user, nil

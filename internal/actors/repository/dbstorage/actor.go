@@ -3,11 +3,12 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	"strconv"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
-	"strconv"
 )
 
 type PgxPoolIface interface {
@@ -44,14 +45,16 @@ func (actorStorage *ActorRepository) GetActorByID(id string, username string) (m
 
 	err = actorStorage.db.
 		QueryRow(context.Background(), sqlStatement, idActor).Scan(&idActor, &actor.Name, &actor.Biography,
-			&actor.BirthDate, &actor.Origin, &actor.Profession, &actor.Avatar)
+		&actor.BirthDate, &actor.Origin, &actor.Profession, &actor.Avatar)
 
 	if err != nil {
 		return actor, err
 	}
 
 	sqlStatementLiked := `
-		SELECT COUNT(*) FROM mdb.favorite_actors WHERE user_login=$1 AND actor_id=$2
+		SELECT COUNT(*) as count
+		FROM mdb.favorite_actors
+		WHERE user_login=$1 AND actor_id=$2
 	`
 	var rowsCount int
 	err = actorStorage.db.QueryRow(context.Background(), sqlStatementLiked, username, idActor).Scan(&rowsCount)
@@ -80,7 +83,7 @@ func (actorStorage *ActorRepository) getMoviesForActor(id string) (int, []models
 	var movies []models.MovieReference
 
 	sqlStatement := `
-		SELECT COUNT(*) as cnt
+		SELECT COUNT(*) as count
 		FROM mdb.movie_actors
 		WHERE actor_id=$1
 	`

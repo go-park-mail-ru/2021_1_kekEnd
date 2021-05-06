@@ -1,31 +1,37 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
 )
 
 type Handler struct {
-	useCase  users.UseCase
-	sessions *delivery.AuthClient
-	Log      *logger.Logger
+	useCase    users.UseCase
+	sessions   sessions.Delivery
+	fileServer proto.FileServerHandlerClient
+	Log        *logger.Logger
 }
 
-func NewHandler(useCase users.UseCase, sessions *delivery.AuthClient, Log *logger.Logger) *Handler {
+func NewHandler(useCase users.UseCase, sessions sessions.Delivery, fileServer proto.FileServerHandlerClient, Log *logger.Logger) *Handler {
 	return &Handler{
-		useCase:  useCase,
-		sessions: sessions,
-		Log:      Log,
+		useCase:    useCase,
+		sessions:   sessions,
+		fileServer: fileServer,
+		Log:        Log,
 	}
 }
 
@@ -238,21 +244,64 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
-	file, err := ctx.FormFile("file")
+	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
-		msg := "Failed to form file " + err.Error()
+		msg := "Failed to form file" + err.Error()
 		h.Log.LogWarning(ctx, "users", "UploadAvatar", msg)
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
 	}
 
-	extension := filepath.Ext(file.Filename)
+	extension := filepath.Ext(fileHeader.Filename)
 	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
 
-	err = ctx.SaveUploadedFile(file, _const.AvatarsFileDir+newFileName)
+	meta := metadata.New(map[string]string{
+		"fileName": _const.AvatarsFileDir + newFileName,
+	})
+	metaCtx := metadata.NewOutgoingContext(context.Background(), meta)
 
+	stream, err := h.fileServer.Upload(metaCtx)
 	if err != nil {
+		err := fmt.Errorf("%s", "Failed to upload file")
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	isWriting := true
+	chunk := make([]byte, 1024)
+	file, err := fileHeader.Open()
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to open file")
+		h.Log.LogError(ctx, "users", "UploadAvatar", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+	for isWriting {
+		size, err := file.Read(chunk)
+		if err != nil {
+			if err == io.EOF {
+				isWriting = false
+				continue
+			}
+			err := fmt.Errorf("%s", "Failed to upload file")
+			h.Log.LogError(ctx, "users", "UploadAvatar", err)
+			ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+			return
+		}
+		err = stream.Send(&proto.Chunk{Content: chunk[:size]})
+		if err != nil {
+			err := fmt.Errorf("%s", "Failed to upload file")
+			h.Log.LogError(ctx, "users", "UploadAvatar", err)
+			ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+			return
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		err := fmt.Errorf("%s", "Failed to upload file")
 		h.Log.LogError(ctx, "users", "UploadAvatar", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return

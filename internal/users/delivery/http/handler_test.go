@@ -2,24 +2,36 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
-	sessions "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
+
+type MockFileServerClient struct {
+}
+
+func (mockFileServer *MockFileServerClient) Upload(ctx context.Context, opts ...grpc.CallOption) (proto.FileServerHandler_UploadClient, error) {
+	return nil, nil
+}
+
+func NewMockFileServerClient() MockFileServerClient {
+	return MockFileServerClient{}
+}
 
 func TestHandlers(t *testing.T) {
 	r := gin.Default()
@@ -31,11 +43,13 @@ func TestHandlers(t *testing.T) {
 
 	usersUC := usersMock.NewMockUseCase(ctrl)
 	sessionsUC := mocks.NewMockUseCase(ctrl)
-	delivery := sessions.NewDelivery(sessionsUC, lg)
+	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 
-	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, lg)
+	fileServerMock := NewMockFileServerClient()
+
+	RegisterHttpEndpoints(r, usersUC, delivery, authMiddleware, &fileServerMock, lg)
 
 	createBody := &signupData{
 		Username: "let_robots_reign",
@@ -53,6 +67,8 @@ func TestHandlers(t *testing.T) {
 		Avatar:        "http://localhost:8080/avatars/default.jpeg",
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
+		Subscriptions: new(uint),
+		Subscribers:   new(uint),
 	}
 
 	UUID := uuid.NewV4().String()
@@ -63,6 +79,8 @@ func TestHandlers(t *testing.T) {
 			EXPECT().
 			Create(user.Username, 240*time.Hour).
 			Return(UUID, nil).AnyTimes()
+
+		delivery.EXPECT().Create(user.Username, 240*time.Hour).Return(UUID, nil).AnyTimes()
 
 		sessionID, err := delivery.Create(user.Username, 240*time.Hour)
 		assert.NoError(t, err)
@@ -85,6 +103,8 @@ func TestHandlers(t *testing.T) {
 			Avatar:        "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: new(uint),
 			ReviewsNumber: new(uint),
+			Subscribers:   new(uint),
+			Subscriptions: new(uint),
 		}
 
 		cookie := &http.Cookie{
@@ -99,13 +119,16 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
 
 		sessionsUC.
 			EXPECT().
 			Delete(cookie.Value).
 			Return(nil).AnyTimes()
+
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().Delete(cookie.Value).Return(nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/sessions", nil)
@@ -123,6 +146,8 @@ func TestHandlers(t *testing.T) {
 			Avatar:        "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: new(uint),
 			ReviewsNumber: new(uint),
+			Subscribers:   new(uint),
+			Subscriptions: new(uint),
 		}
 
 		cookie := &http.Cookie{
@@ -134,7 +159,7 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
@@ -153,6 +178,8 @@ func TestHandlers(t *testing.T) {
 			Avatar:        "http://localhost:8080/avatars/default.jpeg",
 			MoviesWatched: new(uint),
 			ReviewsNumber: new(uint),
+			Subscribers:   new(uint),
+			Subscriptions: new(uint),
 		}
 
 		body, err := json.Marshal(newMockUser)
@@ -163,12 +190,9 @@ func TestHandlers(t *testing.T) {
 			Value: UUID,
 		}
 
-		usersUC.EXPECT().UpdateUser(user, newMockUser).Return(&newMockUser, nil)
+		usersUC.EXPECT().UpdateUser(user, newMockUser).Return(&newMockUser, nil).AnyTimes()
 
-		sessionsUC.
-			EXPECT().
-			Check(UUID).
-			Return(user.Username, nil).AnyTimes()
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users", bytes.NewBuffer(body))
@@ -188,8 +212,10 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
+
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
@@ -209,8 +235,10 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
+
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
@@ -230,8 +258,10 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
+
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
@@ -251,8 +281,10 @@ func TestHandlers(t *testing.T) {
 
 		sessionsUC.
 			EXPECT().
-			Check(UUID).
+			GetUser(UUID).
 			Return(user.Username, nil).AnyTimes()
+
+		delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/subscriptions/let_robots_reign", bytes.NewBuffer(body))
@@ -264,7 +296,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("TestGetSubscribers", func(t *testing.T) {
 		page := 1
-		subs := make([]*models.UserNoPassword, 0)
+		subs := make([]models.UserNoPassword, 0)
 		usersUC.EXPECT().GetSubscribers(page, user.Username).Return(1, subs, nil)
 
 		w := httptest.NewRecorder()
@@ -287,7 +319,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("TestGetSubscriptions", func(t *testing.T) {
 		page := 1
-		subs := make([]*models.UserNoPassword, 0)
+		subs := make([]models.UserNoPassword, 0)
 		usersUC.EXPECT().GetSubscriptions(page, user.Username).Return(1, subs, nil)
 
 		w := httptest.NewRecorder()
