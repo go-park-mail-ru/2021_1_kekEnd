@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"errors"
+	"testing"
+
 	actorsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	ratingMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/mocks"
@@ -9,7 +11,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUsersUseCase(t *testing.T) {
@@ -63,14 +64,14 @@ func TestUsersUseCase(t *testing.T) {
 
 	t.Run("Subscribe", func(t *testing.T) {
 		subModel := models.User{
-			Username: "whaeva",
+			Username:      "whaeva",
 			Subscriptions: new(uint),
 		}
 		userModel := models.User{
-			Username: "let_robots_reign",
+			Username:    "let_robots_reign",
 			Subscribers: new(uint),
 		}
-		
+
 		var newSubscriptions uint = 1
 		var newSubscribers uint = 1
 
@@ -91,7 +92,7 @@ func TestUsersUseCase(t *testing.T) {
 			Subscriptions: &newSubscriptions,
 		})
 		repo.EXPECT().UpdateUser(&userModel, models.User{
-			Username: "let_robots_reign",
+			Username:    "let_robots_reign",
 			Subscribers: &newSubscribers,
 		})
 
@@ -103,11 +104,11 @@ func TestUsersUseCase(t *testing.T) {
 		var subscriptions uint = 1
 		var subscribers uint = 1
 		subModel := models.User{
-			Username: "whaeva",
+			Username:      "whaeva",
 			Subscriptions: &subscriptions,
 		}
 		userModel := models.User{
-			Username: "let_robots_reign",
+			Username:    "let_robots_reign",
 			Subscribers: &subscribers,
 		}
 
@@ -131,7 +132,7 @@ func TestUsersUseCase(t *testing.T) {
 			Subscriptions: &newSubscriptions,
 		})
 		repo.EXPECT().UpdateUser(&userModel, models.User{
-			Username: "let_robots_reign",
+			Username:    "let_robots_reign",
 			Subscribers: &newSubscribers,
 		})
 

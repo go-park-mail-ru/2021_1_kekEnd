@@ -3,6 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
@@ -36,12 +42,8 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
 )
 
 type App struct {
@@ -124,6 +126,14 @@ func NewApp() *App {
 	}
 }
 
+func prometheusHandler() gin.HandlerFunc {
+	h := promhttp.Handler()
+
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
@@ -135,6 +145,7 @@ func (app *App) Run(port string) error {
 	router.Static("/avatars", _const.AvatarsFileDir)
 
 	router.Use(gin.Recovery())
+	router.GET("/metrics", prometheusHandler())
 
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)

@@ -1,10 +1,11 @@
 package http
 
 import (
-	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/gin-gonic/gin"
 	actorsMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/mocks"

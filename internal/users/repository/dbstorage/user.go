@@ -3,12 +3,13 @@ package localstorage
 import (
 	"context"
 	"errors"
+	"math"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
-	"math"
 )
 
 type PgxPoolIface interface {
@@ -262,7 +263,7 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 
 	var rowsCount int
 	sqlStatement = `
-        SELECT COUNT(*)
+        SELECT COUNT(*) as count
         FROM mdb.users
         WHERE login=ANY($1)
     `
@@ -311,7 +312,7 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 
 	var rowsCount int
 	sqlStatement = `
-        SELECT COUNT(*)
+        SELECT COUNT(*) as count
         FROM mdb.users
         WHERE login=ANY($1)
     `

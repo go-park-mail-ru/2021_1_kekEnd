@@ -10,7 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	"io"
@@ -253,7 +253,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	}
 
 	extension := filepath.Ext(fileHeader.Filename)
-	// generate random fileHeader name for the new uploaded fileHeader so it doesn't override the old fileHeader with same name
+	// generate random file name for the new uploaded file so it doesn't override the old file with same name
 	newFileName := uuid.New().String() + extension
 
 	meta := metadata.New(map[string]string{
