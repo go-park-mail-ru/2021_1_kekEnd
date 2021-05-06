@@ -2,18 +2,26 @@ package usecase
 
 import (
 	"errors"
+	"testing"
+
+	actorsMocks "github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	ratingsMocks "github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/mocks"
+	userMocks "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/mocks"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUsersUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mocks.NewMockUserRepository(ctrl)
-	uc := NewUsersUseCase(repo)
+	reviewsRepo := userMocks.NewMockReviewRepository(ctrl)
+	ratingRepo := ratingsMocks.NewMockRepository(ctrl)
+	actorsRepo := actorsMocks.NewMockRepository(ctrl)
+
+	uc := NewUsersUseCase(repo, reviewsRepo, ratingRepo, actorsRepo)
 
 	user := &models.User{
 		Username: "let_robots_reign",
@@ -102,7 +110,10 @@ func TestUsersUseCaseErrors(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mocks.NewMockUserRepository(ctrl)
-	uc := NewUsersUseCase(repo)
+	reviewsRepo := userMocks.NewMockReviewRepository(ctrl)
+	ratingRepo := ratingsMocks.NewMockRepository(ctrl)
+	actorsRepo := actorsMocks.NewMockRepository(ctrl)
+	uc := NewUsersUseCase(repo, reviewsRepo, ratingRepo, actorsRepo)
 
 	user := &models.User{
 		Username: "let_robots_reign",

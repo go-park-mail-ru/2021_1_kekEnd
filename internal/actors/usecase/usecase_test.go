@@ -22,7 +22,7 @@ func TestActorsUseCase(t *testing.T) {
 	}
 
 	t.Run("GetActor", func(t *testing.T) {
-		repo.EXPECT().GetActorByID(actor.ID).Return(actor, nil)
+		repo.EXPECT().GetActorByID(actor.ID, actor.Name).Return(actor, nil)
 		gotActor, err := uc.GetActor(actor.ID, actor.Name)
 		assert.NoError(t, err)
 		assert.Equal(t, actor, gotActor)
