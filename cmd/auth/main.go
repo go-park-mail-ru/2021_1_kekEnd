@@ -29,7 +29,7 @@ func main() {
 	repo := sessionsRepo.NewRedisRepository(rdb)
 	usecase := sessionsUC.NewUseCase(repo)
 	handler := sessionsGrpc.NewAuthHandlerServer(usecase)
-	lis, err := net.Listen("tcp", fmt.Sprint(_const.Host, ":", _const.AuthPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", _const.AuthPort))
 
 	if err != nil {
 		log.Fatalln("Can't listen session microservice port", err)
