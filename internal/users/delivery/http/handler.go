@@ -244,7 +244,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
-	fileHeader, err := ctx.FormFile("fileHeader")
+	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		msg := "Failed to form file" + err.Error()
 		h.Log.LogWarning(ctx, "users", "UploadAvatar", msg)
@@ -257,7 +257,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	newFileName := uuid.New().String() + extension
 
 	meta := metadata.New(map[string]string{
-		"fileName": newFileName,
+		"fileName": _const.AvatarsFileDir + newFileName,
 	})
 	metaCtx := metadata.NewOutgoingContext(context.Background(), meta)
 
@@ -306,14 +306,6 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
 	}
-
-	//err = ctx.SaveUploadedFile(fileHeader, _const.AvatarsFileDir+newFileName)
-	//
-	//if err != nil {
-	//	h.Log.LogError(ctx, "users", "UploadAvatar", err)
-	//	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	//	return
-	//}
 
 	user, ok := ctx.Get(_const.UserKey)
 	if !ok {

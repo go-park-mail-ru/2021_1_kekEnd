@@ -18,8 +18,8 @@ func NewFileServerHandlerServer() *FileServerHandlerServer {
 
 func (dl *FileServerHandlerServer) Upload(stream proto.FileServerHandler_UploadServer) error {
 	data := make([]byte, 0, 1024)
-	md, _ := metadata.FromIncomingContext(stream.Context())
-	fileName := md.Get("fileName")[0]
+	meta, _ := metadata.FromIncomingContext(stream.Context())
+	fileName := meta.Get("fileName")[0]
 
 	for {
 		inData, err := stream.Recv()
@@ -28,9 +28,9 @@ func (dl *FileServerHandlerServer) Upload(stream proto.FileServerHandler_UploadS
 				Message: "OK",
 				Code:    proto.StatusCode_SUCCESS,
 			}
-			log.Println("Transfer Ended")
-			log.Printf("Filesize = %v", len(data))
-			if err := stream.SendAndClose(out); err != nil {
+			log.Println("Everything sent, size:", len(data))
+			err := stream.SendAndClose(out)
+			if err != nil {
 				log.Println(err)
 			}
 			break
