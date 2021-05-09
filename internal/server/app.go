@@ -147,6 +147,10 @@ func (app *App) Run(port string) error {
 	router.Use(gin.Recovery())
 	router.GET("/metrics", prometheusHandler())
 
+	router.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	})
+
 	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
 	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
 	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)

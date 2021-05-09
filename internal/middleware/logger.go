@@ -39,11 +39,11 @@ func AccessLogMiddleware(log *logger.Logger) gin.HandlerFunc {
 		ctx.Next()
 
 		hits.
-			WithLabelValues(strconv.Itoa(ctx.Writer.Status()), ctx.Request.URL.String()).
+			WithLabelValues(strconv.Itoa(ctx.Writer.Status()), ctx.FullPath()).
 			Inc()
 
 		timings.
-			WithLabelValues(ctx.Request.URL.String()).
+			WithLabelValues(ctx.FullPath()).
 			Observe(time.Since(start).Seconds())
 
 		log.EndReq(*ctx.Request, start, rid)

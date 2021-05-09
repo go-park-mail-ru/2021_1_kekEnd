@@ -2,11 +2,12 @@ package logger
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 )
 
 type Logger struct {
