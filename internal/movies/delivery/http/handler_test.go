@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
@@ -14,9 +18,6 @@ import (
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestMoviesHandlers(t *testing.T) {
@@ -54,6 +55,11 @@ func TestMoviesHandlers(t *testing.T) {
 	body, err := json.Marshal(movie)
 	assert.NoError(t, err)
 
+	cookie := &http.Cookie{
+		Name:  "session_id",
+		Value: UUID,
+	}
+
 	t.Run("CreateMovie", func(t *testing.T) {
 		moviesUC.EXPECT().CreateMovie(movie).Return(nil)
 
@@ -72,17 +78,6 @@ func TestMoviesHandlers(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-	})
-
-	t.Run("GetMovieError", func(t *testing.T) {
-		wrongID := "42"
-		moviesUC.EXPECT().GetMovie(wrongID, "").Return(nil, errors.New("movie not found"))
-
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/movies/"+wrongID, bytes.NewBuffer(body))
-		r.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("GetBestMovies", func(t *testing.T) {
@@ -117,5 +112,127 @@ func TestMoviesHandlers(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("MarkWatched", func(t *testing.T) {
+		moviesUC.EXPECT().MarkWatched(*user, 1).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/movies/1/watch", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("MarkUnwatched", func(t *testing.T) {
+		moviesUC.EXPECT().MarkUnwatched(*user, 1).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/movies/1/watch", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("CreateMovieError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/movies", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("CreateMovieError2", func(t *testing.T) {
+		moviesUC.EXPECT().CreateMovie(movie).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/movies", bytes.NewBuffer(body))
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("GetMovieError", func(t *testing.T) {
+		moviesUC.EXPECT().GetMovie(movie.ID, "").Return(movie, errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/movies/"+movie.ID, nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("GetBestMoviesError", func(t *testing.T) {
+		moviesUC.EXPECT().GetBestMovies(1, "").Return(1, []*models.Movie{
+			movie,
+		}, errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/movies?category=best&page=1", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("GetGenresError", func(t *testing.T) {
+		moviesUC.EXPECT().GetAllGenres().Return(nil, errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/genres", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("GetMoviesByGenresError", func(t *testing.T) {
+		moviesUC.EXPECT().GetMoviesByGenres([]string{"драма"}, 1, "").Return(1, nil, errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/movies?category=genre&filter=драма&page=1", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("MarkWatchedError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/movies/:movie_id/watch", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("MarkWatchedError2", func(t *testing.T) {
+		moviesUC.EXPECT().MarkWatched(*user, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/movies/1/watch", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("MarkUnwatchedError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/movies/:movie_id/watch", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("MarkUnwatchedError2", func(t *testing.T) {
+		moviesUC.EXPECT().MarkUnwatched(*user, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/movies/1/watch", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

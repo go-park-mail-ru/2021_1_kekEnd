@@ -131,8 +131,6 @@ func TestHandlers(t *testing.T) {
 	})
 
 	t.Run("CreateActorError2", func(t *testing.T) {
-		actorsUC.EXPECT().CreateActor(*user, actor).Return(errors.New("error"))
-
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/actors", nil)
 		req.AddCookie(cookie)
@@ -142,34 +140,72 @@ func TestHandlers(t *testing.T) {
 	})
 
 	t.Run("GetActorError", func(t *testing.T) {
-		actorsUC.EXPECT().GetActor(actor.ID, "").Return(actor, nil)
+		actorsUC.EXPECT().GetActor(actor.ID, "").Return(models.Actor{}, errors.New("error"))
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/actors/1", nil)
 		r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	// t.Run("LikeActorError", func(t *testing.T) {
-	// 	actorsUC.EXPECT().LikeActor(user.Username, 1).Return(nil)
+	t.Run("EditActorError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/actors/1", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
 
-	// 	w := httptest.NewRecorder()
-	// 	req, _ := http.NewRequest("POST", "/actors/:actor_id/like", bytes.NewBuffer(newBody))
-	// 	req.AddCookie(cookie)
-	// 	r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 
-	// 	assert.Equal(t, http.StatusOK, w.Code)
-	// })
+	t.Run("EditActorError2", func(t *testing.T) {
+		actorsUC.EXPECT().EditActor(*user, actor).Return(models.Actor{}, errors.New("error"))
 
-	// t.Run("EditActorError", func(t *testing.T) {
-	// 	actorsUC.EXPECT().EditActor(*user, actor).Return(actor, nil)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/actors/1", bytes.NewBuffer(newBody))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
 
-	// 	w := httptest.NewRecorder()
-	// 	req, _ := http.NewRequest("PUT", "/actors/1", nil)
-	// 	req.AddCookie(cookie)
-	// 	r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 
-	// 	assert.Equal(t, http.StatusOK, w.Code)
-	// })
+	t.Run("LikeActorError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/actors/:actor_id/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("LikeActorError2", func(t *testing.T) {
+		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("UnlikeActorError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/actors/:actor_id/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("UnlikeActorError2", func(t *testing.T) {
+		actorsUC.EXPECT().UnlikeActor(user.Username, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
