@@ -5,6 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
@@ -16,10 +21,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 type MockFileServerClient struct {
@@ -338,6 +339,27 @@ func TestHandlers(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("TestGetFeed", func(t *testing.T) {
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: UUID,
+		}
+
+		sessionsUC.
+			EXPECT().
+			GetUser(UUID).
+			Return(user.Username, nil).AnyTimes()
+
+		usersUC.EXPECT().GetFeed(user.Username).Return(models.Feed{}, nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/feed", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
 }

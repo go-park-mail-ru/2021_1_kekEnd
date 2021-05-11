@@ -2,13 +2,14 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -34,7 +35,7 @@ func (h *Handler) CreateActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "actors", "CreateActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -91,7 +92,7 @@ func (h *Handler) EditActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "actors", "EditActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -130,7 +131,7 @@ func (h *Handler) LikeActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "actors", "LikeActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
@@ -164,7 +165,7 @@ func (h *Handler) UnlikeActor(ctx *gin.Context) {
 
 	userModel, ok := user.(models.User)
 	if !ok {
-		err := fmt.Errorf("%s","Failed to cast user to model")
+		err := fmt.Errorf("%s", "Failed to cast user to model")
 		h.Log.LogError(ctx, "actors", "UnlikeActor", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
 		return
