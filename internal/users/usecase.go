@@ -25,4 +25,6 @@ type UseCase interface {
 	GetSubscriptions(page int, user string) (int, []models.UserNoPassword, error)
 
 	GetFeed(username string) (models.Feed, error)
+
+	Search(query string) (models.SearchResult, error)
 }

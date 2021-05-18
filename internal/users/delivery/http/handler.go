@@ -553,3 +553,15 @@ func (h *Handler) GetFeed(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, feed)
 }
+
+func (h *Handler) Search(ctx *gin.Context) {
+	query := ctx.Query("q")
+	searchResults, err := h.useCase.Search(query)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "Search", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, searchResults)
+}

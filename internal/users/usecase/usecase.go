@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"strings"
 )
 
 type UsersUseCase struct {
@@ -180,4 +181,8 @@ func (usersUC *UsersUseCase) GetFeed(username string) (models.Feed, error) {
 	}
 
 	return feed, nil
+}
+
+func (usersUC *UsersUseCase) Search(query string) (models.SearchResult, error) {
+	return usersUC.userRepository.Search(strings.ToLower(query))
 }

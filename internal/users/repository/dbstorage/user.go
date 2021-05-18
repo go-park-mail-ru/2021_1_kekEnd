@@ -2,8 +2,10 @@ package localstorage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"math"
+	"strconv"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
@@ -329,4 +331,92 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
 
 	return pagesNumber, users, nil
+}
+
+func (storage *UserRepository) Search(query string) (models.SearchResult, error) {
+	sqlSearchMovies := `
+		SELECT mv.id, title, poster, array_agg(distinct (gs.name)) as genre
+		FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		WHERE lower(title) LIKE '%' || $1 || '%'
+		GROUP BY mv.id
+	`
+
+	rows, err := storage.db.Query(context.Background(), sqlSearchMovies, query)
+	if err != nil {
+		return models.SearchResult{}, err
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster, &movie.Genre)
+		if err != nil && err != sql.ErrNoRows {
+			return models.SearchResult{}, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	sqlSearchActors := `
+		SELECT id, name, avatar
+		FROM mdb.actors
+		WHERE lower(name) LIKE '%' || $1 || '%'
+	`
+
+	rows, err = storage.db.Query(context.Background(), sqlSearchActors, query)
+	if err != nil {
+		return models.SearchResult{}, err
+	}
+	defer rows.Close()
+
+	var actors []models.Actor
+	for rows.Next() {
+		actor := models.Actor{}
+		var id int
+
+		err = rows.Scan(&id, &actor.Name, &actor.Avatar)
+		if err != nil && err != sql.ErrNoRows {
+			return models.SearchResult{}, err
+		}
+
+		actor.ID = strconv.Itoa(id)
+		actors = append(actors, actor)
+	}
+
+	sqlSearchUsers := `
+		SELECT login, img_src
+		FROM mdb.users
+		WHERE lower(login) LIKE '%' || $1 || '%'
+	`
+
+	rows, err = storage.db.Query(context.Background(), sqlSearchUsers, query)
+	if err != nil {
+		return models.SearchResult{}, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		user := models.User{}
+		err = rows.Scan(&user.Username, &user.Avatar)
+		if err != nil && err != sql.ErrNoRows {
+			return models.SearchResult{}, err
+		}
+
+		users = append(users, user)
+	}
+
+	result := models.SearchResult{
+		Movies: movies,
+		Actors: actors,
+		Users:  users,
+	}
+
+	return result, nil
 }
