@@ -34,6 +34,9 @@ import (
 	reviewsHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/delivery/http"
 	reviewsDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/repository/dbstorage"
 	reviewsUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/usecase"
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/search"
+	searchHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/search/delivery/http"
+	searchUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/search/usecase"
 	sessionsDelivery "github.com/go-park-mail-ru/2021_1_kekEnd/internal/sessions/delivery"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
@@ -54,6 +57,7 @@ type App struct {
 	ratingsUC      ratings.UseCase
 	reviewsUC      reviews.UseCase
 	playlistsUC    playlists.UseCase
+	searchUC       search.UseCase
 	authMiddleware middleware.Auth
 	csrfMiddleware middleware.Csrf
 	logger         *logger.Logger
@@ -103,6 +107,7 @@ func NewApp() *App {
 	actorsUC := actorsUseCase.NewActorsUseCase(actorsRepo)
 	reviewsUC := reviewsUseCase.NewReviewsUseCase(reviewsRepo, usersRepo)
 	ratingsUC := ratingsUseCase.NewRatingsUseCase(ratingsRepo)
+	searchUC := searchUseCase.NewSearchUseCase(usersRepo, moviesRepo, actorsRepo)
 
 	playlistsRepo := playlistsRepository.NewPlaylistsRepository(dbpool)
 	playlistsUC := playlistsUseCase.NewPlaylistsUseCase(playlistsRepo)
@@ -117,6 +122,7 @@ func NewApp() *App {
 		ratingsUC:      ratingsUC,
 		reviewsUC:      reviewsUC,
 		playlistsUC:    playlistsUC,
+		searchUC:       searchUC,
 		authMiddleware: authMiddleware,
 		csrfMiddleware: csrfMiddleware,
 		logger:         accessLogger,
@@ -153,6 +159,7 @@ func (app *App) Run(port string) error {
 	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
 	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
 	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
+	searchHttp.RegisterHttpEndpoints(router, app.searchUC, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

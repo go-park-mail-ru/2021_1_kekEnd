@@ -15,7 +15,7 @@ CREATE TABLE mdb.users
 (
     login               VARCHAR(100) PRIMARY KEY,
     password            VARCHAR(256) NOT NULL,
-    img_src             text DEFAULT 'http://89.208.198.186:8080/avatars/default.jpeg',
+    img_src             text DEFAULT 'http://89.208.198.186:8085/avatars/default.jpeg',
 
     firstname           VARCHAR(100),
     lastname            VARCHAR(100),

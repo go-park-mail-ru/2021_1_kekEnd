@@ -10,4 +10,5 @@ type Repository interface {
 	EditActor(models.Actor) (models.Actor, error)
 	LikeActor(username string, actorID int) error
 	UnlikeActor(username string, actorID int) error
+	SearchActors(query string) ([]models.Actor, error)
 }

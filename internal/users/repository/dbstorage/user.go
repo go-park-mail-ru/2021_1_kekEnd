@@ -2,14 +2,14 @@ package localstorage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"math"
-
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
+	"math"
 )
 
 type PgxPoolIface interface {
@@ -329,4 +329,31 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
 
 	return pagesNumber, users, nil
+}
+
+func (storage *UserRepository) SearchUsers(query string) ([]models.User, error) {
+	sqlSearchUsers := `
+		SELECT login, img_src
+		FROM mdb.users
+		WHERE lower(login) LIKE '%' || $1 || '%'
+	`
+
+	rows, err := storage.db.Query(context.Background(), sqlSearchUsers, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		user := models.User{}
+		err = rows.Scan(&user.Username, &user.Avatar)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
