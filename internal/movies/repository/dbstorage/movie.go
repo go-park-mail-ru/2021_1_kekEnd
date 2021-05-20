@@ -343,3 +343,36 @@ func (movieStorage *MovieRepository) MarkUnwatched(username string, id int) erro
 	}
 	return nil
 }
+
+func (movieStorage *MovieRepository) SearchMovies(query string) ([]models.Movie, error) {
+	sqlSearchMovies := `
+		SELECT mv.id, title, poster, array_agg(distinct (gs.name)) as genre
+		FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		WHERE lower(title) LIKE '%' || $1 || '%'
+		GROUP BY mv.id
+	`
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlSearchMovies, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster, &movie.Genre)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	return movies, nil
+}

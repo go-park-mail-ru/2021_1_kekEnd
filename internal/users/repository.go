@@ -28,5 +28,5 @@ type UserRepository interface {
 
 	GetSubscriptions(startIndex int, user string) (int, []models.UserNoPassword, error)
 
-	Search(query string) (models.SearchResult, error)
+	SearchUsers(query string) ([]models.User, error)
 }

@@ -27,5 +27,4 @@ func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions s
 	router.GET("/subscriptions/:username/check", authMiddleware.CheckAuth(true), handler.IsSubscribed)
 	router.GET("/subscribers/:username", handler.GetSubscribers)
 	router.GET("/feed", authMiddleware.CheckAuth(true), handler.GetFeed)
-	router.GET("/search", handler.Search)
 }

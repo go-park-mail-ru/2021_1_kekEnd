@@ -186,3 +186,33 @@ func (actorStorage *ActorRepository) UnlikeActor(username string, actorID int) e
 	}
 	return nil
 }
+
+func (actorStorage *ActorRepository) SearchActors(query string) ([]models.Actor, error) {
+	sqlSearchActors := `
+		SELECT id, name, avatar
+		FROM mdb.actors
+		WHERE lower(name) LIKE '%' || $1 || '%'
+	`
+
+	rows, err := actorStorage.db.Query(context.Background(), sqlSearchActors, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var actors []models.Actor
+	for rows.Next() {
+		actor := models.Actor{}
+		var id int
+
+		err = rows.Scan(&id, &actor.Name, &actor.Avatar)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		actor.ID = strconv.Itoa(id)
+		actors = append(actors, actor)
+	}
+
+	return actors, nil
+}
