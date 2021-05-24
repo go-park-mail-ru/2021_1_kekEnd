@@ -9,7 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, usersUC users.UseCase, sessions sessions.Delivery,
+func RegisterHttpEndpoints(router *gin.RouterGroup, usersUC users.UseCase, sessions sessions.Delivery,
 	authMiddleware middleware.Auth, fileServer proto.FileServerHandlerClient, Log *logger.Logger) {
 	handler := NewHandler(usersUC, sessions, fileServer, Log)
 

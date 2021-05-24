@@ -6,7 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/search"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, searchUC search.UseCase, Log *logger.Logger) {
+func RegisterHttpEndpoints(router *gin.RouterGroup, searchUC search.UseCase, Log *logger.Logger) {
 	handler := NewHandler(searchUC, Log)
 	router.GET("/search", handler.Search)
 }

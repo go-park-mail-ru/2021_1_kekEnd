@@ -8,7 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, playlistsUC playlists.UseCase, usersUC users.UseCase,
+func RegisterHttpEndpoints(router *gin.RouterGroup, playlistsUC playlists.UseCase, usersUC users.UseCase,
 	authMiddleware middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(playlistsUC, usersUC, Log)
 
