@@ -3,7 +3,6 @@ package localstorage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"math"
 	"strconv"
 
@@ -418,15 +417,17 @@ func (movieStorage *MovieRepository) GetSimilar(id string) ([]models.Movie, erro
 		return nil, err
 	}
 	defer rows.Close()
+
 	var movies []models.Movie
+	var count int
 	for rows.Next() {
+		count++
 		movie := models.Movie{}
 		var id int
 		var similarity float64
 
 		err = rows.Scan(&id, &movie.Title, &movie.Poster, &similarity)
 		if err != nil && err != sql.ErrNoRows {
-			fmt.Println("ERR", err)
 			return nil, err
 		}
 
@@ -434,5 +435,57 @@ func (movieStorage *MovieRepository) GetSimilar(id string) ([]models.Movie, erro
 		movies = append(movies, movie)
 	}
 
-	return movies, nil
+	if count == _const.SimilarMoviesLimit {
+		return movies, nil
+	}
+	// если данных о просмотрах мало, дополним выдачу фильмами того же жанра
+	count = _const.SimilarMoviesLimit - count
+
+	// id фильмов, которые уже рекомендовали, чтобы не повторять их
+	idInt, _ := strconv.Atoi(id)
+	alreadyAddedIDs := []int{idInt}
+	for _, movie := range movies {
+		idInt, _ = strconv.Atoi(movie.ID)
+		alreadyAddedIDs = append(alreadyAddedIDs, idInt)
+	}
+
+	sqlStatementSameGenre := `
+		SELECT mv.id, title, poster
+		FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		WHERE mv.id != ALL($2)
+		GROUP BY mv.id
+		HAVING array_agg(array[gs.name])
+		<@
+		(
+			SELECT array_agg(distinct (gs.name))
+			FROM mdb.movie mv
+			JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+			JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+			WHERE mv.id = $1
+		)
+		LIMIT $3
+	`
+
+	rows, err = movieStorage.db.Query(context.Background(), sqlStatementSameGenre, id, alreadyAddedIDs, count)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	return movies, err
 }
