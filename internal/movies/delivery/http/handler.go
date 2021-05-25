@@ -25,10 +25,6 @@ type moviesPageResponse struct {
 	Movies      []*models.Movie `json:"movies"`
 }
 
-type similarMoviesResponse struct {
-	SimilarMovies []models.Movie `json:"similar_movies"`
-}
-
 func NewHandler(useCase movies.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -252,7 +248,5 @@ func (h *Handler) GetSimilar(ctx *gin.Context) {
 		return
 	}
 
-	similar := similarMoviesResponse{SimilarMovies: similarMovies}
-
-	ctx.JSON(http.StatusOK, similar)
+	ctx.JSON(http.StatusOK, similarMovies)
 }

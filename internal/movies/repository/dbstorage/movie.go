@@ -3,6 +3,7 @@ package localstorage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -378,5 +379,60 @@ func (movieStorage *MovieRepository) SearchMovies(query string) ([]models.Movie,
 }
 
 func (movieStorage *MovieRepository) GetSimilar(id string) ([]models.Movie, error) {
-	return nil, nil
+	// используем коэффициент Жаккара
+	// обозначим X - количество пользователей, которые посмотрели фильм x;
+	// Y - количество пользователей, которые посмотрели фильм y
+	// sim(x, y) = |X && Y|/|X || Y|
+	// Иначе: sim(x, y) = (кол-во пользователей, посмотревших оба фильма)/(кол-во пользователей, посмотревших или x, или y)
+
+	sqlStatementSimilar := `
+	SELECT mv.id, title, poster,
+		CAST((SELECT COUNT(*) FROM (
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = $1
+			INTERSECT
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = mv.id
+		) AS watched_both_users) AS decimal)
+		/
+		(SELECT COUNT(*) FROM (
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = $1
+			UNION
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = mv.id
+		) AS watched_at_least_one_users)
+		AS similarity_coefficient
+	FROM mdb.movie mv
+		WHERE mv.id != $1
+		ORDER BY similarity_coefficient
+		LIMIT $2
+	`
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatementSimilar, id, _const.SimilarMoviesLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var movies []models.Movie
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+		var similarity float64
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster, &similarity)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println("ERR", err)
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	return movies, nil
 }
