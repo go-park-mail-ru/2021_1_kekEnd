@@ -15,5 +15,6 @@ func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase, auth mid
 	router.GET("/movies/:id", auth.CheckAuth(false), handler.GetMovie)
 	router.POST("/movies/:id/watch", auth.CheckAuth(true), handler.MarkWatched)
 	router.DELETE("/movies/:id/watch", auth.CheckAuth(true), handler.MarkUnwatched)
+	router.GET("/movies/:id/similar", handler.GetSimilar)
 	router.GET("/genres", handler.GetGenres)
 }

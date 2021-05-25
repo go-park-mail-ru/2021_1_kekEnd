@@ -73,3 +73,11 @@ func (moviesUC *MoviesUseCase) MarkUnwatched(user models.User, id int) error {
 	})
 	return err
 }
+
+func (moviesUC *MoviesUseCase) GetSimilar(id string) ([]models.Movie, error) {
+	similarMovies, err := moviesUC.movieRepository.GetSimilar(id)
+	if err != nil {
+		return nil, nil
+	}
+	return similarMovies, nil
+}

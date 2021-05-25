@@ -25,6 +25,10 @@ type moviesPageResponse struct {
 	Movies      []*models.Movie `json:"movies"`
 }
 
+type similarMoviesResponse struct {
+	SimilarMovies []models.Movie `json:"similar_movies"`
+}
+
 func NewHandler(useCase movies.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -238,4 +242,17 @@ func (h *Handler) MarkUnwatched(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (h *Handler) GetSimilar(ctx *gin.Context) {
+	similarMovies, err := h.useCase.GetSimilar(ctx.Param("id"))
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "GetSimilar", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	similar := similarMoviesResponse{SimilarMovies: similarMovies}
+
+	ctx.JSON(http.StatusOK, similar)
 }

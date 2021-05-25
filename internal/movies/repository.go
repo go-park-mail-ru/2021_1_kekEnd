@@ -19,4 +19,6 @@ type MovieRepository interface {
 	MarkUnwatched(username string, id int) error
 
 	SearchMovies(query string) ([]models.Movie, error)
+
+	GetSimilar(id string) ([]models.Movie, error)
 }

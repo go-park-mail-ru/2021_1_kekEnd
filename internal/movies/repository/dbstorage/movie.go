@@ -376,3 +376,7 @@ func (movieStorage *MovieRepository) SearchMovies(query string) ([]models.Movie,
 
 	return movies, nil
 }
+
+func (movieStorage *MovieRepository) GetSimilar(id string) ([]models.Movie, error) {
+	return nil, nil
+}
