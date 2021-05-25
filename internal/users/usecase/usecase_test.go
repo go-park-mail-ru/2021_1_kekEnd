@@ -259,4 +259,43 @@ func TestUsersUseCaseErrors(t *testing.T) {
 		err := uc.Unsubscribe(sub, user)
 		assert.Error(t, err)
 	})
+
+	t.Run("IsSubscribed", func(t *testing.T) {
+		sub := "whaeva"
+		user := "let_robots_reign"
+
+		repo.EXPECT().CheckUnsubscribed(sub, user).Return(false, nil)
+
+		s, _ := uc.IsSubscribed(sub, user)
+		assert.Equal(t, true, s)
+	})
+
+	t.Run("GetFeed", func(t *testing.T) {
+		user := "whaeva"
+
+		ratings := []models.RatingFeedItem{{
+				Username: "someUname",
+		}}
+
+		reviews := []models.ReviewFeedItem{{
+			Username: "someUname",
+		}}
+
+		subs := []models.UserNoPassword{{
+			Username: user,
+		}}
+
+		feed := models.Feed{
+			Ratings: ratings,
+			Reviews: reviews,
+		}
+
+		repo.EXPECT().GetSubscriptions(0, user).Return(1, subs, nil)
+		reviewsRepo.EXPECT().GetFeed(subs).Return(reviews, nil)
+		ratingsRepo.EXPECT().GetFeed(subs).Return(ratings, nil)
+
+		res, _ := uc.GetFeed(user)
+
+		assert.Equal(t, feed, res)
+	})
 }
