@@ -107,6 +107,21 @@ func (mr *MockRepositoryMockRecorder) LikeActor(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeActor", reflect.TypeOf((*MockRepository)(nil).LikeActor), arg0, arg1)
 }
 
+// SearchActors mocks base method.
+func (m *MockRepository) SearchActors(arg0 string) ([]models.Actor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchActors", arg0)
+	ret0, _ := ret[0].([]models.Actor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchActors indicates an expected call of SearchActors.
+func (mr *MockRepositoryMockRecorder) SearchActors(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchActors", reflect.TypeOf((*MockRepository)(nil).SearchActors), arg0)
+}
+
 // UnlikeActor mocks base method.
 func (m *MockRepository) UnlikeActor(arg0 string, arg1 int) error {
 	m.ctrl.T.Helper()

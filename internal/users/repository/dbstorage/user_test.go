@@ -293,3 +293,20 @@ func TestGetSubscriptions(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestSearchUsers(t *testing.T) {
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mock.Close(context.Background())
+
+	usersRepo := NewUserRepository(mock)
+	user := "lol"
+	users := []models.User{models.User{Username: user, Avatar: "/"}}
+
+	rows := pgxmock.NewRows([]string{"login", "img_src"}).AddRow("lol", "/")
+	mock.ExpectQuery("SELECT").WithArgs(user).WillReturnRows(rows)
+	res, _ := usersRepo.SearchUsers(user)
+	assert.Equal(t, res, users)
+}

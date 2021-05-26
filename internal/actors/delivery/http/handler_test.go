@@ -34,8 +34,9 @@ func TestHandlers(t *testing.T) {
 	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
-
-	RegisterHttpEndpoints(r, actorsUC, authMiddleware, lg)
+	api := r.Group("/api")
+	v1 := api.Group("/v1")
+	RegisterHttpEndpoints(v1, actorsUC, authMiddleware, lg)
 
 	user := &models.User{
 		Username:      "let_robots_reign",
@@ -69,7 +70,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().CreateActor(*user, actor).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -80,7 +81,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().GetActor(actor.ID, "").Return(actor, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/actors/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/actors/1", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -90,7 +91,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().EditActor(*user, actor).Return(actor, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/actors/1", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -101,7 +102,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors/1/like", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/actors/1/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -112,7 +113,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().UnlikeActor(user.Username, 1).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/actors/1/like", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/1/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -123,7 +124,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().CreateActor(*user, actor).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -132,7 +133,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("CreateActorError2", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/actors", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -143,7 +144,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().GetActor(actor.ID, "").Return(models.Actor{}, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/actors/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/actors/1", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -151,7 +152,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("EditActorError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/actors/1", nil)
+		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -162,7 +163,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().EditActor(*user, actor).Return(models.Actor{}, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/actors/1", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -171,7 +172,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("LikeActorError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors/:actor_id/like", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/actors/:actor_id/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -182,7 +183,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/actors/1/like", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/actors/1/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -191,7 +192,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("UnlikeActorError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/actors/:actor_id/like", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/:actor_id/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -202,7 +203,7 @@ func TestHandlers(t *testing.T) {
 		actorsUC.EXPECT().UnlikeActor(user.Username, 1).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/actors/1/like", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/1/like", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
