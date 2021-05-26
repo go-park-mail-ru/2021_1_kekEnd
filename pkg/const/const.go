@@ -13,7 +13,7 @@ const (
 	AuthPort          = "8081"
 	FileServerPort    = "8082"
 	RedisPort         = "6379"
-	AvatarsPath       = "https://" + Host + "/avatars/"
+	AvatarsPath       = "https://" + Host + "tmp/avatars/"
 	DefaultAvatarPath = "https://" + Host + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
 	PostersFileDir    = "tmp/posters/"
