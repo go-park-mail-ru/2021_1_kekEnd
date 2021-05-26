@@ -3,6 +3,11 @@ package http
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
@@ -13,10 +18,6 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
-	"io"
-	"net/http"
-	"path/filepath"
-	"strconv"
 )
 
 type Handler struct {
@@ -98,7 +99,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		"/",
 		_const.Host,
 		false,
-		true,
+		false,
 	)
 
 	csrf.CreateCsrfToken(ctx)
@@ -121,7 +122,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", _const.Host, false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", _const.Host, false, false)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -164,7 +165,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		"/",
 		_const.Host,
 		false,
-		true,
+		false,
 	)
 	csrf.CreateCsrfToken(ctx)
 
