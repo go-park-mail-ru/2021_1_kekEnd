@@ -16,6 +16,9 @@ const (
 	AvatarsPath       = "https://" + Host + "/avatars/"
 	DefaultAvatarPath = "https://" + Host + "/avatars/default.jpeg"
 	AvatarsFileDir    = "tmp/avatars/"
+	PostersFileDir    = "tmp/posters/"
+	BannersFileDir    = "tmp/banners/"
+	ActorsFileDir     = "tmp/actors/"
 	//TODO
 	RequestID = "RequestID"
 
