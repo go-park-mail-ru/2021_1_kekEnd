@@ -42,13 +42,31 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: bin
-      - name: Transfer bin file to server 1
+      - name: Transfer bin1 file to server 1
         uses: appleboy/scp-action@v0.0.10
         with:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           source: "bin/main bin/main_auth bin/main_fileserver"
+          target: "/home/ubuntu"
+
+      - name: Transfer bin2 file to server 1
+        uses: appleboy/scp-action@v0.0.10
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          source: "bin/main_fileserver"
+          target: "/home/ubuntu"
+
+      - name: Transfer bin3 file to server 1
+        uses: appleboy/scp-action@v0.0.10
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          source: "bin/main_fileserver"
           target: "/home/ubuntu"
 
       - name: chmod
