@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	fileServerGrpc "github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/fileserver/delivery/grpc"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 func main() {
