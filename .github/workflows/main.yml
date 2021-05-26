@@ -87,7 +87,24 @@ jobs:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: chmod 755 /home/ubuntu/bin/main /home/ubuntu/bin/main_auth /home/ubuntu/bin/main_fileserver
+          script: chmod 755 /home/ubuntu/bin/main
+
+      - name: chmod
+        uses: appleboy/ssh-action@master
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: chmod 755 /home/ubuntu/bin/main_auth
+
+      - name: chmod
+        uses: appleboy/ssh-action@master
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: chmod 755 /home/ubuntu/bin/main_fileserver
+
       - name: restart service
         uses: appleboy/ssh-action@master
         with:
@@ -95,3 +112,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: sudo systemctl restart api.service
+
+      - name: restart service
+        uses: appleboy/ssh-action@master
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: sudo systemctl restart auth.service
+
+      - name: restart service
+        uses: appleboy/ssh-action@master
+        with:
+          host: 89.208.198.186
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: sudo systemctl restart fileserver.service

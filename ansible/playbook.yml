@@ -16,9 +16,20 @@
   become: yes
   hosts: web
   tasks:
-    - name: "Provide actual unit file"
+    - name: "Provide actual unit file1"
       copy:
         src: files/api.service
         dest: /etc/systemd/system/api.service
+
+    - name: "Provide actual unit file2"
+      copy:
+        src: files/auth.service
+        dest: /etc/systemd/system/auth.service
+
+    - name: "Provide actual unit file3"
+      copy:
+        src: files/fileserver.service
+        dest: /etc/systemd/system/fileserver.service
+
     - name: "Systemctl daemon reload"
       command: systemctl daemon-reload
