@@ -78,7 +78,7 @@ jobs:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          source: "bin/main_fileserver"
+          source: "bin/main_auth"
           target: "/home/ubuntu"
 
       - name: chmod
@@ -95,7 +95,7 @@ jobs:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: chmod 755 /home/ubuntu/bin/main_auth
+          script: chmod 755 /home/ubuntu/bin/main_fileserver
 
       - name: chmod
         uses: appleboy/ssh-action@master
@@ -103,7 +103,7 @@ jobs:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: chmod 755 /home/ubuntu/bin/main_fileserver
+          script: chmod 755 /home/ubuntu/bin/main_auth
 
       - name: restart service
         uses: appleboy/ssh-action@master
