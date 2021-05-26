@@ -122,10 +122,15 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 	sqlStatement := `
         SELECT COUNT(*)
         FROM mdb.users_review
+		WHERE movie_id = $1;
     `
+	intMovieId, err := strconv.Atoi(movieID)
+	if err != nil {
+		return 0, nil, err
+	}
 
 	var rowsCount int
-	err := storage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	err = storage.db.QueryRow(context.Background(), sqlStatement, intMovieId).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, reviews, nil
 	}
@@ -140,11 +145,6 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
         ORDER BY creation_date
         LIMIT $2 OFFSET $3
     `
-
-	intMovieId, err := strconv.Atoi(movieID)
-	if err != nil {
-		return 0, nil, err
-	}
 
 	rows, err := storage.db.Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
 	if err != nil {
