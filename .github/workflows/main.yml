@@ -34,6 +34,18 @@ jobs:
           name: bin
           path: ./main
 
+      - name: Upload build result
+        uses: actions/upload-artifact@v1
+        with:
+          name: bin
+          path: ./main_auth
+
+      - name: Upload build result
+        uses: actions/upload-artifact@v1
+        with:
+          name: bin
+          path: ./main_fileserver
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
