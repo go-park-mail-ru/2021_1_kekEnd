@@ -19,14 +19,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build
-        run: make build
+      # - name: Build auth
+      #   run: go build cmd/auth/main_auth.go
+
+      # - name: Build fileserver
+      #   run: go build cmd/fileserver/main_fileserver.go
+
+      - name: Build main
+        run: go build cmd/main/main.go
 
       - name: Upload build result
         uses: actions/upload-artifact@v1
         with:
           name: bin
-          path: ./app
+          path: ./main
 
   deploy:
     runs-on: ubuntu-latest
@@ -39,30 +45,23 @@ jobs:
       - name: Transfer bin file to server 1
         uses: appleboy/scp-action@v0.0.10
         with:
-          host: 146.185.211.80
+          host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          source: "bin/app"
+          source: "bin/main"
           target: "/home/ubuntu"
-      - name: Transfer bin file to server 2
-        uses: appleboy/scp-action@v0.0.10
-        with:
-          host: 146.185.211.81
-          username: ubuntu
-          key: ${{ secrets.PRIVATE_KEY }}
-          source: "bin/app"
-          target: "/home/ubuntu"
+
       - name: chmod
         uses: appleboy/ssh-action@master
         with:
-          host: 146.185.211.80
+          host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: chmod 755 /home/ubuntu/bin/app
+          script: chmod 755 /home/ubuntu/bin/main
       - name: restart service
         uses: appleboy/ssh-action@master
         with:
-          host: 146.185.211.80
+          host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: sudo systemctl restart api.service
