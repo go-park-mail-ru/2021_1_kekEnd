@@ -143,7 +143,7 @@ func prometheusHandler() gin.HandlerFunc {
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://89.208.198.186:3000"}
+	config.AllowOrigins = []string{"http://localhost:4000"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 	router.Use(middleware.AccessLogMiddleware(app.logger))
@@ -156,13 +156,16 @@ func (app *App) Run(port string) error {
 	router.Use(gin.Recovery())
 	router.GET("/metrics", prometheusHandler())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
-	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
-	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
-	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
-	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
-	searchHttp.RegisterHttpEndpoints(router, app.searchUC, app.logger)
+	api := router.Group("/api")
+	v1 := api.Group("/v1")
+
+	usersHttp.RegisterHttpEndpoints(v1, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
+	moviesHttp.RegisterHttpEndpoints(v1, app.moviesUC, app.authMiddleware, app.logger)
+	ratingsHttp.RegisterHttpEndpoints(v1, app.ratingsUC, app.authMiddleware, app.logger)
+	reviewsHttp.RegisterHttpEndpoints(v1, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
+	actorsHttp.RegisterHttpEndpoints(v1, app.actorsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHttpEndpoints(v1, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
+	searchHttp.RegisterHttpEndpoints(v1, app.searchUC, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

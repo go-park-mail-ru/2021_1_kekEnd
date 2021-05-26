@@ -7,7 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, ratingsUC ratings.UseCase, authMiddleware middleware.Auth,
+func RegisterHttpEndpoints(router *gin.RouterGroup, ratingsUC ratings.UseCase, authMiddleware middleware.Auth,
 	Log *logger.Logger) {
 	handler := NewHandler(ratingsUC, Log)
 
