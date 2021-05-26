@@ -48,7 +48,7 @@ jobs:
           host: 89.208.198.186
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          source: "bin/main bin/main_auth bin/main_fileserver"
+          source: "bin/main"
           target: "/home/ubuntu"
 
       - name: Transfer bin2 file to server 1
