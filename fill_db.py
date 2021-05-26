@@ -9,7 +9,7 @@ with open('keys.txt') as keys:
     YOUTUBE_API_KEY = keys.readline().strip()
 
 SAVE_PATH = pathlib.Path(__file__).parent.absolute()
-FILE_PATH = 'https://cinemedia.ru/tmp/'
+FILE_PATH = 'https://cinemedia.ru/tmp'
 MOVIE_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v2.1/films'
 MOVIE_API_APPEND = '?append_to_response=BUDGET&append_to_response=RATING'
 STAFF_API_PATH = 'https://kinopoiskapiunofficial.tech/api/v1/staff'
@@ -18,14 +18,14 @@ YOUTUBE_TRAILER_PATH = f'https://www.googleapis.com/youtube/v3/search' \
 YOUTUBE_EMBED = 'https://www.youtube.com/embed/'
 
 START_MOVIE_INDEX = 300
-END_MOVIE_INDEX = 305
+END_MOVIE_INDEX = 400
 
 
-def save_file(url, fileType):
+def save_file(url, file_type):
     r = requests.get(url)
     file_name = str(uuid.uuid4())
-    open(f'{SAVE_PATH}/{fileType}/{file_name}.jpg', 'wb').write(r.content)
-    return f'{FILE_PATH}{file_name}.jpg'
+    open(f'{SAVE_PATH}/tmp/{file_type}/{file_name}.jpg', 'wb').write(r.content)
+    return f'{FILE_PATH}/{file_type}/{file_name}.jpg'
 
 
 def format_array(arr):
