@@ -16,6 +16,6 @@ func CreateCsrfToken(ctx *gin.Context) {
 		"/",
 		_const.Host,
 		false,
-		true,
+		false,
 	)
 }

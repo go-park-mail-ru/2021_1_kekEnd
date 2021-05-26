@@ -77,6 +77,7 @@ func NewApp() *App {
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
+		fmt.Println(os.Getwd())
 		log.Fatal("Failed to read DB connection data")
 	}
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
@@ -143,7 +144,7 @@ func prometheusHandler() gin.HandlerFunc {
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:4000"}
+	config.AllowOrigins = []string{"http://localhost:4000", "https://cinemedia.ru"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 	router.Use(middleware.AccessLogMiddleware(app.logger))

@@ -2,7 +2,7 @@
 Description=App
 
 [Service]
-ExecStart=/home/ubuntu/bin/main
+ExecStart=/home/ubuntu/bin/main_auth
 
 [Install]
 WantedBy=multi-user.target
