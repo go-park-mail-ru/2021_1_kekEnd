@@ -149,6 +149,9 @@ func (app *App) Run(port string) error {
 	router.Use(middleware.AccessLogMiddleware(app.logger))
 
 	router.Static("/avatars", _const.AvatarsFileDir)
+	router.Static("/posters", _const.PostersFileDir)
+	router.Static("/banners", _const.BannersFileDir)
+	router.Static("/actors", _const.ActorsFileDir)
 
 	router.Use(gin.Recovery())
 	router.GET("/metrics", prometheusHandler())

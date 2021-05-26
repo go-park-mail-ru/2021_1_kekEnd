@@ -21,10 +21,10 @@ START_MOVIE_INDEX = 300
 END_MOVIE_INDEX = 305
 
 
-def save_file(url):
+def save_file(url, fileType):
     r = requests.get(url)
     file_name = str(uuid.uuid4())
-    open(f'{SAVE_PATH}/tmp/{file_name}.jpg', 'wb').write(r.content)
+    open(f'{SAVE_PATH}/{fileType}/{file_name}.jpg', 'wb').write(r.content)
     return f'{FILE_PATH}{file_name}.jpg'
 
 
@@ -118,8 +118,8 @@ def fill_db(conn, cursor):
             info = [item if item is not None else 'нет данных' for item in info]
 
             poster_url, banner_url = info[-4], info[-5]
-            poster_filename = save_file(poster_url)
-            banner_filename = save_file(banner_url)
+            poster_filename = save_file(poster_url, 'posters')
+            banner_filename = save_file(banner_url, 'banners')
             info[-4] = poster_filename
             info[-5] = banner_filename
 
@@ -148,6 +148,9 @@ def fill_db(conn, cursor):
                 if cursor.fetchone() is None:
                     # этот актер еще не был добавлен
                     actor_info = get_actor_info(actor_id)
+                    poster_url = actor_info[-1]
+                    poster_filename = save_file(poster_url, 'actors')
+                    actor_info[-1] = poster_filename
                     cursor.execute(
                         'INSERT INTO actors (id, name, biography, birthdate, origin, profession, avatar) '
                         'VALUES(%s, %s, %s, %s, %s, %s, %s)', (actor_id, *actor_info)
