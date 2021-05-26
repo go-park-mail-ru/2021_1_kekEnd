@@ -19,8 +19,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # - name: Build auth
-      #   run: go build cmd/auth/main_auth.go
+      - name: Build auth
+        run: go build cmd/auth/main_auth.go
 
       # - name: Build fileserver
       #   run: go build cmd/fileserver/main_fileserver.go
