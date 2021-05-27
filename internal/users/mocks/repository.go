@@ -154,6 +154,21 @@ func (mr *MockUserRepositoryMockRecorder) GetUserByUsername(arg0 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockUserRepository)(nil).GetUserByUsername), arg0)
 }
 
+// SearchUsers mocks base method.
+func (m *MockUserRepository) SearchUsers(arg0 string) ([]models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchUsers", arg0)
+	ret0, _ := ret[0].([]models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchUsers indicates an expected call of SearchUsers.
+func (mr *MockUserRepositoryMockRecorder) SearchUsers(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUserRepository)(nil).SearchUsers), arg0)
+}
+
 // Subscribe mocks base method.
 func (m *MockUserRepository) Subscribe(arg0, arg1 string) error {
 	m.ctrl.T.Helper()

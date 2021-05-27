@@ -137,3 +137,18 @@ func (mr *MockMovieRepositoryMockRecorder) MarkWatched(arg0, arg1 interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkWatched", reflect.TypeOf((*MockMovieRepository)(nil).MarkWatched), arg0, arg1)
 }
+
+// SearchMovies mocks base method.
+func (m *MockMovieRepository) SearchMovies(arg0 string) ([]models.Movie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchMovies", arg0)
+	ret0, _ := ret[0].([]models.Movie)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchMovies indicates an expected call of SearchMovies.
+func (mr *MockMovieRepositoryMockRecorder) SearchMovies(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchMovies", reflect.TypeOf((*MockMovieRepository)(nil).SearchMovies), arg0)
+}
