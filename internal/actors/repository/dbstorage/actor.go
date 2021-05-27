@@ -155,13 +155,13 @@ func (actorStorage *ActorRepository) GetFavoriteActors(username string) ([]model
 	return actors, nil
 }
 
-func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
-	return nil
-}
+// func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
+// 	return nil
+// }
 
-func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
-	return models.Actor{}, nil
-}
+// func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
+// 	return models.Actor{}, nil
+// }
 
 func (actorStorage *ActorRepository) LikeActor(username string, actorID int) error {
 	sqlStatement := `

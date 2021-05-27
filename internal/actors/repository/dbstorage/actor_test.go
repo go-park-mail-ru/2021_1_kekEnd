@@ -123,65 +123,65 @@ func TestGetFavoriteActors(t *testing.T) {
 	}
 }
 
-func CreateActor(t *testing.T) {
-	mock, err := pgxmock.NewConn()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer mock.Close(context.Background())
+// func CreateActor(t *testing.T) {
+// 	mock, err := pgxmock.NewConn()
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 	}
+// 	defer mock.Close(context.Background())
 
-	usersRepo := NewActorRepository(mock)
-	actor := &models.Actor{
-		ID:           "1",
-		Name:         "Ivan",
-		Biography:    "from russia",
-		BirthDate:    "1.1.1990",
-		Origin:       "russia",
-		Profession:   "actor",
-		MoviesCount:  5,
-		MoviesRating: 5,
-		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
-		Avatar:       "qwe",
-	}
+// 	usersRepo := NewActorRepository(mock)
+// 	actor := &models.Actor{
+// 		ID:           "1",
+// 		Name:         "Ivan",
+// 		Biography:    "from russia",
+// 		BirthDate:    "1.1.1990",
+// 		Origin:       "russia",
+// 		Profession:   "actor",
+// 		MoviesCount:  5,
+// 		MoviesRating: 5,
+// 		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
+// 		Avatar:       "qwe",
+// 	}
 
-	if err = usersRepo.CreateActor(*actor); err != nil {
-		t.Errorf("error was not expected while updating stats: %s", err)
-	}
+// 	if err = usersRepo.CreateActor(*actor); err != nil {
+// 		t.Errorf("error was not expected while updating stats: %s", err)
+// 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
+// 	if err := mock.ExpectationsWereMet(); err != nil {
+// 		t.Errorf("there were unfulfilled expectations: %s", err)
+// 	}
+// }
 
-func EditActor(t *testing.T) {
-	mock, err := pgxmock.NewConn()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer mock.Close(context.Background())
+// func EditActor(t *testing.T) {
+// 	mock, err := pgxmock.NewConn()
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 	}
+// 	defer mock.Close(context.Background())
 
-	usersRepo := NewActorRepository(mock)
-	actor := &models.Actor{
-		ID:           "1",
-		Name:         "Ivan",
-		Biography:    "from russia",
-		BirthDate:    "1.1.1990",
-		Origin:       "russia",
-		Profession:   "actor",
-		MoviesCount:  5,
-		MoviesRating: 5,
-		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
-		Avatar:       "qwe",
-	}
+// 	usersRepo := NewActorRepository(mock)
+// 	actor := &models.Actor{
+// 		ID:           "1",
+// 		Name:         "Ivan",
+// 		Biography:    "from russia",
+// 		BirthDate:    "1.1.1990",
+// 		Origin:       "russia",
+// 		Profession:   "actor",
+// 		MoviesCount:  5,
+// 		MoviesRating: 5,
+// 		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
+// 		Avatar:       "qwe",
+// 	}
 
-	if _, err = usersRepo.EditActor(*actor); err != nil {
-		t.Errorf("error was not expected while updating stats: %s", err)
-	}
+// 	if _, err = usersRepo.EditActor(*actor); err != nil {
+// 		t.Errorf("error was not expected while updating stats: %s", err)
+// 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
+// 	if err := mock.ExpectationsWereMet(); err != nil {
+// 		t.Errorf("there were unfulfilled expectations: %s", err)
+// 	}
+// }
 
 func TestLikeActor(t *testing.T) {
 	mock, err := pgxmock.NewConn()
