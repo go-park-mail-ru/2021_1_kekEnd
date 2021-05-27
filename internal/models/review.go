@@ -4,12 +4,6 @@ import "time"
 
 type ReviewType string
 
-const (
-	negative ReviewType = "negative"
-	neutral             = "neutral"
-	positive            = "positive"
-)
-
 type Review struct {
 	ID           string     `json:"id"`
 	Title        string     `json:"title"`

@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
-	"math"
 )
 
 type PgxPoolIface interface {
@@ -226,6 +227,9 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]mod
 		var moviesWatched uint
 		var reviewsNumber uint
 		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+		if err != nil {
+			return nil, err
+		}
 		user.MoviesWatched = &moviesWatched
 		user.ReviewsNumber = &reviewsNumber
 		users = append(users, user)

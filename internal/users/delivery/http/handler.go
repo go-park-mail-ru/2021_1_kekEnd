@@ -470,7 +470,7 @@ func (h *Handler) IsSubscribed(ctx *gin.Context) {
 	}
 
 	username := ctx.Param("username")
-	user, err := h.useCase.GetUser(username)
+	_, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500

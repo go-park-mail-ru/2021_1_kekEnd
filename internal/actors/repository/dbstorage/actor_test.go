@@ -25,7 +25,7 @@ func TestGetActorByID(t *testing.T) {
 		Profession:   "actor",
 		MoviesCount:  5,
 		MoviesRating: 5,
-		Movies:       []models.MovieReference{{"1", "QWE", 7.5}},
+		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
 		Avatar:       "qwe",
 	}
 
@@ -69,7 +69,7 @@ func TestGetMoviesForActor(t *testing.T) {
 		Profession:   "actor",
 		MoviesCount:  5,
 		MoviesRating: 5,
-		Movies:       []models.MovieReference{{"1", "QWE", 7.5}},
+		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
 		Avatar:       "qwe",
 	}
 
@@ -106,7 +106,7 @@ func TestGetFavoriteActors(t *testing.T) {
 		Profession:   "actor",
 		MoviesCount:  5,
 		MoviesRating: 5,
-		Movies:       []models.MovieReference{{"1", "QWE", 7.5}},
+		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
 		Avatar:       "qwe",
 	}
 
@@ -140,7 +140,7 @@ func CreateActor(t *testing.T) {
 		Profession:   "actor",
 		MoviesCount:  5,
 		MoviesRating: 5,
-		Movies:       []models.MovieReference{{"1", "QWE", 7.5}},
+		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
 		Avatar:       "qwe",
 	}
 
@@ -170,7 +170,7 @@ func EditActor(t *testing.T) {
 		Profession:   "actor",
 		MoviesCount:  5,
 		MoviesRating: 5,
-		Movies:       []models.MovieReference{{"1", "QWE", 7.5}},
+		Movies:       []models.MovieReference{{ID: "1", Title: "QWE", Rating: 7.5}},
 		Avatar:       "qwe",
 	}
 
