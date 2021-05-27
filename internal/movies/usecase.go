@@ -17,4 +17,6 @@ type UseCase interface {
 	MarkWatched(user models.User, id int) error
 
 	MarkUnwatched(user models.User, id int) error
+
+	GetSimilar(id string) ([]models.Movie, error)
 }

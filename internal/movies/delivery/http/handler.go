@@ -239,3 +239,14 @@ func (h *Handler) MarkUnwatched(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK)
 }
+
+func (h *Handler) GetSimilar(ctx *gin.Context) {
+	similarMovies, err := h.useCase.GetSimilar(ctx.Param("id"))
+	if err != nil {
+		h.Log.LogError(ctx, "movies", "GetSimilar", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.JSON(http.StatusOK, similarMovies)
+}

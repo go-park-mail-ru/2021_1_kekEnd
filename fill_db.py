@@ -14,7 +14,7 @@ YOUTUBE_TRAILER_PATH = f'https://www.googleapis.com/youtube/v3/search' \
 YOUTUBE_EMBED = 'https://www.youtube.com/embed/'
 
 START_MOVIE_INDEX = 300
-END_MOVIE_INDEX = 302
+END_MOVIE_INDEX = 320
 
 
 def format_array(arr):
