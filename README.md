@@ -13,7 +13,7 @@
 https://app.swaggerhub.com/apis/let-robots-reign/Kinopoisk/1.0.0
 
 ### Деплой
-http://89.208.198.186:4000/
+https://cinemedia.ru/
 
 ### Ссылка на репозиторий фронтенда
 https://github.com/frontend-park-mail-ru/2021_1_kekEnd
