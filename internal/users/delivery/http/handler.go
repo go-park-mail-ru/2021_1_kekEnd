@@ -3,6 +3,11 @@ package http
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/csrf"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
@@ -10,15 +15,12 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/proto"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
-	"io"
-	"net/http"
-	"path/filepath"
-	"strconv"
 )
 
+// Handler структура хендлера юзера
 type Handler struct {
 	useCase    users.UseCase
 	sessions   sessions.Delivery
@@ -26,6 +28,7 @@ type Handler struct {
 	Log        *logger.Logger
 }
 
+// NewHandler инициализация хендлера юзера
 func NewHandler(useCase users.UseCase, sessions sessions.Delivery, fileServer proto.FileServerHandlerClient, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase:    useCase,
@@ -48,6 +51,7 @@ type subsResponse struct {
 	Subs        []models.UserNoPassword `json:"subs"`
 }
 
+// CreateUser создание юзера
 func (h *Handler) CreateUser(ctx *gin.Context) {
 	signupData := new(signupData)
 
@@ -70,7 +74,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		Username:      signupData.Username,
 		Email:         signupData.Email,
 		Password:      signupData.Password,
-		Avatar:        _const.DefaultAvatarPath,
+		Avatar:        constants.DefaultAvatarPath,
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
 		Subscribers:   new(uint),
@@ -84,7 +88,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	userSessionID, err := h.sessions.Create(signupData.Username, _const.CookieExpires)
+	userSessionID, err := h.sessions.Create(signupData.Username, constants.CookieExpires)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "CreateUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -94,11 +98,11 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	ctx.SetCookie(
 		"session_id",
 		userSessionID,
-		int(_const.CookieExpires),
+		int(constants.CookieExpires),
 		"/",
-		_const.Host,
+		constants.Host,
 		false,
-		true,
+		false,
 	)
 
 	csrf.CreateCsrfToken(ctx)
@@ -106,6 +110,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated) // 201
 }
 
+// Logout разлогин юзера
 func (h *Handler) Logout(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("session_id")
 	if err != nil {
@@ -121,7 +126,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("session_id", "Delete cookie", -1, "/", _const.Host, false, true)
+	ctx.SetCookie("session_id", "Delete cookie", -1, "/", constants.Host, false, false)
 
 	ctx.Status(http.StatusOK) // 200
 }
@@ -131,6 +136,7 @@ type loginData struct {
 	Password string `json:"password"`
 }
 
+// Login логин юзера
 func (h *Handler) Login(ctx *gin.Context) {
 	loginData := new(loginData)
 
@@ -150,7 +156,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	userSessionID, err := h.sessions.Create(loginData.Username, _const.CookieExpires)
+	userSessionID, err := h.sessions.Create(loginData.Username, constants.CookieExpires)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Login", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -160,19 +166,20 @@ func (h *Handler) Login(ctx *gin.Context) {
 	ctx.SetCookie(
 		"session_id",
 		userSessionID,
-		int(_const.CookieExpires),
+		int(constants.CookieExpires),
 		"/",
-		_const.Host,
+		constants.Host,
 		false,
-		true,
+		false,
 	)
 	csrf.CreateCsrfToken(ctx)
 
 	ctx.Status(http.StatusOK) // 200
 }
 
+// GetCurrentUser получить текущего юзера
 func (h *Handler) GetCurrentUser(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "users", "GetUser", err.Error())
@@ -192,6 +199,7 @@ func (h *Handler) GetCurrentUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
+// GetUser получить юзера
 func (h *Handler) GetUser(ctx *gin.Context) {
 	userModel, err := h.useCase.GetUser(ctx.Param("username"))
 	if err != nil {
@@ -204,6 +212,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
+// UpdateUser обновить юзера
 func (h *Handler) UpdateUser(ctx *gin.Context) {
 	changed := new(models.User)
 	err := ctx.BindJSON(changed)
@@ -214,7 +223,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "UpdateUser", err)
@@ -243,6 +252,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
+// UploadAvatar загрузить аватар
 func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
@@ -257,7 +267,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	newFileName := uuid.New().String() + extension
 
 	meta := metadata.New(map[string]string{
-		"fileName": _const.AvatarsFileDir + newFileName,
+		"fileName": constants.AvatarsFileDir + newFileName,
 	})
 	metaCtx := metadata.NewOutgoingContext(context.Background(), meta)
 
@@ -307,7 +317,7 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "UploadAvatar", err)
@@ -325,9 +335,9 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 
 	change := models.User{
 		Username: userModel.Username,
-		Avatar:   _const.AvatarsPath + newFileName,
+		Avatar:   constants.AvatarsPath + newFileName,
 	}
-	//change.Avatar = _const.AvatarsPath + newFileName
+	//change.Avatar = constants.AvatarsPath + newFileName
 
 	newUser, err := h.useCase.UpdateUser(&userModel, change)
 	if err != nil {
@@ -340,8 +350,9 @@ func (h *Handler) UploadAvatar(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userNoPassword)
 }
 
+// Subscribe подписаться на юзера
 func (h *Handler) Subscribe(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "Subscribe", err)
@@ -375,8 +386,9 @@ func (h *Handler) Subscribe(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+// Unsubscribe отписаться от юзера
 func (h *Handler) Unsubscribe(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -410,8 +422,9 @@ func (h *Handler) Unsubscribe(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+// GetSubscribers получить подписчиков
 func (h *Handler) GetSubscribers(ctx *gin.Context) {
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))
 	if err != nil || page < 1 {
 		var msg string
 		if err != nil {
@@ -444,15 +457,16 @@ func (h *Handler) GetSubscribers(ctx *gin.Context) {
 	subsResponse := subsResponse{
 		CurrentPage: page,
 		PagesNumber: numPages,
-		MaxItems:    _const.SubsPageSize,
+		MaxItems:    constants.SubsPageSize,
 		Subs:        subs,
 	}
 
 	ctx.JSON(http.StatusOK, subsResponse)
 }
 
+// IsSubscribed проверить подписан ли
 func (h *Handler) IsSubscribed(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
@@ -469,7 +483,7 @@ func (h *Handler) IsSubscribed(ctx *gin.Context) {
 	}
 
 	username := ctx.Param("username")
-	user, err := h.useCase.GetUser(username)
+	_, err := h.useCase.GetUser(username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "Unsubscribe", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
@@ -487,8 +501,9 @@ func (h *Handler) IsSubscribed(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, isSubscribed)
 }
 
+// GetSubscriptions получить подписки
 func (h *Handler) GetSubscriptions(ctx *gin.Context) {
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))
 	if err != nil || page < 1 {
 		var msg string
 		if err != nil {
@@ -521,14 +536,16 @@ func (h *Handler) GetSubscriptions(ctx *gin.Context) {
 	subsResponse := subsResponse{
 		CurrentPage: page,
 		PagesNumber: numPages,
-		MaxItems:    _const.SubsPageSize,
+		MaxItems:    constants.SubsPageSize,
 		Subs:        subs,
 	}
 
 	ctx.JSON(http.StatusOK, subsResponse)
 }
+
+// GetFeed получить новости
 func (h *Handler) GetFeed(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "users", "GetFeed", err)

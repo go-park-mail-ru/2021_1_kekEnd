@@ -2,30 +2,31 @@ package usecase
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews/mocks"
 	userMocks "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestReviewsUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	
+
 	repo := mocks.NewMockReviewRepository(ctrl)
 	usersRepo := userMocks.NewMockUserRepository(ctrl)
 	uc := NewReviewsUseCase(repo, usersRepo)
 
 	var reviewsNum uint = 1
 	user := &models.User{
-		Username: "let_robots_reign",
-		Email:    "sample@ya.ru",
-		Password: "1234",
+		Username:      "let_robots_reign",
+		Email:         "sample@ya.ru",
+		Password:      "1234",
 		ReviewsNumber: &reviewsNum,
 	}
-	
+
 	review := &models.Review{
 		ID:         "1",
 		Title:      "Review",

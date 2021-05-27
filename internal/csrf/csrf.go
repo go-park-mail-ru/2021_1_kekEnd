@@ -2,20 +2,21 @@ package csrf
 
 import (
 	"github.com/gin-gonic/gin"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	uuid "github.com/satori/go.uuid"
 )
 
+// CreateCsrfToken создание CSRF токена
 func CreateCsrfToken(ctx *gin.Context) {
 	csrfToken := uuid.NewV4().String()
 
 	ctx.Header("X-CSRF-Token", csrfToken)
 	ctx.SetCookie("X-CSRF-Cookie",
 		csrfToken,
-		int(_const.CsrfExpires),
+		int(constants.CsrfExpires),
 		"/",
-		_const.Host,
+		constants.Host,
 		false,
-		true,
+		false,
 	)
 }

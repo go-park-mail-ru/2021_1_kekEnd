@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,8 +32,9 @@ func TestHandlers(t *testing.T) {
 	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
-
-	RegisterHttpEndpoints(r, actorsUC, authMiddleware, lg)
+	api := r.Group("/api")
+	v1 := api.Group("/v1")
+	RegisterHTTPEndpoints(v1, actorsUC, authMiddleware, lg)
 
 	user := &models.User{
 		Username:      "let_robots_reign",
@@ -41,24 +43,168 @@ func TestHandlers(t *testing.T) {
 		Avatar:        "http://localhost:8080/avatars/default.jpeg",
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
+		Subscribers:   new(uint),
+		Subscriptions: new(uint),
 	}
 
 	actor := models.Actor{
-		ID:   "1",
-		Name: "Tom Cruise",
+		ID:          "1",
+		Name:        "Tom Cruise",
+		MoviesCount: 1,
 	}
+	// newBody, err := json.Marshal(actor)
+	// assert.NoError(t, err)
 
 	usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 	UUID := uuid.NewV4().String()
 	delivery.EXPECT().GetUser(UUID).Return(user.Username, nil).AnyTimes()
 
+	cookie := &http.Cookie{
+		Name:  "session_id",
+		Value: UUID,
+	}
+
+	// t.Run("CreateActor", func(t *testing.T) {
+	// 	actorsUC.EXPECT().CreateActor(*user, actor).Return(nil)
+
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusOK, w.Code)
+	// })
+
 	t.Run("GetActor", func(t *testing.T) {
 		actorsUC.EXPECT().GetActor(actor.ID, "").Return(actor, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/actors/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/actors/1", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	// t.Run("EditActor", func(t *testing.T) {
+	// 	actorsUC.EXPECT().EditActor(*user, actor).Return(actor, nil)
+
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusOK, w.Code)
+	// })
+
+	t.Run("LikeActor", func(t *testing.T) {
+		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/api/v1/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("UnlikeActor", func(t *testing.T) {
+		actorsUC.EXPECT().UnlikeActor(user.Username, 1).Return(nil)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	// t.Run("CreateActorError", func(t *testing.T) {
+	// 	actorsUC.EXPECT().CreateActor(*user, actor).Return(errors.New("error"))
+
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	// })
+
+	// t.Run("CreateActorError2", func(t *testing.T) {
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", nil)
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// })
+
+	t.Run("GetActorError", func(t *testing.T) {
+		actorsUC.EXPECT().GetActor(actor.ID, "").Return(models.Actor{}, errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/api/v1/actors/1", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// t.Run("EditActorError", func(t *testing.T) {
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", nil)
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// })
+
+	// t.Run("EditActorError2", func(t *testing.T) {
+	// 	actorsUC.EXPECT().EditActor(*user, actor).Return(models.Actor{}, errors.New("error"))
+
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
+
+	// 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	// })
+
+	t.Run("LikeActorError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/api/v1/actors/:actor_id/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("LikeActorError2", func(t *testing.T) {
+		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/api/v1/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("UnlikeActorError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/:actor_id/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("UnlikeActorError2", func(t *testing.T) {
+		actorsUC.EXPECT().UnlikeActor(user.Username, 1).Return(errors.New("error"))
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/api/v1/actors/1/like", nil)
+		req.AddCookie(cookie)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

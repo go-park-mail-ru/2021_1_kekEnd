@@ -7,11 +7,12 @@ import (
 	"strconv"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -20,20 +21,24 @@ type PgxPoolIface interface {
 	Ping(context.Context) error
 }
 
+// MovieRepository структура репозитория фильма
 type MovieRepository struct {
 	db PgxPoolIface
 }
 
+// NewMovieRepository новый репозиторий фильма
 func NewMovieRepository(database PgxPoolIface) *MovieRepository {
 	return &MovieRepository{
 		db: database,
 	}
 }
 
+// CreateMovie создать фильм
 func (movieStorage *MovieRepository) CreateMovie(movie *models.Movie) error {
 	return nil
 }
 
+// GetMovieByID получение информации о фильме
 func (movieStorage *MovieRepository) GetMovieByID(id string, username string) (*models.Movie, error) {
 	var movie models.Movie
 
@@ -97,6 +102,7 @@ func (movieStorage *MovieRepository) GetMovieByID(id string, username string) (*
 	return &movie, nil
 }
 
+// GetBestMovies получить лучшие фильмы
 func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username string) (int, []*models.Movie, error) {
 	var bestMovies []*models.Movie
 
@@ -115,8 +121,8 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username stri
 		return 0, nil, err
 	}
 
-	if rowsCount > _const.MoviesTop100Size {
-		rowsCount = _const.MoviesTop100Size
+	if rowsCount > constants.MoviesTop100Size {
+		rowsCount = constants.MoviesTop100Size
 	}
 
 	sqlStatement = `
@@ -134,7 +140,7 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username stri
         LIMIT $1 OFFSET $2
     `
 
-	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, _const.MoviesPageSize, startIndex)
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, constants.MoviesPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -181,11 +187,12 @@ func (movieStorage *MovieRepository) GetBestMovies(startIndex int, username stri
 		bestMovies = append(bestMovies, movie)
 	}
 
-	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
+	pagesNumber := int(math.Ceil(float64(rowsCount) / constants.MoviesPageSize))
 
 	return pagesNumber, bestMovies, nil
 }
 
+// GetAllGenres получить доступные жанры
 func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
 	sqlStatement := `
 		SELECT name
@@ -211,6 +218,7 @@ func (movieStorage *MovieRepository) GetAllGenres() ([]string, error) {
 	return genres, nil
 }
 
+// GetMoviesByGenres получить фильмы по жанрам
 func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startIndex int, username string) (int, []*models.Movie, error) {
 	var movies []*models.Movie
 
@@ -247,7 +255,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
         LIMIT $2 OFFSET $3
     `
 
-	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, _const.MoviesPageSize, startIndex)
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatement, genres, constants.MoviesPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -294,7 +302,7 @@ func (movieStorage *MovieRepository) GetMoviesByGenres(genres []string, startInd
 		movies = append(movies, movie)
 	}
 
-	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.MoviesPageSize))
+	pagesNumber := int(math.Ceil(float64(rowsCount) / constants.MoviesPageSize))
 
 	return pagesNumber, movies, nil
 }
@@ -320,6 +328,7 @@ func (movieStorage *MovieRepository) getActorsData(names []string) ([]models.Act
 	return actors, nil
 }
 
+// MarkWatched отметить просмотренным
 func (movieStorage *MovieRepository) MarkWatched(username string, id int) error {
 	sqlStatement := `
 		INSERT INTO mdb.watched_movies VALUES($1, $2)
@@ -332,6 +341,7 @@ func (movieStorage *MovieRepository) MarkWatched(username string, id int) error 
 	return nil
 }
 
+// MarkUnwatched отметить непросмотренным
 func (movieStorage *MovieRepository) MarkUnwatched(username string, id int) error {
 	sqlStatement := `
 		DELETE FROM mdb.watched_movies WHERE user_login=$1 AND movie_id=$2 
@@ -342,4 +352,152 @@ func (movieStorage *MovieRepository) MarkUnwatched(username string, id int) erro
 		return err
 	}
 	return nil
+}
+
+// SearchMovies поиск фильма по названию
+func (movieStorage *MovieRepository) SearchMovies(query string) ([]models.Movie, error) {
+	sqlSearchMovies := `
+		SELECT mv.id, title, poster, array_agg(distinct (gs.name)) as genre
+		FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		WHERE lower(title) LIKE '%' || $1 || '%'
+		GROUP BY mv.id
+	`
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlSearchMovies, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster, &movie.Genre)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	return movies, nil
+}
+
+// GetSimilar получить похожие
+func (movieStorage *MovieRepository) GetSimilar(id string) ([]models.Movie, error) {
+	// используем коэффициент Жаккара
+	// обозначим X - количество пользователей, которые посмотрели фильм x;
+	// Y - количество пользователей, которые посмотрели фильм y
+	// sim(x, y) = |X && Y|/|X || Y|
+	// Иначе: sim(x, y) = (кол-во пользователей, посмотревших оба фильма)/(кол-во пользователей, посмотревших или x, или y)
+
+	sqlStatementSimilar := `
+	SELECT mv.id, title, poster,
+		CAST((SELECT COUNT(*) FROM (
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = $1
+			INTERSECT
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = mv.id
+		) AS watched_both_users) AS decimal)
+		/
+		(SELECT COUNT(*) FROM (
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = $1
+			UNION
+			SELECT user_login
+			FROM mdb.watched_movies
+			WHERE movie_id = mv.id
+		) AS watched_at_least_one_users)
+		AS similarity_coefficient
+	FROM mdb.movie mv
+		WHERE mv.id != $1
+		ORDER BY similarity_coefficient
+		LIMIT $2
+	`
+
+	rows, err := movieStorage.db.Query(context.Background(), sqlStatementSimilar, id, constants.SimilarMoviesLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+	var count int
+	for rows.Next() {
+		count++
+		movie := models.Movie{}
+		var id int
+		var similarity float64
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster, &similarity)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	if count == constants.SimilarMoviesLimit {
+		return movies, nil
+	}
+	// если данных о просмотрах мало, дополним выдачу фильмами того же жанра
+	count = constants.SimilarMoviesLimit - count
+
+	// id фильмов, которые уже рекомендовали, чтобы не повторять их
+	idInt, _ := strconv.Atoi(id)
+	alreadyAddedIDs := []int{idInt}
+	for _, movie := range movies {
+		idInt, _ = strconv.Atoi(movie.ID)
+		alreadyAddedIDs = append(alreadyAddedIDs, idInt)
+	}
+
+	sqlStatementSameGenre := `
+		SELECT mv.id, title, poster
+		FROM mdb.movie mv
+		JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+		JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+		WHERE mv.id != ALL($2)
+		GROUP BY mv.id
+		HAVING array_agg(array[gs.name])
+		<@
+		(
+			SELECT array_agg(distinct (gs.name))
+			FROM mdb.movie mv
+			JOIN mdb.movie_genres mvgs ON mv.id = mvgs.movie_id
+			JOIN mdb.genres gs ON mvgs.genre_id = gs.id
+			WHERE mv.id = $1
+		)
+		LIMIT $3
+	`
+
+	rows, err = movieStorage.db.Query(context.Background(), sqlStatementSameGenre, id, alreadyAddedIDs, count)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		movie := models.Movie{}
+		var id int
+
+		err = rows.Scan(&id, &movie.Title, &movie.Poster)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		movie.ID = strconv.Itoa(id)
+		movies = append(movies, movie)
+	}
+
+	return movies, err
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
 )
 
-func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase, auth middleware.Auth, Log *logger.Logger) {
+// RegisterHTTPEndpoints Зарегестрировать хендлеры
+func RegisterHTTPEndpoints(router *gin.RouterGroup, moviesUC movies.UseCase, auth middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(moviesUC, Log)
 
 	router.POST("/movies", handler.CreateMovie)
@@ -15,5 +16,6 @@ func RegisterHttpEndpoints(router *gin.Engine, moviesUC movies.UseCase, auth mid
 	router.GET("/movies/:id", auth.CheckAuth(false), handler.GetMovie)
 	router.POST("/movies/:id/watch", auth.CheckAuth(true), handler.MarkWatched)
 	router.DELETE("/movies/:id/watch", auth.CheckAuth(true), handler.MarkUnwatched)
+	router.GET("/movies/:id/similar", handler.GetSimilar)
 	router.GET("/genres", handler.GetGenres)
 }

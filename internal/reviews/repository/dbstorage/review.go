@@ -4,14 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"github.com/jackc/pgconn"
-	pgx "github.com/jackc/pgx/v4"
 	"math"
 	"strconv"
+
+	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -20,10 +22,12 @@ type PgxPoolIface interface {
 	Ping(context.Context) error
 }
 
+// ReviewRepository структура репозитория рецензий
 type ReviewRepository struct {
 	db PgxPoolIface
 }
 
+// NewReviewRepository инициализация репозитория рецензий
 func NewReviewRepository(database PgxPoolIface) *ReviewRepository {
 	return &ReviewRepository{
 		db: database,
@@ -56,6 +60,7 @@ func convertReviewTypeFromStrToInt(reviewType models.ReviewType) int {
 	}
 }
 
+// CreateReview создание рецензии
 func (storage *ReviewRepository) CreateReview(review *models.Review) error {
 	sqlStatement := `
         INSERT INTO mdb.users_review (user_login, movie_id, review_type, title, content)
@@ -79,6 +84,7 @@ func (storage *ReviewRepository) CreateReview(review *models.Review) error {
 	return nil
 }
 
+// GetUserReviews полученить рецензии пользователя
 func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Review, error) {
 	var reviews []*models.Review
 
@@ -115,16 +121,22 @@ func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Revi
 	return reviews, nil
 }
 
+// GetMovieReviews получить рецензии фильма
 func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (int, []*models.Review, error) {
 	var reviews []*models.Review
 
 	sqlStatement := `
         SELECT COUNT(*)
         FROM mdb.users_review
+		WHERE movie_id = $1;
     `
+	intMovieID, err := strconv.Atoi(movieID)
+	if err != nil {
+		return 0, nil, err
+	}
 
 	var rowsCount int
-	err := storage.db.QueryRow(context.Background(), sqlStatement).Scan(&rowsCount)
+	err = storage.db.QueryRow(context.Background(), sqlStatement, intMovieID).Scan(&rowsCount)
 	if err == sql.ErrNoRows {
 		return 0, reviews, nil
 	}
@@ -140,12 +152,7 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
         LIMIT $2 OFFSET $3
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	rows, err := storage.db.Query(context.Background(), sqlStatement, intMovieId, _const.ReviewsPageSize, startInd)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, intMovieID, constants.ReviewsPageSize, startInd)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -167,11 +174,12 @@ func (storage *ReviewRepository) GetMovieReviews(movieID string, startInd int) (
 		reviews = append(reviews, review)
 	}
 
-	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.ReviewsPageSize))
+	pagesNumber := int(math.Ceil(float64(rowsCount) / constants.ReviewsPageSize))
 
 	return pagesNumber, reviews, nil
 }
 
+// GetUserReviewForMovie получить рецензию пользователя к фильму
 func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID string) (*models.Review, error) {
 	var review models.Review
 
@@ -181,7 +189,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
         WHERE user_login = $1 AND movie_id=$2
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +198,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
 	var newReviewType int
 
 	err = storage.db.
-		QueryRow(context.Background(), sqlStatement, username, intMovieId).
+		QueryRow(context.Background(), sqlStatement, username, intMovieID).
 		Scan(&newID, &newReviewType, &review.Title, &review.Content)
 
 	if err != nil {
@@ -205,6 +213,7 @@ func (storage *ReviewRepository) GetUserReviewForMovie(username string, movieID 
 	return &review, nil
 }
 
+// EditUserReviewForMovie изменить рецензию пользователя
 func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) error {
 	sqlStatement := `
         UPDATE mdb.users_review
@@ -213,13 +222,13 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
         WHERE user_login=$1 AND movie_id=$2;
     `
 
-	intMovieId, err := strconv.Atoi(review.MovieID)
+	intMovieID, err := strconv.Atoi(review.MovieID)
 	if err != nil {
 		return err
 	}
 
 	_, err = storage.db.
-		Exec(context.Background(), sqlStatement, review.Author, intMovieId,
+		Exec(context.Background(), sqlStatement, review.Author, intMovieID,
 			convertReviewTypeFromStrToInt(review.ReviewType), review.Title,
 			review.Content)
 
@@ -230,6 +239,7 @@ func (storage *ReviewRepository) EditUserReviewForMovie(review *models.Review) e
 	return nil
 }
 
+// DeleteUserReviewForMovie удалить рецензнию пользователя
 func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movieID string) error {
 	_, err := storage.GetUserReviewForMovie(username, movieID)
 	if err != nil {
@@ -241,13 +251,13 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
         WHERE user_login=$1 AND movie_id=$2;
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return err
 	}
 
 	_, err = storage.db.
-		Exec(context.Background(), sqlStatement, username, intMovieId)
+		Exec(context.Background(), sqlStatement, username, intMovieID)
 
 	if err != nil {
 		return errors.New("delete review error")
@@ -256,6 +266,7 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	return nil
 }
 
+// GetFeed получие новостей о рецензиях
 func (storage *ReviewRepository) GetFeed(users []models.UserNoPassword) ([]models.ReviewFeedItem, error) {
 	feed := make([]models.ReviewFeedItem, 0)
 

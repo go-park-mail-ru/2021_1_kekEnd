@@ -28,6 +28,17 @@ func TestMoviesUseCase(t *testing.T) {
 		Genre:       []string{"драма"},
 	}
 
+	user := &models.User{
+		Username:      "let_robots_reign",
+		Email:         "sample@mail.ru",
+		Password:      "123",
+		Avatar:        "http://localhost:8080/avatars/default.jpeg",
+		MoviesWatched: new(uint),
+		ReviewsNumber: new(uint),
+		Subscribers:   new(uint),
+		Subscriptions: new(uint),
+	}
+
 	t.Run("CreateMovie", func(t *testing.T) {
 		repo.EXPECT().GetMovieByID(movie.ID, "").Return(nil, errors.New("movie not found"))
 		repo.EXPECT().CreateMovie(movie).Return(nil)
@@ -66,6 +77,28 @@ func TestMoviesUseCase(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, pages)
 		assert.Equal(t, []*models.Movie{movie}, movies)
+	})
+
+	t.Run("MarkWatched", func(t *testing.T) {
+		repo.EXPECT().MarkWatched(user.Username, 1).Return(nil)
+		newMoviesWatchNumber := *user.MoviesWatched + 1
+		usersRepo.EXPECT().UpdateUser(user, models.User{
+			Username:      user.Username,
+			MoviesWatched: &newMoviesWatchNumber,
+		}).Return(nil, nil)
+		err := uc.MarkWatched(*user, 1)
+		assert.NoError(t, err)
+	})
+
+	t.Run("MarkUnwatched", func(t *testing.T) {
+		repo.EXPECT().MarkUnwatched(user.Username, 1).Return(nil)
+		newMoviesWatchNumber := *user.MoviesWatched - 1
+		usersRepo.EXPECT().UpdateUser(user, models.User{
+			Username:      user.Username,
+			MoviesWatched: &newMoviesWatchNumber,
+		}).Return(nil, nil)
+		err := uc.MarkUnwatched(*user, 1)
+		assert.NoError(t, err)
 	})
 }
 

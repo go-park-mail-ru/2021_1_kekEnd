@@ -2,16 +2,18 @@ package localstorage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"math"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -29,16 +31,19 @@ func getHashedPassword(password string) (string, error) {
 	return string(hashedPasswordBytes), nil
 }
 
+// UserRepository структура репозитория юзера
 type UserRepository struct {
 	db PgxPoolIface
 }
 
+// NewUserRepository инициализация репозитория юзера
 func NewUserRepository(database PgxPoolIface) *UserRepository {
 	return &UserRepository{
 		db: database,
 	}
 }
 
+// CreateUser создание юзера
 func (storage *UserRepository) CreateUser(user *models.User) error {
 	hashedPassword, err := getHashedPassword(user.Password)
 	if err != nil {
@@ -55,12 +60,13 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
 		Exec(context.Background(), sqlStatement, user.Username, user.Password, user.Email)
 
 	if errDB != nil {
-		return errors.New("Create Username Error")
+		return errors.New("create Username Error")
 	}
 
 	return nil
 }
 
+// CheckEmailUnique проверка уникальности email`а
 func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
 	sqlStatement := `
         SELECT COUNT(*) as count
@@ -74,12 +80,13 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
 		Scan(&count)
 
 	if err != nil || count != 0 {
-		return errors.New("Email is not unique")
+		return errors.New("email is not unique")
 	}
 
 	return nil
 }
 
+// GetUserByUsername получить юзера
 func (storage *UserRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
 
@@ -96,16 +103,18 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 			&user.MoviesWatched, &user.ReviewsNumber, &user.Subscribers, &user.Subscriptions)
 
 	if err != nil {
-		return nil, errors.New("Username not found")
+		return nil, errors.New("username not found")
 	}
 
 	return &user, nil
 }
 
+// CheckPassword проверка пароля
 func (storage *UserRepository) CheckPassword(password string, user *models.User) (bool, error) {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil, nil
 }
 
+// UpdateUser обновить юзера
 func (storage *UserRepository) UpdateUser(user *models.User, change models.User) (*models.User, error) {
 	if user.Username != change.Username {
 		return nil, errors.New("username doesn't match")
@@ -158,12 +167,13 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 			user.MoviesWatched, user.ReviewsNumber, user.Subscribers, user.Subscriptions)
 
 	if err != nil {
-		return nil, errors.New("Updating user error")
+		return nil, errors.New("updating user error")
 	}
 
 	return user, nil
 }
 
+// CheckUnsubscribed проверка не подписан ли
 func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string) (bool, error) {
 	sqlStatement := `
         SELECT COUNT(*) as count 
@@ -183,6 +193,7 @@ func (storage *UserRepository) CheckUnsubscribed(subscriber string, user string)
 	return true, nil
 }
 
+// Subscribe подписаться на юзера
 func (storage *UserRepository) Subscribe(subscriber string, user string) error {
 	sqlStatement := `
         INSERT INTO mdb.subscriptions(user_1, user_2)
@@ -194,6 +205,7 @@ func (storage *UserRepository) Subscribe(subscriber string, user string) error {
 	return err
 }
 
+// Unsubscribe отписаться от юзера
 func (storage *UserRepository) Unsubscribe(subscriber string, user string) error {
 	sqlStatement := `
         DELETE FROM mdb.subscriptions
@@ -205,6 +217,7 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
+// GetModels получить модели пользователей
 func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]models.UserNoPassword, error) {
 	users := make([]models.UserNoPassword, 0)
 
@@ -226,6 +239,9 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]mod
 		var moviesWatched uint
 		var reviewsNumber uint
 		err = rows.Scan(&user.Username, &user.Email, &user.Avatar, &moviesWatched, &reviewsNumber)
+		if err != nil {
+			return nil, err
+		}
 		user.MoviesWatched = &moviesWatched
 		user.ReviewsNumber = &reviewsNumber
 		users = append(users, user)
@@ -234,6 +250,7 @@ func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]mod
 	return users, nil
 }
 
+// GetSubscribers получить подписчиков
 func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int, []models.UserNoPassword, error) {
 	subs := make([]string, 0)
 
@@ -245,7 +262,7 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 		LIMIT $2 OFFSET $3
     `
 
-	rows, err := storage.db.Query(context.Background(), sqlStatement, user, _const.SubsPageSize, startIndex)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, user, constants.SubsPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -272,17 +289,18 @@ func (storage *UserRepository) GetSubscribers(startIndex int, user string) (int,
 		return 0, nil, err
 	}
 
-	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
+	users, err := storage.GetModels(subs, constants.SubsPageSize, startIndex)
 
 	if err != nil {
 		return 0, nil, err
 	}
 
-	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
+	pagesNumber := int(math.Ceil(float64(rowsCount) / constants.SubsPageSize))
 
 	return pagesNumber, users, nil
 }
 
+// GetSubscriptions получить подписки
 func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (int, []models.UserNoPassword, error) {
 	subs := make([]string, 0)
 
@@ -294,7 +312,7 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 		LIMIT $2 OFFSET $3
     `
 
-	rows, err := storage.db.Query(context.Background(), sqlStatement, user, _const.SubsPageSize, startIndex)
+	rows, err := storage.db.Query(context.Background(), sqlStatement, user, constants.SubsPageSize, startIndex)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -321,12 +339,40 @@ func (storage *UserRepository) GetSubscriptions(startIndex int, user string) (in
 	if err != nil {
 		return 0, nil, err
 	}
-	users, err := storage.GetModels(subs, _const.SubsPageSize, startIndex)
+	users, err := storage.GetModels(subs, constants.SubsPageSize, startIndex)
 
 	if err != nil {
 		return 0, nil, err
 	}
-	pagesNumber := int(math.Ceil(float64(rowsCount) / _const.SubsPageSize))
+	pagesNumber := int(math.Ceil(float64(rowsCount) / constants.SubsPageSize))
 
 	return pagesNumber, users, nil
+}
+
+// SearchUsers поиск по юзерам
+func (storage *UserRepository) SearchUsers(query string) ([]models.User, error) {
+	sqlSearchUsers := `
+		SELECT login, img_src
+		FROM mdb.users
+		WHERE lower(login) LIKE '%' || $1 || '%'
+	`
+
+	rows, err := storage.db.Query(context.Background(), sqlSearchUsers, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		user := models.User{}
+		err = rows.Scan(&user.Username, &user.Avatar)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
