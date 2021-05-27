@@ -9,14 +9,16 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/actors"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
+// Handler структура хендлера
 type Handler struct {
 	useCase actors.UseCase
 	Log     *logger.Logger
 }
 
+// NewHandler Инициализация хендлера
 func NewHandler(useCase actors.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -25,7 +27,7 @@ func NewHandler(useCase actors.UseCase, Log *logger.Logger) *Handler {
 }
 
 // func (h *Handler) CreateActor(ctx *gin.Context) {
-// 	user, ok := ctx.Get(_const.UserKey)
+// 	user, ok := ctx.Get(constants.UserKey)
 // 	if !ok {
 // 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 // 		h.Log.LogWarning(ctx, "actors", "CreateActor", err.Error())
@@ -57,12 +59,13 @@ func NewHandler(useCase actors.UseCase, Log *logger.Logger) *Handler {
 // 	}
 // }
 
+// GetActor Функция получения информации об актере
 func (h *Handler) GetActor(ctx *gin.Context) {
-	auth, ok := ctx.Get(_const.AuthStatusKey)
+	auth, ok := ctx.Get(constants.AuthStatusKey)
 	authBool := auth.(bool)
 	username := ""
 	if ok && authBool {
-		user, ok := ctx.Get(_const.UserKey)
+		user, ok := ctx.Get(constants.UserKey)
 		if ok {
 			userModel := user.(models.User)
 			username = userModel.Username
@@ -82,7 +85,7 @@ func (h *Handler) GetActor(ctx *gin.Context) {
 }
 
 // func (h *Handler) EditActor(ctx *gin.Context) {
-// 	user, ok := ctx.Get(_const.UserKey)
+// 	user, ok := ctx.Get(constants.UserKey)
 // 	if !ok {
 // 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 // 		h.Log.LogWarning(ctx, "actors", "EditActor", err.Error())
@@ -120,8 +123,9 @@ func (h *Handler) GetActor(ctx *gin.Context) {
 // 	ctx.JSON(http.StatusOK, changed)
 // }
 
+// LikeActor Поставить лайк актеру
 func (h *Handler) LikeActor(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "actors", "LikeActor", err.Error())
@@ -154,8 +158,9 @@ func (h *Handler) LikeActor(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// UnlikeActor убрать лайк актера
 func (h *Handler) UnlikeActor(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "actors", "UnlikeActor", err.Error())

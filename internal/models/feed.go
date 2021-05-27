@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// ReviewFeedItem структура новостной рецензии
 type ReviewFeedItem struct {
 	Username string    `json:"username"`
 	Avatar   string    `json:"avatar"`
@@ -10,6 +11,7 @@ type ReviewFeedItem struct {
 	Date     time.Time `json:"date"`
 }
 
+// RatingFeedItem структура новостной оценки
 type RatingFeedItem struct {
 	Username   string    `json:"username"`
 	Avatar     string    `json:"avatar"`
@@ -19,6 +21,7 @@ type RatingFeedItem struct {
 	Date       time.Time `json:"date"`
 }
 
+// Feed структура новостей
 type Feed struct {
 	Ratings []RatingFeedItem `json:"recent_ratings"`
 	Reviews []ReviewFeedItem `json:"recent_reviews"`

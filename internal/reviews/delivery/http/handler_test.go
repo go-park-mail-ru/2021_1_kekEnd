@@ -36,7 +36,7 @@ func TestHandlers(t *testing.T) {
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
-	RegisterHttpEndpoints(v1, reviewsUC, usersUC, authMiddleware, lg)
+	RegisterHTTPEndpoints(v1, reviewsUC, usersUC, authMiddleware, lg)
 
 	review := &models.Review{
 		ID:         "1",

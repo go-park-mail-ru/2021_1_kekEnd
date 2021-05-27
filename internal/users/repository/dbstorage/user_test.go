@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/pashagolub/pgxmock"
 	"github.com/stretchr/testify/assert"
 
@@ -73,7 +73,7 @@ func TestGetUserByUsername(t *testing.T) {
 		Username:      "login",
 		Email:         "email",
 		Password:      "password",
-		Avatar:        _const.DefaultAvatarPath,
+		Avatar:        constants.DefaultAvatarPath,
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
 	}
@@ -106,7 +106,7 @@ func TestUpdateUser(t *testing.T) {
 		Username:      "login",
 		Email:         "email1",
 		Password:      "password",
-		Avatar:        _const.DefaultAvatarPath,
+		Avatar:        constants.DefaultAvatarPath,
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
 	}
@@ -115,7 +115,7 @@ func TestUpdateUser(t *testing.T) {
 		Username:      "login",
 		Email:         "email2",
 		Password:      "password",
-		Avatar:        _const.DefaultAvatarPath,
+		Avatar:        constants.DefaultAvatarPath,
 		MoviesWatched: new(uint),
 		ReviewsNumber: new(uint),
 	}

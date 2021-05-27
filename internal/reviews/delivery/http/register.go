@@ -8,7 +8,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
 )
 
-func RegisterHttpEndpoints(router *gin.RouterGroup, reviewsUC reviews.UseCase, usersUC users.UseCase,
+// RegisterHTTPEndpoints Зарегестрировать хендлеры
+func RegisterHTTPEndpoints(router *gin.RouterGroup, reviewsUC reviews.UseCase, usersUC users.UseCase,
 	authMiddleware middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(reviewsUC, usersUC, Log)
 

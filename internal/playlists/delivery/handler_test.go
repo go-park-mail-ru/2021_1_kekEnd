@@ -37,7 +37,7 @@ func TestHandlers(t *testing.T) {
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
-	RegisterHttpEndpoints(v1, playlistsUC, usersUC, authMiddleware, lg)
+	RegisterHTTPEndpoints(v1, playlistsUC, usersUC, authMiddleware, lg)
 
 	user := &models.User{
 		Username:      "let_robots_reign",

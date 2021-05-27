@@ -31,7 +31,7 @@ func TestMoviesHandlers(t *testing.T) {
 	lg := logger.NewAccessLogger()
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
-	RegisterHttpEndpoints(v1, moviesUC, authMiddleware, lg)
+	RegisterHTTPEndpoints(v1, moviesUC, authMiddleware, lg)
 
 	user := &models.User{
 		Username:      "let_robots_reign",

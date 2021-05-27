@@ -7,7 +7,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/middleware"
 )
 
-func RegisterHttpEndpoints(router *gin.RouterGroup, actorsUC actors.UseCase, auth middleware.Auth, Log *logger.Logger) {
+// RegisterHTTPEndpoints Зарегестрировать хендлеры
+func RegisterHTTPEndpoints(router *gin.RouterGroup, actorsUC actors.UseCase, auth middleware.Auth, Log *logger.Logger) {
 	handler := NewHandler(actorsUC, Log)
 
 	// router.POST("/actors", auth.CheckAuth(true), handler.CreateActor)

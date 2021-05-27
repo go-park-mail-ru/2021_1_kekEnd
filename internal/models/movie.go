@@ -1,5 +1,6 @@
 package models
 
+// Movie структура фильма
 type Movie struct {
 	ID             string      `json:"id"`
 	Title          string      `json:"title"`
@@ -29,6 +30,7 @@ type Movie struct {
 	IsWatched bool `json:"is_watched"`
 }
 
+// ActorData структура информации об актере для фильма
 type ActorData struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`

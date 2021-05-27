@@ -1,5 +1,6 @@
 package models
 
+// User структура юзера
 type User struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -15,6 +16,7 @@ type User struct {
 	Subscriptions *uint `json:"subscriptions"`
 }
 
+// UserNoPassword структура юзера без пароля
 type UserNoPassword struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -29,6 +31,7 @@ type UserNoPassword struct {
 	Subscriptions *uint `json:"subscriptions"`
 }
 
+// FromUser из User в UserNoPassword
 func FromUser(user User) UserNoPassword {
 	return UserNoPassword{
 		Username:       user.Username,

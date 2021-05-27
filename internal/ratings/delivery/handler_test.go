@@ -35,7 +35,7 @@ func TestHandlers(t *testing.T) {
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
-	RegisterHttpEndpoints(v1, ratingsUC, authMiddleware, lg)
+	RegisterHTTPEndpoints(v1, ratingsUC, authMiddleware, lg)
 
 	data := ratingData{
 		MovieID: "1",

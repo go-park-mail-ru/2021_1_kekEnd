@@ -2,20 +2,23 @@ package ratings
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"net/http"
-	"strconv"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
+// Handler структура хендлера
 type Handler struct {
 	useCase ratings.UseCase
 	Log     *logger.Logger
 }
 
+// NewHandler инициализация нового хендлера
 func NewHandler(useCase ratings.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -23,11 +26,13 @@ func NewHandler(useCase ratings.UseCase, Log *logger.Logger) *Handler {
 	}
 }
 
+// ratingData структура оценок
 type ratingData struct {
 	MovieID string `json:"movie_id"`
 	Score   string `json:"score"`
 }
 
+// CreateRating создание оценки
 func (h *Handler) CreateRating(ctx *gin.Context) {
 	ratingData := new(ratingData)
 	err := ctx.BindJSON(ratingData)
@@ -38,7 +43,7 @@ func (h *Handler) CreateRating(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "ratings", "CreateRating", err.Error())
@@ -71,9 +76,10 @@ func (h *Handler) CreateRating(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
+// GetRating получение оценки
 func (h *Handler) GetRating(ctx *gin.Context) {
 	movieID := ctx.Param("movie_id")
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "ratings", "GetRating", err.Error())
@@ -99,6 +105,7 @@ func (h *Handler) GetRating(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, rating)
 }
 
+// UpdateRating обновление оценки
 func (h *Handler) UpdateRating(ctx *gin.Context) {
 	ratingData := new(ratingData)
 	err := ctx.BindJSON(ratingData)
@@ -109,7 +116,7 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "ratings", "UpdateRating", err.Error())
@@ -143,9 +150,10 @@ func (h *Handler) UpdateRating(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// DeleteRating удаление оценки
 func (h *Handler) DeleteRating(ctx *gin.Context) {
 	movieID := ctx.Param("movie_id")
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "ratings", "DeleteRating", err.Error())

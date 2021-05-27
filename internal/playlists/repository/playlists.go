@@ -11,6 +11,7 @@ import (
 	pgx "github.com/jackc/pgx/v4"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -19,17 +20,20 @@ type PgxPoolIface interface {
 	Ping(context.Context) error
 }
 
-type PlaylistsRepository struct {
+// Repository структуры репозитория плейлиста
+type Repository struct {
 	db PgxPoolIface
 }
 
-func NewPlaylistsRepository(database PgxPoolIface) *PlaylistsRepository {
-	return &PlaylistsRepository{
+// NewPlaylistsRepository инициализация репозитория плейлиста
+func NewPlaylistsRepository(database PgxPoolIface) *Repository {
+	return &Repository{
 		db: database,
 	}
 }
 
-func (storage *PlaylistsRepository) CreatePlaylist(username string, playlistName string, isShared bool) error {
+// CreatePlaylist создание плейлиста
+func (storage *Repository) CreatePlaylist(username string, playlistName string, isShared bool) error {
 	sqlStatement := `
         INSERT INTO mdb.playlists (name, ownerName, isShared)
         VALUES ($1, $2, $3)
@@ -61,7 +65,8 @@ func (storage *PlaylistsRepository) CreatePlaylist(username string, playlistName
 	return nil
 }
 
-func (storage *PlaylistsRepository) GetPlaylist(playlistID int) (*models.Playlist, error) {
+// GetPlaylist получение плейлиста
+func (storage *Repository) GetPlaylist(playlistID int) (*models.Playlist, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, json_object_agg(coalesce(m.id, -1), coalesce(m.title, '')) as movies
         FROM mdb.playlists pl
@@ -98,7 +103,8 @@ func (storage *PlaylistsRepository) GetPlaylist(playlistID int) (*models.Playlis
 	return playlist, nil
 }
 
-func (storage *PlaylistsRepository) GetPlaylists(username string) ([]models.Playlist, error) {
+// GetPlaylists получить все плейлисты
+func (storage *Repository) GetPlaylists(username string) ([]models.Playlist, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, json_object_agg(coalesce(m.id, -1), coalesce(m.title, '')) as movies
         FROM mdb.playlistsWhoCanAdd plwca
@@ -145,7 +151,8 @@ func (storage *PlaylistsRepository) GetPlaylists(username string) ([]models.Play
 	return playlistsInfo, nil
 }
 
-func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID int) ([]models.PlaylistsInfo, error) {
+// GetPlaylistsInfo получение информации о плейлисте
+func (storage *Repository) GetPlaylistsInfo(username string, movieID int) ([]models.PlaylistsInfo, error) {
 	sqlStatement := `
         SELECT pl.id, pl.name, coalesce(plm.movie_id, -1) as movie_id
         FROM mdb.playlistsWhoCanAdd plwca
@@ -189,7 +196,8 @@ func (storage *PlaylistsRepository) GetPlaylistsInfo(username string, movieID in
 	return playlistsInfo, nil
 }
 
-func (storage *PlaylistsRepository) CanUserUpdatePlaylist(username string, playlistID int) error {
+// CanUserUpdatePlaylist проверка может ли юзер обновлять плейлист
+func (storage *Repository) CanUserUpdatePlaylist(username string, playlistID int) error {
 	sqlStatement := `
 	    SELECT username
 		FROM mdb.playlists
@@ -206,7 +214,8 @@ func (storage *PlaylistsRepository) CanUserUpdatePlaylist(username string, playl
 	return nil
 }
 
-func (storage *PlaylistsRepository) DeleteAllUserFromPlaylist(username string, playlistID int) error {
+// DeleteAllUserFromPlaylist удалить всех юзеров из плейлиста
+func (storage *Repository) DeleteAllUserFromPlaylist(username string, playlistID int) error {
 	sqlStatement := `
 	    DELETE
 		FROM mdb.playlistsWhoCanAdd
@@ -236,7 +245,8 @@ func (storage *PlaylistsRepository) DeleteAllUserFromPlaylist(username string, p
 	return nil
 }
 
-func (storage *PlaylistsRepository) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error {
+// UpdatePlaylist изменить плейлист
+func (storage *Repository) UpdatePlaylist(username string, playlistID int, playlistName string, isShared bool) error {
 	sqlStatement := `
 	    UPDATE mdb.playlists
 	    SET (name, isShared) = ($2, $3)
@@ -256,7 +266,8 @@ func (storage *PlaylistsRepository) UpdatePlaylist(username string, playlistID i
 	return nil
 }
 
-func (storage *PlaylistsRepository) DeletePlaylist(playlistID int) error {
+// DeletePlaylist удалить плейлист
+func (storage *Repository) DeletePlaylist(playlistID int) error {
 	sqlStatement := `
         DELETE FROM mdb.playlists
         WHERE id=$1;
@@ -272,7 +283,8 @@ func (storage *PlaylistsRepository) DeletePlaylist(playlistID int) error {
 	return nil
 }
 
-func (storage *PlaylistsRepository) CanUserUpdateMovieInPlaylist(username string, playlistID int) error {
+// CanUserUpdateMovieInPlaylist провера может ли юзер добавлять фильмы в плейлисте
+func (storage *Repository) CanUserUpdateMovieInPlaylist(username string, playlistID int) error {
 	sqlStatement := `
 	    SELECT username
 		FROM mdb.playlistsWhoCanAdd
@@ -291,7 +303,8 @@ func (storage *PlaylistsRepository) CanUserUpdateMovieInPlaylist(username string
 	return nil
 }
 
-func (storage *PlaylistsRepository) AddMovieToPlaylist(username string, playlistID int, movieID int) error {
+// AddMovieToPlaylist добавить фильм в плейлист
+func (storage *Repository) AddMovieToPlaylist(username string, playlistID int, movieID int) error {
 	sqlStatement := `
         INSERT INTO mdb.playlistsMovies (playlist_id, movie_id, addedBy)
         VALUES ($1, $2, $3)
@@ -307,7 +320,8 @@ func (storage *PlaylistsRepository) AddMovieToPlaylist(username string, playlist
 	return nil
 }
 
-func (storage *PlaylistsRepository) DeleteMovieFromPlaylist(username string, playlistID int, movieID int) error {
+// DeleteMovieFromPlaylist удалить фильм из плейлиста
+func (storage *Repository) DeleteMovieFromPlaylist(username string, playlistID int, movieID int) error {
 	sqlStatement := `
         DELETE FROM mdb.playlistsMovies
         WHERE playlist_id = $1 AND movie_id = $2;
@@ -323,7 +337,8 @@ func (storage *PlaylistsRepository) DeleteMovieFromPlaylist(username string, pla
 	return nil
 }
 
-func (storage *PlaylistsRepository) CanUserUpdateUsersInPlaylist(username string, playlistID int) error {
+// CanUserUpdateUsersInPlaylist проверка можеть ли юзер добавлять других юзеров в плейлист
+func (storage *Repository) CanUserUpdateUsersInPlaylist(username string, playlistID int) error {
 	sqlStatement := `
 	    SELECT ownerName
 		FROM mdb.playlists
@@ -342,7 +357,8 @@ func (storage *PlaylistsRepository) CanUserUpdateUsersInPlaylist(username string
 	return nil
 }
 
-func (storage *PlaylistsRepository) AddUserToPlaylist(username string, playlistID int, usernameToAdd string) error {
+// AddUserToPlaylist добавить юзера в плейлист
+func (storage *Repository) AddUserToPlaylist(username string, playlistID int, usernameToAdd string) error {
 	sqlStatement := `
         INSERT INTO mdb.playlistsWhoCanAdd (username, playlist_id)
         VALUES ($1, $2)
@@ -358,7 +374,8 @@ func (storage *PlaylistsRepository) AddUserToPlaylist(username string, playlistI
 	return nil
 }
 
-func (storage *PlaylistsRepository) DeleteUserFromPlaylist(username string, playlistID int, usernameToDelete string) error {
+// DeleteUserFromPlaylist удалить юзера из плейлиста
+func (storage *Repository) DeleteUserFromPlaylist(username string, playlistID int, usernameToDelete string) error {
 	sqlStatement := `
         DELETE FROM mdb.playlistsWhoCanAdd
         WHERE username = $1 AND playlist_id = $2;

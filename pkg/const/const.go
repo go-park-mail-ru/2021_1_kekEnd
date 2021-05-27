@@ -1,7 +1,8 @@
-package _const
+package constants
 
 import "time"
 
+// UserKey is
 const (
 	UserKey           = "user"
 	ActorKey          = "actor"
@@ -19,7 +20,7 @@ const (
 	PostersFileDir    = "tmp/posters/"
 	BannersFileDir    = "tmp/banners/"
 	ActorsFileDir     = "tmp/actors/"
-	//TODO
+
 	RequestID = "RequestID"
 
 	ReviewsPageSize         = 3
@@ -32,6 +33,7 @@ const (
 	PageDefault             = "1"
 )
 
+// AdminUsers is admin logins
 var AdminUsers = []string{
 	"let_robots_reign",
 	"IfuryI",

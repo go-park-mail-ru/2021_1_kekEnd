@@ -10,13 +10,16 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// FileServerHandlerServer структура файл сервера
 type FileServerHandlerServer struct {
 }
 
+// NewFileServerHandlerServer инициализация структуры файл сервера
 func NewFileServerHandlerServer() *FileServerHandlerServer {
 	return &FileServerHandlerServer{}
 }
 
+// Upload загрузка файла
 func (dl *FileServerHandlerServer) Upload(stream proto.FileServerHandler_UploadServer) error {
 	data := make([]byte, 0, 1024)
 	meta, _ := metadata.FromIncomingContext(stream.Context())

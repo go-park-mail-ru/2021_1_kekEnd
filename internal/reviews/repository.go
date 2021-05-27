@@ -2,7 +2,7 @@ package reviews
 
 import "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 
-//go:generate mockgen -destination=mocks/repository.go -package=mocks . ReviewRepository
+// ReviewRepository go:generate mockgen -destination=mocks/repository.go -package=mocks . ReviewRepository
 type ReviewRepository interface {
 	CreateReview(review *models.Review) error
 

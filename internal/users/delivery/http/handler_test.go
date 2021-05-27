@@ -50,7 +50,7 @@ func TestHandlers(t *testing.T) {
 	fileServerMock := NewMockFileServerClient()
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
-	RegisterHttpEndpoints(v1, usersUC, delivery, authMiddleware, &fileServerMock, lg)
+	RegisterHTTPEndpoints(v1, usersUC, delivery, authMiddleware, &fileServerMock, lg)
 
 	createBody := &signupData{
 		Username: "let_robots_reign",

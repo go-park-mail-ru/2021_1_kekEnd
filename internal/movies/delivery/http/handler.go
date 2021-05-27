@@ -10,9 +10,10 @@ import (
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/movies"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
+// Handler структура хендлера
 type Handler struct {
 	useCase movies.UseCase
 	Log     *logger.Logger
@@ -25,6 +26,7 @@ type moviesPageResponse struct {
 	Movies      []*models.Movie `json:"movies"`
 }
 
+// NewHandler инициализация новго хендлера
 func NewHandler(useCase movies.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
@@ -32,6 +34,7 @@ func NewHandler(useCase movies.UseCase, Log *logger.Logger) *Handler {
 	}
 }
 
+// CreateMovie создание фильма
 func (h *Handler) CreateMovie(ctx *gin.Context) {
 	movieData := new(models.Movie)
 	err := ctx.BindJSON(movieData)
@@ -51,12 +54,13 @@ func (h *Handler) CreateMovie(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
+// GetMovie получение информации о фильме
 func (h *Handler) GetMovie(ctx *gin.Context) {
-	auth, ok := ctx.Get(_const.AuthStatusKey)
+	auth, ok := ctx.Get(constants.AuthStatusKey)
 	authBool := auth.(bool)
 	username := ""
 	if ok && authBool {
-		user, ok := ctx.Get(_const.UserKey)
+		user, ok := ctx.Get(constants.UserKey)
 		if ok {
 			userModel := user.(models.User)
 			username = userModel.Username
@@ -73,6 +77,7 @@ func (h *Handler) GetMovie(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, movie)
 }
 
+// GetMovies получить фильмы
 func (h *Handler) GetMovies(ctx *gin.Context) {
 	category := ctx.Query("category")
 	if category == "best" {
@@ -82,19 +87,20 @@ func (h *Handler) GetMovies(ctx *gin.Context) {
 	}
 }
 
+// GetBestMovies получить лучшие фильмы
 func (h *Handler) GetBestMovies(ctx *gin.Context) {
-	auth, ok := ctx.Get(_const.AuthStatusKey)
+	auth, ok := ctx.Get(constants.AuthStatusKey)
 	authBool := auth.(bool)
 	username := ""
 	if ok && authBool {
-		user, ok := ctx.Get(_const.UserKey)
+		user, ok := ctx.Get(constants.UserKey)
 		if ok {
 			userModel := user.(models.User)
 			username = userModel.Username
 		}
 	}
 
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))
 	if err != nil || page < 1 {
 		h.Log.LogWarning(ctx, "movie", "GetBestMovies", err.Error())
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
@@ -112,13 +118,14 @@ func (h *Handler) GetBestMovies(ctx *gin.Context) {
 	moviesResponse := moviesPageResponse{
 		CurrentPage: page,
 		PagesNumber: pagesNumber,
-		MaxItems:    _const.MoviesPageSize,
+		MaxItems:    constants.MoviesPageSize,
 		Movies:      bestMovies,
 	}
 
 	ctx.JSON(http.StatusOK, moviesResponse)
 }
 
+// GetGenres получить доступные жанры
 func (h *Handler) GetGenres(ctx *gin.Context) {
 	genres, err := h.useCase.GetAllGenres()
 	if err != nil {
@@ -129,12 +136,13 @@ func (h *Handler) GetGenres(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, genres)
 }
 
+// GetMoviesByGenres получить фильмы по жанрам
 func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
-	auth, ok := ctx.Get(_const.AuthStatusKey)
+	auth, ok := ctx.Get(constants.AuthStatusKey)
 	authBool := auth.(bool)
 	username := ""
 	if ok && authBool {
-		user, ok := ctx.Get(_const.UserKey)
+		user, ok := ctx.Get(constants.UserKey)
 		if ok {
 			userModel := user.(models.User)
 			username = userModel.Username
@@ -149,7 +157,7 @@ func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
 
 	genres := strings.Split(genresQuery, " ")
 
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))
 	if err != nil || page < 1 {
 		ctx.AbortWithStatus(http.StatusBadRequest) // 400
 		return
@@ -165,15 +173,16 @@ func (h *Handler) GetMoviesByGenres(ctx *gin.Context) {
 	moviesResponse := moviesPageResponse{
 		CurrentPage: page,
 		PagesNumber: pagesNumber,
-		MaxItems:    _const.MoviesPageSize,
+		MaxItems:    constants.MoviesPageSize,
 		Movies:      moviesList,
 	}
 
 	ctx.JSON(http.StatusOK, moviesResponse)
 }
 
+// MarkWatched отметить просмотренным
 func (h *Handler) MarkWatched(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "movies", "MarkWatched", err.Error())
@@ -206,8 +215,9 @@ func (h *Handler) MarkWatched(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// MarkUnwatched отметить непросмотренным
 func (h *Handler) MarkUnwatched(ctx *gin.Context) {
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "movies", "MarkUnwatched", err.Error())
@@ -240,6 +250,7 @@ func (h *Handler) MarkUnwatched(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// GetSimilar получить похожие
 func (h *Handler) GetSimilar(ctx *gin.Context) {
 	similarMovies, err := h.useCase.GetSimilar(ctx.Param("id"))
 	if err != nil {
