@@ -274,7 +274,7 @@ func TestUsersUseCaseErrors(t *testing.T) {
 		user := "whaeva"
 
 		ratings := []models.RatingFeedItem{{
-				Username: "someUname",
+			Username: "someUname",
 		}}
 
 		reviews := []models.ReviewFeedItem{{

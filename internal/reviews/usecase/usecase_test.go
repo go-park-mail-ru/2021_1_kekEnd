@@ -13,19 +13,19 @@ import (
 func TestReviewsUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	
+
 	repo := mocks.NewMockReviewRepository(ctrl)
 	usersRepo := userMocks.NewMockUserRepository(ctrl)
 	uc := NewReviewsUseCase(repo, usersRepo)
 
 	var reviewsNum uint = 1
 	user := &models.User{
-		Username: "let_robots_reign",
-		Email:    "sample@ya.ru",
-		Password: "1234",
+		Username:      "let_robots_reign",
+		Email:         "sample@ya.ru",
+		Password:      "1234",
 		ReviewsNumber: &reviewsNum,
 	}
-	
+
 	review := &models.Review{
 		ID:         "1",
 		Title:      "Review",

@@ -9,18 +9,17 @@ import (
 	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"net/http"
 	"strconv"
-
 )
 
 type Handler struct {
 	useCase ratings.UseCase
-	Log *logger.Logger
+	Log     *logger.Logger
 }
 
 func NewHandler(useCase ratings.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase: useCase,
-		Log: Log,
+		Log:     Log,
 	}
 }
 

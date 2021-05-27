@@ -92,7 +92,7 @@ func (usersUC *UsersUseCase) toggleSubscribe(subscriber string, user string, isS
 		newSubscriptionsNum = *subscriberModel.Subscriptions - 1
 	}
 	_, err = usersUC.UpdateUser(subscriberModel, models.User{
-		Username: subscriber,
+		Username:      subscriber,
 		Subscriptions: &newSubscriptionsNum,
 	})
 	if err != nil {
@@ -111,7 +111,7 @@ func (usersUC *UsersUseCase) toggleSubscribe(subscriber string, user string, isS
 	}
 
 	_, err = usersUC.UpdateUser(userModel, models.User{
-		Username: user,
+		Username:    user,
 		Subscribers: &newSubscribersNum,
 	})
 

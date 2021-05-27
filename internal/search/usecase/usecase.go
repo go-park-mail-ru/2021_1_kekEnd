@@ -9,7 +9,7 @@ import (
 )
 
 type SearchUseCase struct {
-	userRepository us.UserRepository
+	userRepository  us.UserRepository
 	movieRepository mv.MovieRepository
 	actorRepository ac.Repository
 }
