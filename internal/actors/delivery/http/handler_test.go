@@ -1,8 +1,6 @@
 package http
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -54,8 +52,8 @@ func TestHandlers(t *testing.T) {
 		Name:        "Tom Cruise",
 		MoviesCount: 1,
 	}
-	newBody, err := json.Marshal(actor)
-	assert.NoError(t, err)
+	// newBody, err := json.Marshal(actor)
+	// assert.NoError(t, err)
 
 	usersUC.EXPECT().GetUser(user.Username).Return(user, nil).AnyTimes()
 	UUID := uuid.NewV4().String()
@@ -66,16 +64,16 @@ func TestHandlers(t *testing.T) {
 		Value: UUID,
 	}
 
-	t.Run("CreateActor", func(t *testing.T) {
-		actorsUC.EXPECT().CreateActor(*user, actor).Return(nil)
+	// t.Run("CreateActor", func(t *testing.T) {
+	// 	actorsUC.EXPECT().CreateActor(*user, actor).Return(nil)
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusOK, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusOK, w.Code)
+	// })
 
 	t.Run("GetActor", func(t *testing.T) {
 		actorsUC.EXPECT().GetActor(actor.ID, "").Return(actor, nil)
@@ -87,16 +85,16 @@ func TestHandlers(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("EditActor", func(t *testing.T) {
-		actorsUC.EXPECT().EditActor(*user, actor).Return(actor, nil)
+	// t.Run("EditActor", func(t *testing.T) {
+	// 	actorsUC.EXPECT().EditActor(*user, actor).Return(actor, nil)
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusOK, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusOK, w.Code)
+	// })
 
 	t.Run("LikeActor", func(t *testing.T) {
 		actorsUC.EXPECT().LikeActor(user.Username, 1).Return(nil)
@@ -120,25 +118,25 @@ func TestHandlers(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("CreateActorError", func(t *testing.T) {
-		actorsUC.EXPECT().CreateActor(*user, actor).Return(errors.New("error"))
+	// t.Run("CreateActorError", func(t *testing.T) {
+	// 	actorsUC.EXPECT().CreateActor(*user, actor).Return(errors.New("error"))
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	// })
 
-	t.Run("CreateActorError2", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/v1/actors", nil)
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// t.Run("CreateActorError2", func(t *testing.T) {
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("POST", "/api/v1/actors", nil)
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// })
 
 	t.Run("GetActorError", func(t *testing.T) {
 		actorsUC.EXPECT().GetActor(actor.ID, "").Return(models.Actor{}, errors.New("error"))
@@ -150,25 +148,25 @@ func TestHandlers(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("EditActorError", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", nil)
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// t.Run("EditActorError", func(t *testing.T) {
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", nil)
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// })
 
-	t.Run("EditActorError2", func(t *testing.T) {
-		actorsUC.EXPECT().EditActor(*user, actor).Return(models.Actor{}, errors.New("error"))
+	// t.Run("EditActorError2", func(t *testing.T) {
+	// 	actorsUC.EXPECT().EditActor(*user, actor).Return(models.Actor{}, errors.New("error"))
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
-		req.AddCookie(cookie)
-		r.ServeHTTP(w, req)
+	// 	w := httptest.NewRecorder()
+	// 	req, _ := http.NewRequest("PUT", "/api/v1/actors/1", bytes.NewBuffer(newBody))
+	// 	req.AddCookie(cookie)
+	// 	r.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
+	// 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	// })
 
 	t.Run("LikeActorError", func(t *testing.T) {
 		w := httptest.NewRecorder()
