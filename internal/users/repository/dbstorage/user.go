@@ -56,7 +56,7 @@ func (storage *UserRepository) CreateUser(user *models.User) error {
 		Exec(context.Background(), sqlStatement, user.Username, user.Password, user.Email)
 
 	if errDB != nil {
-		return errors.New("Create Username Error")
+		return errors.New("create Username Error")
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (storage *UserRepository) CheckEmailUnique(newEmail string) error {
 		Scan(&count)
 
 	if err != nil || count != 0 {
-		return errors.New("Email is not unique")
+		return errors.New("email is not unique")
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (storage *UserRepository) GetUserByUsername(username string) (*models.User,
 			&user.MoviesWatched, &user.ReviewsNumber, &user.Subscribers, &user.Subscriptions)
 
 	if err != nil {
-		return nil, errors.New("Username not found")
+		return nil, errors.New("username not found")
 	}
 
 	return &user, nil
@@ -159,7 +159,7 @@ func (storage *UserRepository) UpdateUser(user *models.User, change models.User)
 			user.MoviesWatched, user.ReviewsNumber, user.Subscribers, user.Subscriptions)
 
 	if err != nil {
-		return nil, errors.New("Updating user error")
+		return nil, errors.New("updating user error")
 	}
 
 	return user, nil

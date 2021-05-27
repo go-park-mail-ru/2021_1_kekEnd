@@ -34,35 +34,6 @@ func (m *MockUseCase) EXPECT() *MockUseCaseMockRecorder {
 	return m.recorder
 }
 
-// CreateActor mocks base method.
-func (m *MockUseCase) CreateActor(arg0 models.User, arg1 models.Actor) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateActor", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateActor indicates an expected call of CreateActor.
-func (mr *MockUseCaseMockRecorder) CreateActor(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActor", reflect.TypeOf((*MockUseCase)(nil).CreateActor), arg0, arg1)
-}
-
-// EditActor mocks base method.
-func (m *MockUseCase) EditActor(arg0 models.User, arg1 models.Actor) (models.Actor, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EditActor", arg0, arg1)
-	ret0, _ := ret[0].(models.Actor)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EditActor indicates an expected call of EditActor.
-func (mr *MockUseCaseMockRecorder) EditActor(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditActor", reflect.TypeOf((*MockUseCase)(nil).EditActor), arg0, arg1)
-}
-
 // GetActor mocks base method.
 func (m *MockUseCase) GetActor(arg0, arg1 string) (models.Actor, error) {
 	m.ctrl.T.Helper()
