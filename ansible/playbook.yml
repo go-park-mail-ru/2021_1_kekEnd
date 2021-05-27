@@ -1,0 +1,35 @@
+- name: "Install nginx"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Install nginx from apt"
+      apt:
+        name: nginx
+        state: present
+    - name: "Copy nginx config"
+      copy:
+        src: files/cinemedia.ru.conf
+        dest: /etc/nginx/conf.d
+    - name: "Reload nginx configuration"
+      command: nginx -s reload
+- name: "Update systemd unit"
+  become: yes
+  hosts: web
+  tasks:
+    - name: "Provide actual unit file1"
+      copy:
+        src: files/api.service
+        dest: /etc/systemd/system/api.service
+
+    - name: "Provide actual unit file2"
+      copy:
+        src: files/auth.service
+        dest: /etc/systemd/system/auth.service
+
+    - name: "Provide actual unit file3"
+      copy:
+        src: files/fileserver.service
+        dest: /etc/systemd/system/fileserver.service
+
+    - name: "Systemctl daemon reload"
+      command: systemctl daemon-reload

@@ -2,12 +2,13 @@ package sessions
 
 import (
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestCreate(t *testing.T) {

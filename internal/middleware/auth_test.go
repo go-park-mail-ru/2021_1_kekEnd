@@ -2,15 +2,16 @@ package middleware
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/services/sessions/mocks"
 	usersMock "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestCheckAuth(t *testing.T) {

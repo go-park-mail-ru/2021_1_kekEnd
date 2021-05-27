@@ -110,6 +110,21 @@ func (mr *MockMovieRepositoryMockRecorder) GetMoviesByGenres(arg0, arg1, arg2 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesByGenres", reflect.TypeOf((*MockMovieRepository)(nil).GetMoviesByGenres), arg0, arg1, arg2)
 }
 
+// GetSimilar mocks base method.
+func (m *MockMovieRepository) GetSimilar(arg0 string) ([]models.Movie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSimilar", arg0)
+	ret0, _ := ret[0].([]models.Movie)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilar indicates an expected call of GetSimilar.
+func (mr *MockMovieRepositoryMockRecorder) GetSimilar(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilar", reflect.TypeOf((*MockMovieRepository)(nil).GetSimilar), arg0)
+}
+
 // MarkUnwatched mocks base method.
 func (m *MockMovieRepository) MarkUnwatched(arg0 string, arg1 int) error {
 	m.ctrl.T.Helper()

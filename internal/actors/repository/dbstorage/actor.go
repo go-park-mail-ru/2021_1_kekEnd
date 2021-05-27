@@ -6,11 +6,12 @@ import (
 	"strconv"
 
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgconn"
 	pgx "github.com/jackc/pgx/v4"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -19,16 +20,19 @@ type PgxPoolIface interface {
 	Ping(context.Context) error
 }
 
+// ActorRepository структура репозитория
 type ActorRepository struct {
 	db PgxPoolIface
 }
 
+// NewActorRepository инициализация репозитория
 func NewActorRepository(database PgxPoolIface) *ActorRepository {
 	return &ActorRepository{
 		db: database,
 	}
 }
 
+// GetActorByID получить информацию об актере по его ID
 func (actorStorage *ActorRepository) GetActorByID(id string, username string) (models.Actor, error) {
 	var actor models.Actor
 
@@ -106,7 +110,7 @@ func (actorStorage *ActorRepository) getMoviesForActor(id string) (int, []models
 		LIMIT $2
 	`
 
-	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, id, _const.MoviesNumberOnActorPage)
+	rows, err := actorStorage.db.Query(context.Background(), sqlStatement, id, constants.MoviesNumberOnActorPage)
 	if err != nil {
 		return 0, movies, err
 	}
@@ -126,6 +130,7 @@ func (actorStorage *ActorRepository) getMoviesForActor(id string) (int, []models
 	return rowsCount, movies, nil
 }
 
+// GetFavoriteActors получить список любимых актеров юзера
 func (actorStorage *ActorRepository) GetFavoriteActors(username string) ([]models.Actor, error) {
 	sqlStatement := `
 		SELECT id, name, avatar
@@ -155,14 +160,15 @@ func (actorStorage *ActorRepository) GetFavoriteActors(username string) ([]model
 	return actors, nil
 }
 
-func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
-	return nil
-}
+// func (actorStorage *ActorRepository) CreateActor(actor models.Actor) error {
+// 	return nil
+// }
 
-func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
-	return models.Actor{}, nil
-}
+// func (actorStorage *ActorRepository) EditActor(actor models.Actor) (models.Actor, error) {
+// 	return models.Actor{}, nil
+// }
 
+// LikeActor Поставить лайк актеру
 func (actorStorage *ActorRepository) LikeActor(username string, actorID int) error {
 	sqlStatement := `
 		INSERT INTO mdb.favorite_actors VALUES($1, $2)
@@ -175,6 +181,7 @@ func (actorStorage *ActorRepository) LikeActor(username string, actorID int) err
 	return nil
 }
 
+// UnlikeActor убрать лайк с актера
 func (actorStorage *ActorRepository) UnlikeActor(username string, actorID int) error {
 	sqlStatement := `
 		DELETE FROM mdb.favorite_actors WHERE user_login=$1 AND actor_id=$2
@@ -187,6 +194,7 @@ func (actorStorage *ActorRepository) UnlikeActor(username string, actorID int) e
 	return nil
 }
 
+// SearchActors поиск по актерам
 func (actorStorage *ActorRepository) SearchActors(query string) ([]models.Actor, error) {
 	sqlSearchActors := `
 		SELECT id, name, avatar

@@ -2,28 +2,32 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/reviews"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"net/http"
-	"strconv"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
+// Handler структура хендлера
 type Handler struct {
 	reviewsUC reviews.UseCase
 	usersUC   users.UseCase
 	Log       *logger.Logger
 }
 
+// ReviewsResponse структура рецензии
 type ReviewsResponse struct {
 	CurrentPage int              `json:"current_page"`
 	PagesNumber int              `json:"pages_number"`
 	Movies      []*models.Review `json:"reviews"`
 }
 
+// NewHandler инициализация хендлера рецензий
 func NewHandler(useCase reviews.UseCase, usersUC users.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		reviewsUC: useCase,
@@ -32,6 +36,7 @@ func NewHandler(useCase reviews.UseCase, usersUC users.UseCase, Log *logger.Logg
 	}
 }
 
+// CreateReview создание рецензии
 func (h *Handler) CreateReview(ctx *gin.Context) {
 	review := new(models.Review)
 	err := ctx.BindJSON(review)
@@ -42,7 +47,7 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "reviews", "CreateReview", err)
@@ -68,6 +73,7 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated) // 201
 }
 
+// GetUserReviews полученить рецензии пользователя
 func (h *Handler) GetUserReviews(ctx *gin.Context) {
 	userModel, err := h.usersUC.GetUser(ctx.Param("username"))
 	if err != nil {
@@ -88,9 +94,10 @@ func (h *Handler) GetUserReviews(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userReviews)
 }
 
+// GetMovieReviews получить рецензии фильма
 func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	movieID := ctx.Param("id")
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", _const.PageDefault))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))
 	if err != nil || page < 1 {
 		err := fmt.Errorf("%s", "Failed to cast 'page' to number or invalid page")
 		h.Log.LogWarning(ctx, "reviews", "GetMovieReviews", err.Error())
@@ -115,10 +122,11 @@ func (h *Handler) GetMovieReviews(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, reviewsResponse)
 }
 
+// GetUserReviewForMovie получить рецензию пользователя к фильму
 func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.Error(ctx, "reviews", "GetUserReviewForMovie", err.Error)
@@ -144,6 +152,7 @@ func (h *Handler) GetUserReviewForMovie(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, review)
 }
 
+// EditUserReviewForMovie изменить рецензию пользователя
 func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
 	review := new(models.Review)
 	err := ctx.BindJSON(review)
@@ -154,7 +163,7 @@ func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "reviews", "EditUserReviewForMovie", err)
@@ -180,10 +189,11 @@ func (h *Handler) EditUserReviewForMovie(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+// DeleteUserReviewForMovie удалить рецензнию пользователя
 func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)

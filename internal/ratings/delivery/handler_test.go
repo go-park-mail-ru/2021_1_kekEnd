@@ -33,8 +33,9 @@ func TestHandlers(t *testing.T) {
 	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
-
-	RegisterHttpEndpoints(r, ratingsUC, authMiddleware, lg)
+	api := r.Group("/api")
+	v1 := api.Group("/v1")
+	RegisterHTTPEndpoints(v1, ratingsUC, authMiddleware, lg)
 
 	data := ratingData{
 		MovieID: "1",
@@ -80,7 +81,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().CreateRating(user.Username, rating.MovieID, rating.Score).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/ratings", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/api/v1/ratings", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -100,7 +101,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().GetRating(user.Username, rating.MovieID).Return(rating, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/ratings/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/ratings/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -133,7 +134,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().UpdateRating(user.Username, newRating.MovieID, newRating.Score).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/ratings", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/ratings", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -153,7 +154,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().DeleteRating(user.Username, rating.MovieID).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/ratings/1", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/ratings/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -173,7 +174,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().CreateRating(user.Username, rating.MovieID, rating.Score).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/ratings", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/api/v1/ratings", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -191,7 +192,7 @@ func TestHandlers(t *testing.T) {
 		delivery.EXPECT().GetUser(UUID).Return("", errors.New("error")).AnyTimes()
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/ratings", bytes.NewBuffer(wrongBody))
+		req, _ := http.NewRequest("POST", "/api/v1/ratings", bytes.NewBuffer(wrongBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -211,7 +212,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().GetRating(user.Username, rating.MovieID).Return(rating, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/ratings/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/ratings/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -244,7 +245,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().UpdateRating(user.Username, newRating.MovieID, newRating.Score).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/ratings", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/ratings", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -270,7 +271,7 @@ func TestHandlers(t *testing.T) {
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/ratings", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/ratings", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -290,7 +291,7 @@ func TestHandlers(t *testing.T) {
 		ratingsUC.EXPECT().DeleteRating(user.Username, rating.MovieID).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/ratings/1", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/ratings/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 

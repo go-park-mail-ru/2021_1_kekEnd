@@ -10,6 +10,7 @@ import (
 	pgx "github.com/jackc/pgx/v4"
 )
 
+// PgxPoolIface Интерфейс для драйвера БД
 type PgxPoolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
@@ -18,29 +19,32 @@ type PgxPoolIface interface {
 	Ping(context.Context) error
 }
 
+// RatingsRepository структура репозитория оценок
 type RatingsRepository struct {
 	db PgxPoolIface
 }
 
+// NewRatingsRepository инициализация репозитория оценок
 func NewRatingsRepository(database PgxPoolIface) *RatingsRepository {
 	return &RatingsRepository{
 		db: database,
 	}
 }
 
+// CreateRating создание оценки
 func (storage *RatingsRepository) CreateRating(username string, movieID string, score int) error {
 	sqlStatement := `
         INSERT INTO mdb.movie_rating (user_login, movie_id, rating)
         VALUES ($1, $2, $3)
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return err
 	}
 
 	_, err = storage.db.
-		Exec(context.Background(), sqlStatement, username, intMovieId, score)
+		Exec(context.Background(), sqlStatement, username, intMovieID, score)
 
 	if err != nil {
 		return errors.New("create rating error")
@@ -49,6 +53,7 @@ func (storage *RatingsRepository) CreateRating(username string, movieID string, 
 	return nil
 }
 
+// GetRating получение оценки
 func (storage *RatingsRepository) GetRating(username string, movieID string) (models.Rating, error) {
 	var rating models.Rating
 
@@ -58,13 +63,13 @@ func (storage *RatingsRepository) GetRating(username string, movieID string) (mo
         WHERE user_login = $1 AND movie_id=$2
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return models.Rating{}, err
 	}
 
 	err = storage.db.
-		QueryRow(context.Background(), sqlStatement, username, intMovieId).
+		QueryRow(context.Background(), sqlStatement, username, intMovieID).
 		Scan(&rating.Score)
 
 	if err != nil {
@@ -77,19 +82,20 @@ func (storage *RatingsRepository) GetRating(username string, movieID string) (mo
 	return rating, nil
 }
 
+// DeleteRating удаление оценки
 func (storage *RatingsRepository) DeleteRating(username string, movieID string) error {
 	sqlStatement := `
         DELETE FROM mdb.movie_rating
         WHERE user_login=$1 AND movie_id=$2;
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return err
 	}
 
 	_, err = storage.db.
-		Exec(context.Background(), sqlStatement, username, intMovieId)
+		Exec(context.Background(), sqlStatement, username, intMovieID)
 
 	if err != nil {
 		return errors.New("delete rating error")
@@ -98,6 +104,7 @@ func (storage *RatingsRepository) DeleteRating(username string, movieID string) 
 	return nil
 }
 
+// UpdateRating обновление оценки
 func (storage *RatingsRepository) UpdateRating(username string, movieID string, score int) error {
 	sqlStatement := `
         UPDATE mdb.movie_rating
@@ -105,13 +112,13 @@ func (storage *RatingsRepository) UpdateRating(username string, movieID string, 
         WHERE user_login=$1 AND movie_id=$2;
     `
 
-	intMovieId, err := strconv.Atoi(movieID)
+	intMovieID, err := strconv.Atoi(movieID)
 	if err != nil {
 		return err
 	}
 
 	_, err = storage.db.
-		Exec(context.Background(), sqlStatement, username, intMovieId, score)
+		Exec(context.Background(), sqlStatement, username, intMovieID, score)
 
 	if err != nil {
 		return errors.New("update rating error")
@@ -120,6 +127,7 @@ func (storage *RatingsRepository) UpdateRating(username string, movieID string, 
 	return nil
 }
 
+// GetFeed получение новостей об оценках
 func (storage *RatingsRepository) GetFeed(users []models.UserNoPassword) ([]models.RatingFeedItem, error) {
 	feed := make([]models.RatingFeedItem, 0)
 

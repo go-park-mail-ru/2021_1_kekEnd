@@ -42,13 +42,14 @@ import (
 	usersHttp "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/delivery/http"
 	usersDBStorage "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/repository/dbstorage"
 	usersUseCase "github.com/go-park-mail-ru/2021_1_kekEnd/internal/users/usecase"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
+// App структура главного приложения
 type App struct {
 	server         *http.Server
 	usersUC        users.UseCase
@@ -72,11 +73,13 @@ func init() {
 	}
 }
 
+// NewApp инициализация приложения
 func NewApp() *App {
 	accessLogger := logger.NewAccessLogger()
 
 	connStr, connected := os.LookupEnv("DB_CONNECT")
 	if !connected {
+		fmt.Println(os.Getwd())
 		log.Fatal("Failed to read DB connection data")
 	}
 	dbpool, err := pgxpool.Connect(context.Background(), connStr)
@@ -84,13 +87,13 @@ func NewApp() *App {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", _const.AuthPort), grpc.WithInsecure())
+	sessionsGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", constants.AuthPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc auth server: %v\n", err)
 	}
 	sessionsDL := sessionsDelivery.NewAuthClient(sessionsGrpcConn)
 
-	fileServerGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", _const.FileServerPort), grpc.WithInsecure())
+	fileServerGrpcConn, err := grpc.Dial(fmt.Sprintf("localhost:%s", constants.FileServerPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Unable to connect to grpc file server: %v\n", err)
 	}
@@ -140,26 +143,33 @@ func prometheusHandler() gin.HandlerFunc {
 	}
 }
 
+// Run запуск приложения
 func (app *App) Run(port string) error {
 	router := gin.Default()
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://89.208.198.186:3000"}
+	config.AllowOrigins = []string{"http://localhost:4000", "https://cinemedia.ru"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 	router.Use(middleware.AccessLogMiddleware(app.logger))
 
-	router.Static("/avatars", _const.AvatarsFileDir)
+	router.Static("/avatars", constants.AvatarsFileDir)
+	router.Static("/posters", constants.PostersFileDir)
+	router.Static("/banners", constants.BannersFileDir)
+	router.Static("/actors", constants.ActorsFileDir)
 
 	router.Use(gin.Recovery())
 	router.GET("/metrics", prometheusHandler())
 
-	usersHttp.RegisterHttpEndpoints(router, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
-	moviesHttp.RegisterHttpEndpoints(router, app.moviesUC, app.authMiddleware, app.logger)
-	ratingsHttp.RegisterHttpEndpoints(router, app.ratingsUC, app.authMiddleware, app.logger)
-	reviewsHttp.RegisterHttpEndpoints(router, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
-	actorsHttp.RegisterHttpEndpoints(router, app.actorsUC, app.authMiddleware, app.logger)
-	playlistsHttp.RegisterHttpEndpoints(router, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
-	searchHttp.RegisterHttpEndpoints(router, app.searchUC, app.logger)
+	api := router.Group("/api")
+	v1 := api.Group("/v1")
+
+	usersHttp.RegisterHTTPEndpoints(v1, app.usersUC, app.sessionsDL, app.authMiddleware, app.fileServer, app.logger)
+	moviesHttp.RegisterHTTPEndpoints(v1, app.moviesUC, app.authMiddleware, app.logger)
+	ratingsHttp.RegisterHTTPEndpoints(v1, app.ratingsUC, app.authMiddleware, app.logger)
+	reviewsHttp.RegisterHTTPEndpoints(v1, app.reviewsUC, app.usersUC, app.authMiddleware, app.logger)
+	actorsHttp.RegisterHTTPEndpoints(v1, app.actorsUC, app.authMiddleware, app.logger)
+	playlistsHttp.RegisterHTTPEndpoints(v1, app.playlistsUC, app.usersUC, app.authMiddleware, app.logger)
+	searchHttp.RegisterHTTPEndpoints(v1, app.searchUC, app.logger)
 
 	app.server = &http.Server{
 		Addr:           ":" + port,

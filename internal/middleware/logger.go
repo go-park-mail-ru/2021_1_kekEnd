@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// AccessLog логгер
 type AccessLog interface {
 	AccessLogMiddleware(log *logger.Logger) gin.HandlerFunc
 }
@@ -26,6 +27,7 @@ var (
 	}, []string{"method"})
 )
 
+// AccessLogMiddleware мидлвара логгера
 func AccessLogMiddleware(log *logger.Logger) gin.HandlerFunc {
 	prometheus.MustRegister(hits, timings)
 

@@ -2,30 +2,35 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/logger"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/playlists"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/users"
-	_const "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
-	"net/http"
-	"strconv"
+	constants "github.com/go-park-mail-ru/2021_1_kekEnd/pkg/const"
 )
 
+// Handler структура хендлера
 type Handler struct {
 	useCase      playlists.UseCase
 	usersUseCase users.UseCase
 	Log          *logger.Logger
 }
 
+// PlaylistMovie структура фильма для плейлиста
 type PlaylistMovie struct {
 	MovieID string `json:"movie_id"`
 }
 
+// PlaylistUser структура фильма для юзера
 type PlaylistUser struct {
 	Username string `json:"username"`
 }
 
+// NewHandler инициализация хендлера
 func NewHandler(useCase playlists.UseCase, usersUseCase users.UseCase, Log *logger.Logger) *Handler {
 	return &Handler{
 		useCase:      useCase,
@@ -34,6 +39,7 @@ func NewHandler(useCase playlists.UseCase, usersUseCase users.UseCase, Log *logg
 	}
 }
 
+// CreatePlaylist создание плейлиста
 func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 	playlistData := new(models.Playlist)
 	err := ctx.BindJSON(playlistData)
@@ -44,7 +50,7 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "CreatePlaylist", err.Error())
@@ -69,6 +75,7 @@ func (h *Handler) CreatePlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
+// GetPlaylist получение плейлиста
 func (h *Handler) GetPlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
 
@@ -90,9 +97,10 @@ func (h *Handler) GetPlaylist(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, playlist)
 }
 
+// GetPlaylistsInfo получение информации о плейлисте
 func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 	movieIDStr := ctx.Param("movie_id")
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "GetPlaylistsInfo", err.Error())
@@ -126,6 +134,7 @@ func (h *Handler) GetPlaylistsInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, playlistInfo)
 }
 
+// GetPlaylists получить все плейлисты
 func (h *Handler) GetPlaylists(ctx *gin.Context) {
 	userModel, err := h.usersUseCase.GetUser(ctx.Param("username"))
 	if err != nil {
@@ -145,6 +154,7 @@ func (h *Handler) GetPlaylists(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userPlaylists)
 }
 
+// EditPlaylist изменить плейлист
 func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	playlistData := new(models.Playlist)
 	err := ctx.BindJSON(playlistData)
@@ -155,7 +165,7 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "EditPlaylist", err.Error())
@@ -189,9 +199,10 @@ func (h *Handler) EditPlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// DeletePlaylist удалить плейлист
 func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "DeletePlaylist", err.Error())
@@ -225,6 +236,7 @@ func (h *Handler) DeletePlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// AddMovieToPlaylist добавить фильм в плейлист
 func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
 	playlistMovieData := new(PlaylistMovie)
@@ -236,7 +248,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "AddMovieToPlaylist", err.Error())
@@ -277,6 +289,7 @@ func (h *Handler) AddMovieToPlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
+// DeleteMovieFromPlaylist удалить фильм из плейлиста
 func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
 	playlistMovieData := new(PlaylistMovie)
@@ -288,7 +301,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "DeleteMovieFromPlaylist", err.Error())
@@ -329,6 +342,7 @@ func (h *Handler) DeleteMovieFromPlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// AddUserToPlaylist добавить юзера в плейлист
 func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
 	playlistUserData := new(PlaylistUser)
@@ -340,7 +354,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "AddUserToPlaylist", err.Error())
@@ -373,6 +387,7 @@ func (h *Handler) AddUserToPlaylist(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
+// DeleteUserFromPlaylist удалить юзера из плейлиста
 func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 	playlistIDStr := ctx.Param("playlist_id")
 	playlistUserData := new(PlaylistUser)
@@ -384,7 +399,7 @@ func (h *Handler) DeleteUserFromPlaylist(ctx *gin.Context) {
 		return
 	}
 
-	user, ok := ctx.Get(_const.UserKey)
+	user, ok := ctx.Get(constants.UserKey)
 	if !ok {
 		err := fmt.Errorf("%s", "Failed to retrieve user from context")
 		h.Log.LogWarning(ctx, "playlists", "DeleteUserFromPlaylist", err.Error())

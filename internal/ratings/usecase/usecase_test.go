@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"testing"
+
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 	"github.com/go-park-mail-ru/2021_1_kekEnd/internal/ratings/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestReviewsUseCase(t *testing.T) {

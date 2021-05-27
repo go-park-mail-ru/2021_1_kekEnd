@@ -35,8 +35,9 @@ func TestHandlers(t *testing.T) {
 	delivery := mocks.NewMockDelivery(ctrl)
 
 	authMiddleware := middleware.NewAuthMiddleware(usersUC, delivery)
-
-	RegisterHttpEndpoints(r, playlistsUC, usersUC, authMiddleware, lg)
+	api := r.Group("/api")
+	v1 := api.Group("/v1")
+	RegisterHTTPEndpoints(v1, playlistsUC, usersUC, authMiddleware, lg)
 
 	user := &models.User{
 		Username:      "let_robots_reign",
@@ -88,7 +89,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().CreatePlaylist(user.Username, playlist.Name, playlist.IsShared).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -99,7 +100,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylist(1).Return(nil, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlist/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlist/1", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -109,7 +110,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylistsInfo(user.Username, 1).Return(nil, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlists/movies/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlists/movies/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -120,7 +121,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylists(user.Username).Return(nil, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlists/users/let_robots_reign", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlists/users/let_robots_reign", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -130,7 +131,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().UpdatePlaylist(user.Username, 1, playlist.Name, playlist.IsShared).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/playlists", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/playlists", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -141,7 +142,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeletePlaylist(user.Username, 1).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -152,7 +153,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().AddMovieToPlaylist(user.Username, 1, 1).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -163,7 +164,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeleteMovieFromPlaylist(user.Username, 1, 1).Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -174,7 +175,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().AddUserToPlaylist(user.Username, 1, "let_robots_reign").Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -185,7 +186,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeleteUserFromPlaylist(user.Username, 1, "let_robots_reign").Return(nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -194,7 +195,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("CreatePlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/playlists", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -205,7 +206,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().CreatePlaylist(user.Username, playlist.Name, playlist.IsShared).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -214,7 +215,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("GetPlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlist/:playlist_id", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlist/:playlist_id", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -224,7 +225,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylist(1).Return(nil, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlist/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlist/1", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -232,7 +233,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("GetPlaylistsInfoError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlists/movies/:movie_id", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlists/movies/:movie_id", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -243,7 +244,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylistsInfo(user.Username, 1).Return(nil, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlists/movies/1", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlists/movies/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -254,7 +255,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().GetPlaylists(user.Username).Return(nil, errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/playlists/users/let_robots_reign", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/playlists/users/let_robots_reign", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -262,7 +263,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("UpdatePlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/playlists", nil)
+		req, _ := http.NewRequest("PUT", "/api/v1/playlists", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -273,7 +274,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().UpdatePlaylist(user.Username, 1, playlist.Name, playlist.IsShared).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/playlists", bytes.NewBuffer(newBody))
+		req, _ := http.NewRequest("PUT", "/api/v1/playlists", bytes.NewBuffer(newBody))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -282,7 +283,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeletePlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/:playlist_id", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/:playlist_id", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -293,7 +294,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeletePlaylist(user.Username, 1).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -302,7 +303,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("AddMovieToPlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/movie", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/movie", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -313,7 +314,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().AddMovieToPlaylist(user.Username, 1, 1).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -322,7 +323,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("AddMovieToPlaylistError3", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/:playlist_id/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/:playlist_id/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -331,7 +332,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("AddMovieToPlaylistError4", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/movie", bytes.NewBuffer(newBody4))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody4))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -340,7 +341,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeleteMovieFromPlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/movie", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/movie", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -349,7 +350,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeleteMovieFromPlaylistError2", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/:playlist_id/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/:playlist_id/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -358,7 +359,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeleteMovieFromPlaylistError3", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/movie", bytes.NewBuffer(newBody4))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody4))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -369,7 +370,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeleteMovieFromPlaylist(user.Username, 1, 1).Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/movie", bytes.NewBuffer(newBody2))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/movie", bytes.NewBuffer(newBody2))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -378,7 +379,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("AddUserToPlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/user", nil)
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/user", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -387,7 +388,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("AddUserToPlaylistError2", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/:playlist_id/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/:playlist_id/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -398,7 +399,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().AddUserToPlaylist(user.Username, 1, "let_robots_reign").Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/playlists/1/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("POST", "/api/v1/playlists/1/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -407,7 +408,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeleteUserFromPlaylistError", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/user", nil)
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/user", nil)
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -416,7 +417,7 @@ func TestHandlers(t *testing.T) {
 
 	t.Run("DeleteUserFromPlaylistError2", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/:playlist_id/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/:playlist_id/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 
@@ -427,7 +428,7 @@ func TestHandlers(t *testing.T) {
 		playlistsUC.EXPECT().DeleteUserFromPlaylist(user.Username, 1, "let_robots_reign").Return(errors.New("error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/playlists/1/user", bytes.NewBuffer(newBody3))
+		req, _ := http.NewRequest("DELETE", "/api/v1/playlists/1/user", bytes.NewBuffer(newBody3))
 		req.AddCookie(cookie)
 		r.ServeHTTP(w, req)
 

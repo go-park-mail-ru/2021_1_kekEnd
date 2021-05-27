@@ -2,7 +2,7 @@ package movies
 
 import "github.com/go-park-mail-ru/2021_1_kekEnd/internal/models"
 
-//go:generate mockgen -destination=mocks/usecase.go -package=mocks . UseCase
+// UseCase go:generate mockgen -destination=mocks/usecase.go -package=mocks . UseCase
 type UseCase interface {
 	CreateMovie(movie *models.Movie) error
 

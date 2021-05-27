@@ -1,5 +1,6 @@
 package models
 
+// Actor структура актера
 type Actor struct {
 	ID           string           `json:"id"`
 	Name         string           `json:"name"`
@@ -14,6 +15,7 @@ type Actor struct {
 	IsLiked      bool             `json:"is_liked"`
 }
 
+// MovieReference структура фильма для структуры актера
 type MovieReference struct {
 	ID     string  `json:"id"`
 	Title  string  `json:"title"`
