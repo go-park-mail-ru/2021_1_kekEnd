@@ -113,6 +113,7 @@ func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Revi
 
 		review.ID = strconv.Itoa(newID)
 		review.Author = username
+		review.MovieID = strconv.Itoa(newMovieID)
 		review.ReviewType = convertReviewTypeFromIntToStr(newReviewType)
 
 		reviews = append(reviews, review)
