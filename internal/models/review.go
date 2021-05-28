@@ -13,5 +13,6 @@ type Review struct {
 	Content      string     `json:"content"`
 	Author       string     `json:"author"`
 	MovieID      string     `json:"movie_id"`
+	MovieTitle   string     `json:"movie_title"`
 	CreationDate time.Time  `json:"creation_date,omitempty"`
 }

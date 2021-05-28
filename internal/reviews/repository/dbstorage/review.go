@@ -89,9 +89,9 @@ func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Revi
 	var reviews []*models.Review
 
 	sqlStatement := `
-        SELECT id, movie_id, review_type, title, content
-        FROM mdb.users_review
-        WHERE user_login = $1
+        SELECT ur.id, ur.movie_id, mv.title, ur.review_type, ur.title, ur.content
+        FROM mdb.users_review ur JOIN mdb.movie mv ON ur.movie_id = mv.id
+        WHERE ur.user_login = $1
     `
 
 	rows, err := storage.db.
@@ -106,7 +106,7 @@ func (storage *ReviewRepository) GetUserReviews(username string) ([]*models.Revi
 		var newID int
 		var newMovieID int
 		var newReviewType int
-		err = rows.Scan(&newID, &newMovieID, &newReviewType, &review.Title, &review.Content)
+		err = rows.Scan(&newID, &newMovieID, &review.MovieTitle, &newReviewType, &review.Title, &review.Content)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
 		}
