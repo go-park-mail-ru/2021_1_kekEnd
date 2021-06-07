@@ -218,3 +218,35 @@ func (h *Handler) DeleteUserReviewForMovie(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK) // 200
 }
+
+// DeleteReview удалить рецензнию пользователя
+func (h *Handler) DeleteReview(ctx *gin.Context) {
+	movieID := ctx.Param("id")
+	movieIDInt, _ := strconv.Atoi(movieID)
+
+	username := ctx.Param("username")
+	user, ok := ctx.Get(constants.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err := h.reviewsUC.DeleteReview(userModel.Username, username, movieIDInt)
+	if err != nil {
+		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}

@@ -267,6 +267,23 @@ func (storage *ReviewRepository) DeleteUserReviewForMovie(username string, movie
 	return nil
 }
 
+// DeleteUserReviewForMovie удалить рецензнию пользователя
+func (storage *ReviewRepository) DeleteReview(username string, movieID int) error {
+	sqlStatement := `
+        DELETE FROM mdb.users_review
+        WHERE user_login=$1 AND movie_id=$2;
+    `
+
+	_, err := storage.db.
+		Exec(context.Background(), sqlStatement, username, movieID)
+
+	if err != nil {
+		return errors.New("delete review error")
+	}
+
+	return nil
+}
+
 // GetFeed получие новостей о рецензиях
 func (storage *ReviewRepository) GetFeed(users []models.UserNoPassword) ([]models.ReviewFeedItem, error) {
 	feed := make([]models.ReviewFeedItem, 0)

@@ -152,6 +152,15 @@ func (usersUC *UsersUseCase) Unsubscribe(subscriber string, user string) error {
 	return fmt.Errorf("%s is not subscribed to %s", subscriber, user)
 }
 
+// DeleteUser отписаться от юзера
+func (usersUC *UsersUseCase) DeleteUser(admin string, username string) error {
+	if admin != "admin1" {
+		return errors.New("dont have permission")
+	}
+
+	return usersUC.userRepository.DeleteUser(username)
+}
+
 // GetSubscribers получить подписчиков
 func (usersUC *UsersUseCase) GetSubscribers(page int, user string) (int, []models.UserNoPassword, error) {
 	startIndex := (page - 1) * constants.SubsPageSize

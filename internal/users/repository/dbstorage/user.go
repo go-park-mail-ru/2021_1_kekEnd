@@ -217,6 +217,18 @@ func (storage *UserRepository) Unsubscribe(subscriber string, user string) error
 	return err
 }
 
+// DeleteUser отписаться от юзера
+func (storage *UserRepository) DeleteUser(username string) error {
+	sqlStatement := `
+        DELETE FROM mdb.users
+		WHERE login = $1
+    `
+	_, err := storage.db.
+		Exec(context.Background(), sqlStatement, username)
+
+	return err
+}
+
 // GetModels получить модели пользователей
 func (storage *UserRepository) GetModels(ids []string, limit, offset int) ([]models.UserNoPassword, error) {
 	users := make([]models.UserNoPassword, 0)

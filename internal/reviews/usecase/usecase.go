@@ -86,3 +86,19 @@ func (reviewsUC *ReviewsUseCase) DeleteUserReviewForMovie(user *models.User, mov
 	})
 	return err
 }
+
+// DeleteUserReviewForMovie удалить рецензнию пользователя
+func (reviewsUC *ReviewsUseCase) DeleteReview(admin string, username string, movieID int) error {
+	if admin != "admin1" {
+		return errors.New("dont have permission")
+	}
+
+	return reviewsUC.reviewRepository.DeleteReview(username, movieID)
+	// // successful deletion, must decrement reviews_number for user
+	// newReviewsNumber := *user.ReviewsNumber - 1
+	// _, err = reviewsUC.userRepository.UpdateUser(user, models.User{
+	// 	Username:      username,
+	// 	ReviewsNumber: &newReviewsNumber,
+	// })
+	// return err
+}

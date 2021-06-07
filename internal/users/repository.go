@@ -29,4 +29,6 @@ type UserRepository interface {
 	GetSubscriptions(startIndex int, user string) (int, []models.UserNoPassword, error)
 
 	SearchUsers(query string) ([]models.User, error)
+
+	DeleteUser(username string) error
 }

@@ -48,6 +48,20 @@ func (mr *MockUseCaseMockRecorder) CreateReview(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReview", reflect.TypeOf((*MockUseCase)(nil).CreateReview), arg0, arg1)
 }
 
+// DeleteReview mocks base method.
+func (m *MockUseCase) DeleteReview(arg0, arg1 string, arg2 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteReview", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteReview indicates an expected call of DeleteReview.
+func (mr *MockUseCaseMockRecorder) DeleteReview(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteReview", reflect.TypeOf((*MockUseCase)(nil).DeleteReview), arg0, arg1, arg2)
+}
+
 // DeleteUserReviewForMovie mocks base method.
 func (m *MockUseCase) DeleteUserReviewForMovie(arg0 *models.User, arg1 string) error {
 	m.ctrl.T.Helper()

@@ -422,6 +422,42 @@ func (h *Handler) Unsubscribe(ctx *gin.Context) {
 	ctx.Status(http.StatusOK) // 200
 }
 
+// DeleteUser отписаться от юзера
+func (h *Handler) DeleteUser(ctx *gin.Context) {
+	user, ok := ctx.Get(constants.UserKey)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to retrieve user from context")
+		h.Log.LogError(ctx, "users", "DeleteUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	userModel, ok := user.(models.User)
+	if !ok {
+		err := fmt.Errorf("%s", "Failed to cast user to model")
+		h.Log.LogError(ctx, "users", "DeleteUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	target := ctx.Param("username")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "DeleteUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	err = h.useCase.DeleteUser(userModel.Username, targetModel.Username)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "DeleteUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
+
+	ctx.Status(http.StatusOK) // 200
+}
+
 // GetSubscribers получить подписчиков
 func (h *Handler) GetSubscribers(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", constants.PageDefault))

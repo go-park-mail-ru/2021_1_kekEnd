@@ -2,9 +2,9 @@ name: Simple Build
 
 on:
   push:
-    branches: [dbfix]
+    branches: [adminFix]
   pull_request:
-    branches: [dbfix]
+    branches: [adminFix]
 
 jobs:
   golangci:

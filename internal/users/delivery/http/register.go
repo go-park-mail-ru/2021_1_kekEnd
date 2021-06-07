@@ -15,6 +15,7 @@ func RegisterHTTPEndpoints(router *gin.RouterGroup, usersUC users.UseCase, sessi
 	handler := NewHandler(usersUC, sessions, fileServer, Log)
 
 	router.POST("/users", handler.CreateUser)
+	router.DELETE("/users/admin/:username", authMiddleware.CheckAuth(true), handler.DeleteUser)
 	router.POST("/users/avatar", authMiddleware.CheckAuth(true), handler.UploadAvatar)
 	router.GET("/users", authMiddleware.CheckAuth(true), handler.GetCurrentUser)
 	router.GET("/user/:username", handler.GetUser)

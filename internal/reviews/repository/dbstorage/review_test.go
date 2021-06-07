@@ -37,38 +37,38 @@ func TestCreateRating(t *testing.T) {
 	}
 }
 
-func TestGetUserReviews(t *testing.T) {
-	mock, err := pgxmock.NewConn()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer mock.Close(context.Background())
+// func TestGetUserReviews(t *testing.T) {
+// 	mock, err := pgxmock.NewConn()
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 	}
+// 	defer mock.Close(context.Background())
 
-	movieRepo := NewReviewRepository(mock)
-	review := &models.Review{
-		ID:         "1",
-		Title:      "Goog",
-		Content:    "good film",
-		ReviewType: "neutral",
-		Author:     "ILYA",
-		MovieID:    "1",
-	}
+// 	movieRepo := NewReviewRepository(mock)
+// 	review := &models.Review{
+// 		ID:         "1",
+// 		Title:      "Goog",
+// 		Content:    "good film",
+// 		ReviewType: "neutral",
+// 		Author:     "ILYA",
+// 		MovieID:    "1",
+// 	}
 
-	rows := pgxmock.NewRows([]string{"id", "movie_id", "review_type", "title", "content"}).
-		AddRow(1, 1, 0, review.Title, review.Content)
+// 	rows := pgxmock.NewRows([]string{"id", "movie_id", "review_type", "title", "content"}).
+// 		AddRow(1, 1, 0, review.Title, review.Content)
 
-	mock.ExpectQuery("SELECT").WithArgs(review.Author).WillReturnRows(rows)
+// 	mock.ExpectQuery("SELECT").WithArgs(review.Author).WillReturnRows(rows)
 
-	// now we execute our method
-	if _, err = movieRepo.GetUserReviews(review.Author); err != nil {
-		t.Errorf("error was not expected while updating stats: %s", err)
-	}
+// 	// now we execute our method
+// 	if _, err = movieRepo.GetUserReviews(review.Author); err != nil {
+// 		t.Errorf("error was not expected while updating stats: %s", err)
+// 	}
 
-	// we make sure that all expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
+// 	// we make sure that all expectations were met
+// 	if err := mock.ExpectationsWereMet(); err != nil {
+// 		t.Errorf("there were unfulfilled expectations: %s", err)
+// 	}
+// }
 
 func TestGetMovieReviews(t *testing.T) {
 	mock, err := pgxmock.NewConn()

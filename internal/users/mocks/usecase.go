@@ -48,6 +48,20 @@ func (mr *MockUseCaseMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUseCase)(nil).CreateUser), arg0)
 }
 
+// DeleteUser mocks base method.
+func (m *MockUseCase) DeleteUser(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockUseCaseMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUseCase)(nil).DeleteUser), arg0, arg1)
+}
+
 // GetFeed mocks base method.
 func (m *MockUseCase) GetFeed(arg0 string) (models.Feed, error) {
 	m.ctrl.T.Helper()
