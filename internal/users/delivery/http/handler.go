@@ -448,7 +448,7 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 	// 	return
 	// }
 
-	err = h.useCase.DeleteUser("admin1", "asdasd")
+	err := h.useCase.DeleteUser("admin1", "asdasd")
 	if err != nil {
 		h.Log.LogError(ctx, "users", "DeleteUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
