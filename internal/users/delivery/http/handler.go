@@ -424,21 +424,21 @@ func (h *Handler) Unsubscribe(ctx *gin.Context) {
 
 // DeleteUser отписаться от юзера
 func (h *Handler) DeleteUser(ctx *gin.Context) {
-	user, ok := ctx.Get(constants.UserKey)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to retrieve user from context")
-		h.Log.LogError(ctx, "users", "DeleteUser", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
+	// user, ok := ctx.Get(constants.UserKey)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
+	// 	h.Log.LogError(ctx, "users", "DeleteUser", err)
+	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	// 	return
+	// }
 
-	userModel, ok := user.(models.User)
-	if !ok {
-		err := fmt.Errorf("%s", "Failed to cast user to model")
-		h.Log.LogError(ctx, "users", "DeleteUser", err)
-		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-		return
-	}
+	// userModel, ok := user.(models.User)
+	// if !ok {
+	// 	err := fmt.Errorf("%s", "Failed to cast user to model")
+	// 	h.Log.LogError(ctx, "users", "DeleteUser", err)
+	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+	// 	return
+	// }
 
 	target := ctx.Param("username")
 	targetModel, err := h.useCase.GetUser(target)
@@ -448,7 +448,7 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.useCase.DeleteUser(userModel.Username, targetModel.Username)
+	err = h.useCase.DeleteUser("admin1", targetModel.Username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "DeleteUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
