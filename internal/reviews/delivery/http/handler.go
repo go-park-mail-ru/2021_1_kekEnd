@@ -224,7 +224,7 @@ func (h *Handler) DeleteReview(ctx *gin.Context) {
 	movieID := ctx.Param("id")
 	movieIDInt, _ := strconv.Atoi(movieID)
 
-	// username := ctx.Param("username")
+	username := ctx.Param("username")
 	// user, ok := ctx.Get(constants.UserKey)
 	// if !ok {
 	// 	err := fmt.Errorf("%s", "Failed to retrieve user from context")
@@ -241,7 +241,7 @@ func (h *Handler) DeleteReview(ctx *gin.Context) {
 	// 	return
 	// }
 
-	err := h.reviewsUC.DeleteReview("admin1", "asdasd", movieIDInt)
+	err := h.reviewsUC.DeleteReview("admin1", username, movieIDInt)
 	if err != nil {
 		h.Log.LogError(ctx, "reviews", "DeleteUserReviewForMovie", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
