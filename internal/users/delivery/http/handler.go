@@ -440,15 +440,15 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 	// 	return
 	// }
 
-	// target := ctx.Param("username")
-	// targetModel, err := h.useCase.GetUser(target)
-	// if err != nil {
-	// 	h.Log.LogError(ctx, "users", "DeleteUser", err)
-	// 	ctx.AbortWithStatus(http.StatusInternalServerError) // 500
-	// 	return
-	// }
+	target := ctx.Param("username")
+	targetModel, err := h.useCase.GetUser(target)
+	if err != nil {
+		h.Log.LogError(ctx, "users", "DeleteUser", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
+		return
+	}
 
-	err := h.useCase.DeleteUser("admin1", "asdasd")
+	err = h.useCase.DeleteUser("admin1", targetModel.Username)
 	if err != nil {
 		h.Log.LogError(ctx, "users", "DeleteUser", err)
 		ctx.AbortWithStatus(http.StatusInternalServerError) // 500
